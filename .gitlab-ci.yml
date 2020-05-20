@@ -20,8 +20,6 @@ build:
 test:
   stage: Testing
   image: php:7.3-cli
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - apt-get update
     - apt-get -y install wget libpq-dev libmagickwand-dev libzip-dev
