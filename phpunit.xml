@@ -10,7 +10,7 @@
             </exclude>
         </whitelist>
     </filter>
-        <testsuites>
+    <testsuites>
         <testsuite name="Base">
             <file>tests/methodsTestFree.php</file>
             <file>tests/methodsTestExportFree.php</file>
