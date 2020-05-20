@@ -1,0 +1,3 @@
+[submodule "Server/tcpdf"]
+	path = Server/tcpdf
+	url = https://github.com/tecnickcom/TCPDF.git
