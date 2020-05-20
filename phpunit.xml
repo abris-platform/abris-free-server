@@ -13,7 +13,6 @@
     <testsuites>
         <testsuite name="Base">
             <file>tests/methodsTestFree.php</file>
-            <file>tests/methodsTestExportFree.php</file>
             <file>pluginDocumentTest.php</file>
         </testsuite>
     </testsuites>
