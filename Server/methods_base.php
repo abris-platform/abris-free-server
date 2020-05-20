@@ -648,8 +648,6 @@ class methodsBase
             $data_result[$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'] = sql($aggregates[$aggrIndex], false, false, 'object', $desc." (агрегирование)");
         }
         
-                
-       
 
         return static::postProcessing($data_result, $params);
     }
