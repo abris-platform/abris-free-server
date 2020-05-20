@@ -1,6 +1,5 @@
 stages:
   - Building
-  - Reduction
   - Testing
 
 build:
@@ -16,7 +15,6 @@ build:
     paths:
       - Server
    
-
 test:
   stage: Testing
   image: php:7.3-cli
