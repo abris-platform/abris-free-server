@@ -1,0 +1,40 @@
+stages:
+  - Building
+  - Reduction
+  - Testing
+
+build:
+  stage: Building
+  script:
+    - whoami
+    - export COMMIT_TIME=$(date)
+    - sed -i "s/COMMIT/$CI_COMMIT_SHA/g" Server/version.json
+    - sed -i "s/DATE/$COMMIT_TIME/g" Server/version.json
+    - sed -i "s/Debug/Test/g" Server/version.json
+  artifacts:
+    name: 'abris-server-base'
+    paths:
+      - Server
+   
+
+test:
+  stage: Testing
+  image: php:7.3-cli
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - apt-get update
+    - apt-get -y install wget libpq-dev libmagickwand-dev libzip-dev
+    - pecl install imagick
+    - docker-php-ext-install pgsql
+    - docker-php-ext-install zip
+    - docker-php-ext-enable imagick
+  script:
+    - wget -O phpunit https://phar.phpunit.de/phpunit-8.phar
+    - chmod +x phpunit
+    - cp tests/config.php Server/config.php
+    - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base
+
+
+
+   

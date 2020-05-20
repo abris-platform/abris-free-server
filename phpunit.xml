@@ -1,0 +1,21 @@
+<phpunit colors="true" bootstrap="tests/bootstrap.php">
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <!--<directory suffix=".php">Server/.</directory>-->
+            <file>Server/db.php</file>
+            <file>Server/methods_base.php</file>
+            <exclude>
+                <directory suffix=".php">Server/tcpdf/*</directory>
+                <!--<file>/sr</file>-->
+            </exclude>
+        </whitelist>
+    </filter>
+        <testsuites>
+        <testsuite name="Base">
+            <file>tests/methodsTestFree.php</file>
+            <file>tests/methodsTestExportFree.php</file>
+            <file>pluginDocumentTest.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>
+

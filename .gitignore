@@ -1,0 +1,5 @@
+Server/sql.log
+Server/files/*
+coverage/*
+sql.log
+test_getTableDataPredicate_groups.html
