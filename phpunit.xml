@@ -4,10 +4,6 @@
             <!--<directory suffix=".php">Server/.</directory>-->
             <file>Server/db.php</file>
             <file>Server/methods_base.php</file>
-            <exclude>
-                <directory suffix=".php">Server/tcpdf/*</directory>
-                <!--<file>/sr</file>-->
-            </exclude>
         </whitelist>
     </filter>
     <testsuites>
