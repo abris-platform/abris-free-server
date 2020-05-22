@@ -622,12 +622,20 @@ class methodsBase
                 ' from '. relation($params["schemaName"],$params["entityName"]) . ' as t ' . $join.' where ('.$predicate.')) k where k.'.
                              $params["primaryKey"].'=\''.pg_escape_string($params["currentKey"]).'\'';
                 */
-                $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE (trunc((k.row_number-1)/'.$params["limit"].')*'.$params["limit"].') END as row_number
+
+                /*$pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE (trunc((k.row_number-1)/'.$params["limit"].')*'.$params["limit"].') END as row_number
                 FROM (select row_number() over (' .$orderfields.'), t.'.id_quote($params["primaryKey"]).
                 ' from '.relation($params["schemaName"],$params["entityName"]). ' as t ' . $join.' ) k where k.'.$params["primaryKey"].'=\''.pg_escape_string($params["currentKey"]).'\'';
+                    
+                 */
+
+
+                $pageNumberStatement = 'SELECT k.row_number FROM (select row_number() over (' .$orderfields.'), t.'.id_quote($params["primaryKey"]).' from ('.$statement.') t) k where k.'.
+                             $params["primaryKey"].'=\''.pg_escape_string($params["currentKey"]).'\'';
 
                 $rowNumberRes = sql($pageNumberStatement);
-                $params["offset"] = $rowNumberRes[0]["row_number"];
+                $rowNumber = $rowNumberRes[0]["row_number"];
+                $params["offset"] = ($rowNumber>=1)?(floor(($rowNumber - 1) / $params["limit"]) * $params["limit"]):0;
 
             }
         }
