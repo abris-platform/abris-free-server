@@ -538,7 +538,7 @@ $this->assertEquals($res,
                     "airport_name", 
                     "timezone" 
                  ], 
-"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" , count(*) OVER () as query_count FROM \"bookings\".\"airports\" as t  where (\"t\".\"timezone\" = 'Asia/Novokuznetsk')   LIMIT 10 OFFSET 0", 
+"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  where (\"t\".\"timezone\" = 'Asia/Novokuznetsk')   LIMIT 10 OFFSET 0", 
 "count(airport_code)" => [
                        [
                           "count" => "2" 
@@ -625,7 +625,7 @@ $this->assertEquals($res,
 
 "records" => [
    0 => [
-      "count" => 1,
+      "count" => 104,
    ],
 ],
 
@@ -637,7 +637,7 @@ $this->assertEquals($res,
    3 => "timezone"
 ],
 
-"sql" => "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone , count(*) OVER () as query_count FROM \"bookings\".\"airports\" as t    LIMIT 1 OFFSET 0",
+"sql" => "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t    LIMIT 1 OFFSET 0",
 "count(airport_name)" => [
    0 => [
       "count" => 104
@@ -767,7 +767,7 @@ $this->assertEquals($res,
                                              "airport_name", 
                                              "timezone" 
                                           ], 
-"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" , count(*) OVER () as query_count FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 50" 
+"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 50" 
 ]
 );
 }

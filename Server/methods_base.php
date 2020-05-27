@@ -150,11 +150,15 @@ class methodsBase
             */
             }
             else{
-                $statement = "SELECT DISTINCT $field_list  , count(*) OVER () as query_count  FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
+                $statement = "SELECT DISTINCT $field_list FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
+                $count = "SELECT count(DISTINCT $field_list) FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
+
             }
         }
         else {
-            $statement = "SELECT $field_list  , count(*) OVER () as query_count FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
+            $statement = "SELECT $field_list FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
+            $count = "SELECT count(*) FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
+
         }
 
         $where = "";
@@ -179,6 +183,7 @@ class methodsBase
         }
 
         if ($where) {
+            $count = $count . ' where ' . $where;
             $statement = $statement . ' where ' . $where;
         }
         $statement = $statement.' '.$orderfields;
@@ -189,14 +194,7 @@ class methodsBase
         }
 
 
-        $data_res = sql($statement);
-        $records = array();
-        $records[0]["count"] = 0;
-        foreach($data_res as &$value){
-            $records[0]["count"] = array_pop($value);
-        }
-
-        return array("data" => $data_res, "records" => $records);
+        return array("data" => sql($statement), "records" => sql($count));
     }
      //---------------------------------------------------------------------------------------
     // Если что вернуть в функцию getTableDataPredicate
@@ -551,13 +549,16 @@ class methodsBase
         $distinctfields = $order_distinct['distinctfields'];
         
         $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params);
-
+        if($distinctfields)
+        $count = 'SELECT count(distinct '.$distinctfields.') FROM ' . relation($params["schemaName"],$params["entityName"]) . ' as t ' . $join;
+      else
+        $count = 'SELECT count(*) FROM ' . relation($params["schemaName"],$params["entityName"]) . ' as t ' . $join;
 
         if($distinctfields){
             $distinctfields = 'distinct on ('.$distinctfields.')';
         }
-        $statement = 'SELECT '.$distinctfields .' '. $field_list . ' , count(*) OVER () as query_count FROM ' . relation($params["schemaName"],$params["entityName"]) . ' as t ' . $join;
-       
+        $statement = 'SELECT '.$distinctfields .' '. $field_list . ' FROM ' . relation($params["schemaName"],$params["entityName"]) . ' as t ' . $join;
+
         $sql_aggregates = "";
         foreach($params["aggregate"] as $aggregateDescription) {
             if($aggregateDescription == end($params["aggregate"])) {
@@ -578,6 +579,7 @@ class methodsBase
             //throw new Exception($predicate);
             $statement = $statement . ' where ' . $predicate;
             $sql_aggregates = $sql_aggregates .  ' where ' . $predicate;
+            $count = $count . ' where ' . $predicate;
         }
         else
           $predicate = 'true';
@@ -622,20 +624,12 @@ class methodsBase
                 ' from '. relation($params["schemaName"],$params["entityName"]) . ' as t ' . $join.' where ('.$predicate.')) k where k.'.
                              $params["primaryKey"].'=\''.pg_escape_string($params["currentKey"]).'\'';
                 */
-
-                /*$pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE (trunc((k.row_number-1)/'.$params["limit"].')*'.$params["limit"].') END as row_number
+                $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE (trunc((k.row_number-1)/'.$params["limit"].')*'.$params["limit"].') END as row_number
                 FROM (select row_number() over (' .$orderfields.'), t.'.id_quote($params["primaryKey"]).
                 ' from '.relation($params["schemaName"],$params["entityName"]). ' as t ' . $join.' ) k where k.'.$params["primaryKey"].'=\''.pg_escape_string($params["currentKey"]).'\'';
-                    
-                 */
-
-
-                $pageNumberStatement = 'SELECT k.row_number FROM (select row_number() over (' .$orderfields.'), t.'.id_quote($params["primaryKey"]).' from ('.$statement.') t) k where k.'.
-                             $params["primaryKey"].'=\''.pg_escape_string($params["currentKey"]).'\'';
 
                 $rowNumberRes = sql($pageNumberStatement);
-                $rowNumber = $rowNumberRes[0]["row_number"];
-                $params["offset"] = ($rowNumber>=1)?(floor(($rowNumber - 1) / $params["limit"]) * $params["limit"]):0;
+                $params["offset"] = $rowNumberRes[0]["row_number"];
 
             }
         }
@@ -645,21 +639,12 @@ class methodsBase
 
         //return array("data" => sql($statement), "records" => sql($count), "sql" => $statement);
 
-        $data_res = sql($statement,false, false, (isset($params['format'])&&!isset($params['process']))?$params['format']:'object', $desc);
-        $records = array();
-        $records[0]["count"] = 0;
-        foreach($data_res as &$value){
-            $records[0]["count"] = array_pop($value);
-        }
-
-
-        $data_result = array("data" => $data_res, 
-                             "records" => $records, 
-                             "offset" =>$params["offset"],
+        $data_result = array("data" => sql($statement,false, false, (isset($params['format'])&&!isset($params['process']))?$params['format']:'object', $desc), 
+                             "records" => sql($count, false, false, 'object', $desc." (количество)"), 
+                             "offset" =>$params["offset"], 
                              "fields"=>$field_array, 
-                             "sql" => $statement); 
+                             "sql" => $statement);
 
-            
 
         if(isset($params['predicate']['operands'][0])){
             $fst_operand = $params['predicate']['operands'][0];
