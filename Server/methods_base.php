@@ -36,7 +36,7 @@ class methodsBase
     protected static function postProcessing(&$data_result, &$params){
         return $data_result;
     }
-    
+
     public static function authenticate($params)
     {
         if ($params["usename"] <> '' and $params["passwd"] <> '') {
@@ -187,14 +187,25 @@ class methodsBase
             $statement = $statement . ' where ' . $where;
         }
         $statement = $statement.' '.$orderfields;
-        
 
+        
+        $statement_count =  $statement;
         if ($params["limit"] != 0 or $params["offset"] != 0) {
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
+        $data_resul_statement = sql($statement);
+        $count_data = count($data_resul_statement);
 
-        return array("data" => sql($statement), "records" => sql($count));
+        if($count_data < $params["limit"]){
+            $number_count[0]["count"] = $count_data;  
+        } 
+        else{ 
+            $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count,$count);
+        }
+
+
+        return array("data" => $data_resul_statement, "records" => $number_count);
     }
      //---------------------------------------------------------------------------------------
     // Если что вернуть в функцию getTableDataPredicate
@@ -584,10 +595,7 @@ class methodsBase
         else
           $predicate = 'true';
 
-
-
-
-        $rollupfields = '';
+          $rollupfields = '';
 
 
 /*
@@ -633,14 +641,27 @@ class methodsBase
 
             }
         }
+        
+        
+
+        $statement_count = $statement;
         if (($params["limit"] != 0 and $params["limit"] != -1) or ($params["offset"] != 0  &&  $params["offset"] >= 0)) {
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
-        //return array("data" => sql($statement), "records" => sql($count), "sql" => $statement);
+        $data_resul_statement = sql($statement,false, false, (isset($params['format'])&&!isset($params['process']))?$params['format']:'object', $desc);
+        $count_data = count($data_resul_statement);
 
-        $data_result = array("data" => sql($statement,false, false, (isset($params['format'])&&!isset($params['process']))?$params['format']:'object', $desc), 
-                             "records" => sql($count, false, false, 'object', $desc." (количество)"), 
+        if($count_data < $params["limit"]){
+            $number_count[0]["count"] = $count_data;  
+        } 
+        else{ 
+            $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count,$count);
+        }
+                          
+
+        $data_result = array("data" => $data_resul_statement ,
+                             "records" => $number_count ,
                              "offset" =>$params["offset"], 
                              "fields"=>$field_array, 
                              "sql" => $statement);
@@ -932,4 +953,29 @@ class methodsBase
     {
         return $params;
     }
+
+    private static function sql_count_estimate($params, $statement, $count){
+        $desc =  isset($params['desc'])? $params['desc']:'';
+        $count_explain = 'explain (format json) '.$statement;
+        $json_explain = sql($count_explain ,false, false, 'object', $desc." (характеристики)"); 
+        $obj_json = json_decode($json_explain[0]["QUERY PLAN"]);
+        $plan_rows = $obj_json[0]->{"Plan"}->{"Plan Rows"};
+        $total_cost = $obj_json[0]->{"Plan"}->{"Total Cost"};
+
+    
+
+        $threshold_plan_rows = 10000;
+ 
+        if(isset($params["max_cost"])){
+            if($total_cost > $params["max_cost"]){
+                return $plan_rows;
+            }
+        }
+ 
+        $arr_count = sql($count ,false, false, 'object', $desc." (количество)");
+        $plan_rows = $arr_count[0]["count"];
+        return $plan_rows;
+
+    }
+
 }
