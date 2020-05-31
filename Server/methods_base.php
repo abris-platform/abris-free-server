@@ -12,10 +12,6 @@ if (file_exists(dirname(__FILE__) . '/tcpdf/tcpdf.php'))
 if (file_exists(dirname(__FILE__) . '/xlsxwriter.class.php'))
     include_once(dirname(__FILE__) . '/xlsxwriter.class.php');
 
-//use Spipu\Html2Pdf\Html2Pdf;
-//use Spipu\Html2Pdf\Exception\Html2PdfException;
-//use Spipu\Html2Pdf\Exception\ExceptionFormatter;
-
 require_once "db.php";
 if (file_exists(dirname(__FILE__) . '/plugins.php'))
     require_once "plugins.php";
@@ -44,8 +40,7 @@ class methodsBase
             $_SESSION['login'] = $params["usename"];
             $_SESSION['password'] = $params["passwd"];
             checkSchemaAdmin();
-            return sql("SELECT '" . $params["usename"] . "' as usename"); // выполнить запрос для проверки аутентификации
-            //return array(array("usename" => $params["usename"]));
+            return sql("SELECT '" . $params["usename"] . "' as usename"); //run a request to verify authentication
         } else {
             if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
                 global $adminSchema;
@@ -110,41 +105,6 @@ class methodsBase
         $orderfields = '';
         if (isset($params["distinct"])) {
             if (is_array($params["distinct"])) {
-
-                /* foreach ($params["distinct"] as $i => $o) {
-        
-                    if( $params["fields"][$o["field"]]["subfields"])
-                        $o_f = id_quote($o["field"]);
-                    else
-                        $o_f = id_quote($o["field"]);
-                    
-                    if( isset($o["func"])){
-                        $o_f = id_quote($o["func"]).'('.$o_f.')';
-                    }
-                    if( isset($o["type"])){
-                        $o_f = $o_f.'::'.id_quote($o["type"]);
-                    }
-                    if( isset($o["distinct"])){
-                        if ($distinctfields) {
-                            $distinctfields .= ', '.$o_f;
-                        } else {
-                            $distinctfields = $o_f;
-                        }
-                    }
-        
-                    if ($orderfields) {
-                        $orderfields .= ', '.$o_f;
-                    } else {
-                        $orderfields = 'ORDER BY '.$o_f;
-                    }
-        
-                    if ($o["desc"]) {
-                        $orderfields .= " DESC";
-                    }
-                }
-                $statement = "SELECT DISTINCT on ($distinctfields) $field_list FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
-                $count = "SELECT count(DISTINCT $distinctfields) FROM " . relation($params["schemaName"],$params["entityName"]). ' t';
-            */
             } else {
                 $statement = "SELECT DISTINCT $field_list FROM " . relation($params["schemaName"], $params["entityName"]) . ' t';
                 $count = "SELECT count(DISTINCT $field_list) FROM " . relation($params["schemaName"], $params["entityName"]) . ' t';
@@ -199,7 +159,7 @@ class methodsBase
         return array("data" => $data_resul_statement, "records" => $number_count);
     }
     //---------------------------------------------------------------------------------------
-    // Если что вернуть в функцию getTableDataPredicate
+    // If anything return to function - getTableDataPredicate 
     public static function quote($n)
     {
         return "'" . pg_escape_string($n) . "'";
@@ -300,7 +260,6 @@ class methodsBase
                 } else
                     return "true";
             case "ISN":
-                //return $field . " IS NULL or ". $field ." = ''";
                 return $field . " IS NULL ";
             case "ISNN":
                 return $field . " IS NOT NULL ";
@@ -412,8 +371,6 @@ class methodsBase
 
     public static function getTableDataPredicate($params)
     {
-        // plog();
-        // plog(json_encode($params));
         $desc =  isset($params['desc']) ? $params['desc'] : '';
         $replace_rules = array();
 
@@ -484,11 +441,6 @@ class methodsBase
                     else
                         $field_list .= id_quote($field_description["table_alias"]) . "." . id_quote($field_name);
                     $field_array[] = $field_name;
-
-                    //if($field_description["type"])
-                    //  $field_list .= "::".id_quote($field_description["type"]); // <- �� ������ ������
-
-                    //$field_list .= "::text"; // <- �� ������ ������
                 }
             }
             foreach ($params["functions"] as $function_name => $function_description) {
@@ -505,10 +457,6 @@ class methodsBase
 
                 $field_list .= id_quote($function_description["schema"]) . "." . id_quote($function_description["func"]) . "($param_list)";
                 $field_array[] = $function_description["func"];
-                //if($field_description["type"])
-                //  $field_list .= "::".id_quote($field_description["type"]); // <- �� ������ ������
-
-                //$field_list .= "::text"; // <- �� ������ ������
             }
         }
 
@@ -558,7 +506,6 @@ class methodsBase
         }
 
         if ($predicate != '') {
-            //throw new Exception($predicate);
             $statement = $statement . ' where ' . $predicate;
             $sql_aggregates = $sql_aggregates .  ' where ' . $predicate;
             $count = $count . ' where ' . $predicate;
@@ -566,42 +513,11 @@ class methodsBase
             $predicate = 'true';
 
         $rollupfields = '';
-
-
-        /*
-        if(isset($params["group"])){
-            foreach ($params["group"] as $i => $f) {
-                    $o_t_alias = $params["fields"][$f]["table_alias"];
-
-                    if(!$o_t_alias)
-                      $o_t_alias = 't';
-        
-                    //if( $params["fields"][$f]["subfields"])
-                    //    $o_f = id_quote($f);
-                    //else
-                        $o_f = id_quote($o_t_alias).'.' .id_quote($f);
-                    
-                    if ($rollupfields!='') {
-                        $rollupfields .= ', '.$o_f;
-                    } else {
-                        $rollupfields .= $o_f;
-                    }
-    
-            }
-            $rollupfields = 'GROUP BY ROLLUP('.$rollupfields.')';
-            
-        }
-		$statement = $statement . " " . $rollupfields. " " . $orderfields;
-*/
+ 
         $statement = $statement . "  " . $orderfields;
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
             if ($params["currentKey"] && ($params["limit"] != 0 and $params["limit"] != -1)) {
-                /*
-                $pageNumberStatement = 'SELECT k.row_number FROM (select row_number() over (' .$orderfields.'), t.'.id_quote($params["primaryKey"]).
-                ' from '. relation($params["schemaName"],$params["entityName"]) . ' as t ' . $join.' where ('.$predicate.')) k where k.'.
-                             $params["primaryKey"].'=\''.pg_escape_string($params["currentKey"]).'\'';
-                */
                 $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE (trunc((k.row_number-1)/' . $params["limit"] . ')*' . $params["limit"] . ') END as row_number
                 FROM (select row_number() over (' . $orderfields . '), t.' . id_quote($params["primaryKey"]) .
                     ' from ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
@@ -704,11 +620,6 @@ class methodsBase
         return sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . id_quote($params["key"]) . ' = \'' . pg_escape_string($params["value"]) . '\'');
     }
 
-    /*public static function isEmailUsed($params)
-    {
-        return count(sql_s('SELECT * FROM users_view WHERE user_email = \'' . $params["email"] . '\'')) == 1;
-    } */ // users_view
-
     public static function deleteEntitiesByKey($params)
     {
         return sql('DELETE FROM ' . id_quote($params["schemaName"]) . '.' .
@@ -729,7 +640,6 @@ class methodsBase
                     $type_conversion = '';
                     if ($params["types"][$field]) {
                     }
-                    // $type_conversion = id_quote($params["types"][$field])."('".pg_escape_string($value)."')";
                     else
                         $type_conversion = "'" . pg_escape_string($value) . "'";
 
@@ -747,14 +657,6 @@ class methodsBase
                 }
             }
 
-            /* if ($fields === '') { // prevent error on empty data
-                $fields = array_keys($params["fields"][0])[0];
-                $values = 'uuid_generate_v4()';
-            } */  // пустой запрос на добавление 
-
-
-
-
             $sql .= 'INSERT INTO ' . id_quote($params["schemaName"]) . '.' .
                 id_quote($params["entityName"]) . ' (' . $fields .
                 ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
@@ -764,17 +666,6 @@ class methodsBase
 
         $ins_ret = sql($sql, null, true, 'object', $desc . " (файлы)");
         $key = $ins_ret[0][$params["key"]];
-
-
-        /*if($params["files"])
-        {
-            foreach($params["files"] as $i=>$f){
-                foreach(json_encode($params["fields"][$f]) as $i1=>$f1){
-                    $f_key = $f1["file"];
-                    sql("update system.tmp_files set row_key = '$key'  where key = '$f_key'", null, true, 'object', $desc." (файлы)");
-                }
-            }
-        }*/   // delete
 
         return $ins_ret;
     }
@@ -817,16 +708,6 @@ class methodsBase
                     }
                 }
             };
-
-            /*if($params["files"])
-            {
-                foreach($params["files"] as $i=>$f){
-                    foreach(json_decode($params["fields"][$f], true) as $i1=>$f1){
-                        $f_key = $f1["file"];
-                        $sql .= "update system.tmp_files set row_key = '$key'  where key = '$f_key'";
-                    }
-                }
-            } */   // delete pia
 
             $type_conversion = '';
             if ($params["types"][$params["key"]])

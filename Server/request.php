@@ -47,8 +47,6 @@ function normalizeKey($key) {
 	return $key;
 }
 
-
-
 function request() {
 	cors();
 	global $dbname, $dbDefaultLanguage;
@@ -57,7 +55,6 @@ function request() {
 	$pid_count = '';
 	if (isset($_SESSION['login']))
 		$usename = $_SESSION['login'];
-
 
 	if (isset($_SESSION["dbname"])) {
 		$dbname = $_SESSION["dbname"];
@@ -94,7 +91,6 @@ function request() {
 		}
 	}
 }
-
 
 try {
 	echo request();

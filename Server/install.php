@@ -8,26 +8,26 @@ $dbpass = "123456";
 $metaSchema = "meta";
 
 function disable_ob() {
-    // Выключить буферизацию вывода
+    // Turn off output buffering
     ini_set('output_buffering', 'off');
 
-    // Выключаем сжатие вывода
+    // Turn off output compression
     ini_set('zlib.output_compression', false);
 
-    // Очистить буферы вывода
+    // Clear output buffers
     ini_set('implicit_flush', true);
     ob_implicit_flush(true);
 
     while (ob_get_level() > 0) {
-        // Получить текущие уровень вывода
+        // Get current output level
         $level = ob_get_level();
-        // Закончить буферизацию
+        // Finish Buffering
         ob_end_clean();
-        // Прерваться, если текущий уровень не изменился (новая строка не появилась)
+        // Abort if the current level has not changed (a new line has not appeared)
         if (ob_get_level() == $level) break;
     }
 
-    // Отключаем буферизацию и сжатие для Apache
+    // Disable buffering and compression for Apache
     if (function_exists('apache_setenv')) {
         apache_setenv('no-gzip', '1');
         apache_setenv('dont-vary', '1');
@@ -77,21 +77,16 @@ function StartInstall() {
             $_REQUEST["address"] != '' && $_REQUEST["port"] != '' && $_REQUEST["database"] != ''
             && $_REQUEST["username"] != '' && $_REQUEST["userpas"] != ''
         ) {
-            // подключение "терминала"
+            // connection of the "terminal"
             disable_ob();
-            // создание config.php
             CreateConfig($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"]);
-            // Создание БД
             if (isset($_REQUEST['create'])) {
                 CreateDatabase($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"], $_REQUEST["username"], $_REQUEST["userpas"]);
             }
-            // установка abris_free
             InstallFree($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"], $_REQUEST["username"], $_REQUEST["userpas"]);
-            // установка demo
             if (isset($_REQUEST['demo'])) {
                 CreateDemo($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"], $_REQUEST["username"], $_REQUEST["userpas"]);
             }
-            // завершение
             echo "Install completed";
         } else {
             echo "<p>Fill in the input fields</p>";

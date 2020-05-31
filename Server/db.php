@@ -53,8 +53,7 @@ function id_quote($identifier) {
     return '"' . str_replace('"', '""', $identifier) . '"';
 }
 
-// Ф-ция проверяет доступность схемы администрирования
-// и ставит соответствующий флаг в переменную $_SESSION["enable_admin"]
+// The function checks the availability of the administration scheme and sets the corresponding flag to the variable $ _SESSION ["enable_admin"]
 function checkSchemaAdmin() {
     global $adminSchema;
     $_SESSION["enable_admin"] = sql_s("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '" . $adminSchema . "');")[0]["exists"];
@@ -141,14 +140,14 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
 
     file_put_contents("sql.log", date('Y-m-d H:i:s', time()) . "\t" . (isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : 'cli') . "\t" . $pid . "\t" . $query . "\n", FILE_APPEND);
 
-    // Обновление даты выхода в базе (sessions)
+// Update the release date in the table (sessions)
     if (isset($_SESSION['login']) && isset($_SESSION['password']))
         if (($_SESSION['login'] <> '') and ($_SESSION['password'] <> '') and ($_SESSION["enable_admin"] == "t")) {
             $ipAddr = _get_client_ip();
             $updDateExit = pg_query($dbconn, "SELECT " . $adminSchema . ".update_session('" . $_SESSION['login'] . "', '" . $ipAddr . "', '" . $_COOKIE['PHPSESSID'] . "');");
         }
 
-    //Добавление в лог в базе (log).
+// Add to user actions in the table (log).
     $logs = array();
     if ($logDb and ($_SESSION["enable_admin"] == "t")) {
         $log = pg_query($dbconn, "INSERT INTO " . $adminSchema . "." . $adminLogTable . "(query) VALUES (" . "'" . pg_escape_string($query) . "') RETURNING key;");
@@ -160,12 +159,6 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
                 $logs[] = $line;
         }
     }
-
-    //$result = pg_query($dbconn, "SET DATESTYLE TO German");
-    //if(!$result)
-    //{
-    //    throw new Exception(pg_last_error());
-    //}
 
     $result = pg_query($dbconn, 'SET bytea_output = "escape"; SET intervalstyle = \'iso_8601\';');
     if (!$result) {
@@ -192,7 +185,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     unset($_SESSION['pids'][$pid]);
 
     if (!$result) {
-        // Если произошла ошибка со стороны базы, то пытаемся протолкнуть это в таблицу логирования запросов (log_query).
+        // If an error has occurred from the side of the database, then try to push this into the query logging table (log_query).
         $lastError = pg_last_error();
         if ($_SESSION["enable_admin"] == "t") {
             if (array_key_exists('key', $logs[0]))
@@ -278,7 +271,6 @@ function sql_auth($query) {
     global $host, $dbname, $port, $dbuser, $dbpass;
     $dbconn = pg_connect("host=$host dbname=$dbname port=$port user=$dbuser password=$dbpass") or die('Could not connect: ' . pg_last_error());
     $result = pg_query($dbconn, "select * from sql_auth('" . pg_escape_string($query) . "', '" . @$_SESSION['key'] . "')");
-    //pg_set_error_verbosity($dbconn,PGSQL_ERRORS_TERSE );
     if (!$result) {
         throw new Exception(pg_last_error());
     }
