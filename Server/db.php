@@ -77,7 +77,7 @@ function sql_handler_test($query, $format) {
     if (!isset($_SESSION["enable_admin"]))
         $_SESSION["enable_admin"] = "f";
 
-    $query = str_replace(array("\r\n", "\r", "\n"), ' ',  $query);
+    $query = str_replace(array("\r\n", "\r", "\n"), ' ', $query);
     $query_test_array = file("test_query_response_json.txt", FILE_IGNORE_NEW_LINES);
     foreach ($query_test_array as $line_num => $line) {
         $json_response = json_decode($line, true);
@@ -88,7 +88,8 @@ function sql_handler_test($query, $format) {
     return "new_query_test";
 }
 
-function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '') {
+function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true)
+{
     global $host, $dbname, $port, $dbuser, $dbpass, $adminSchema, $adminLogTable, $adminSessionTable, $dbDefaultLanguage, $anotherPrefLog;
 
 
@@ -106,7 +107,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
 
     if (isset($_SESSION['login']) and isset($_SESSION['password'])) {
         $log = $_SESSION['login'];
-        $pwd = $_SESSION['password'];
+        $pwd = $encrypt_pass ? methodsBase::DecryptStr($_SESSION['password'], $_COOKIE['PHPSESSID']) : $_SESSION['password'];
         checkSchemaAdmin();
 
         $dbconn = @pg_connect("host=$host dbname=$dbname port=$port user=$log password=$pwd");
@@ -213,7 +214,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
         $fp = fopen("test_query_response_json.txt", "a+");
         $json = [
-            "query" => str_replace(array("\r\n", "\r", "\n"), ' ',  $query),
+            "query" => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
             "format" => $format,
             "response" => $response,
 
@@ -254,7 +255,7 @@ function sql_s($query) {
     if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
         $fp = fopen("test_query_response_json.txt", "a+");
         $json = [
-            "query" => str_replace(array("\r\n", "\r", "\n"), ' ',  $query),
+            "query" => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
             "format" => "",
             "response" => $response,
 

@@ -33,3 +33,5 @@ $dbRegFunction = 'create_user'; // user create function, must be in public
 // Localization settings
 $dbDefaultLanguage = 'en';
 $dbLanguageList = ['en', 'ru'];
+
+$cryptMethod = 'AES-256-CBC';

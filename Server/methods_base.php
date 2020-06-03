@@ -34,19 +34,52 @@ class methodsBase
         return $data_result;
     }
 
+    protected static function EncryptStr($data, $key)
+    {
+        global $cryptMethod;
+
+        $ivlen = openssl_cipher_iv_length($cryptMethod);
+        $iv = openssl_random_pseudo_bytes($ivlen);
+        $ciphertextRaw = openssl_encrypt($data, $cryptMethod, $key, $options = OPENSSL_RAW_DATA, $iv);
+        $hmac = hash_hmac('sha256', $ciphertextRaw, $key, $as_binary = true);
+        return base64_encode($iv . $hmac . $ciphertextRaw);
+    }
+
+    public static function DecryptStr($data, $key) {
+        global $cryptMethod;
+
+        $c = base64_decode($data);
+        $ivlen = openssl_cipher_iv_length($cryptMethod);
+        $iv = substr($c, 0, $ivlen);
+        $hmac = substr($c, $ivlen, $sha2len=32);
+        $ciphertextRaw = substr($c, $ivlen+$sha2len);
+        $plainText = openssl_decrypt($ciphertextRaw, $cryptMethod, $key, $options=OPENSSL_RAW_DATA, $iv);
+        $calcmac = hash_hmac('sha256', $ciphertextRaw, $key, $as_binary=true);
+
+        if (hash_equals($hmac, $calcmac))
+            return $plainText;
+        else
+            throw new Exception('Invalid password detected! Password can be changed!');
+    }
+
     public static function authenticate($params)
     {
-        if ($params["usename"] <> '' and $params["passwd"] <> '') {
-            $_SESSION['login'] = $params["usename"];
-            $_SESSION['password'] = $params["passwd"];
+        if ($params['usename'] <> '' and $params['passwd'] <> '') {
+            $_SESSION['login'] = $params['usename'];
+            $_SESSION['password'] = $params['passwd'];
+
             checkSchemaAdmin();
-            return sql("SELECT '" . $params["usename"] . "' as usename"); //run a request to verify authentication
+            $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
+
+            $_SESSION['password'] = methodsBase::EncryptStr($_SESSION['password'], $_COOKIE['PHPSESSID']);
+
+            return $usenameDB;
         } else {
             if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
                 global $adminSchema;
                 global $ipAddr;
-                if ($_SESSION["enable_admin"] == "t")
-                    sql("SELECT " . $adminSchema . ".update_session('" . $_SESSION['login'] . "', '" . $ipAddr . "', '" . $_COOKIE['PHPSESSID'] . "');", true);
+                if ($_SESSION['enable_admin'] == 't')
+                    sql("SELECT $adminSchema.update_session('$_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
             }
 
             unset($_SESSION['login']);
@@ -65,14 +98,14 @@ class methodsBase
         global $domain, $user;
         if (isset($_SESSION['login']) && ($_SESSION['login']) <> '') {
             return $_SESSION['login'];
-        } else 
-		if (isset($_SERVER['REMOTE_USER'])) {
-            $cred = explode('\\', $_SERVER['REMOTE_USER']);
-            list($domain, $user) = $cred;
-            $_SESSION['login'] =  $user;
-            return $user;
         } else
-            return 'guest';
+            if (isset($_SERVER['REMOTE_USER'])) {
+                $cred = explode('\\', $_SERVER['REMOTE_USER']);
+                list($domain, $user) = $cred;
+                $_SESSION['login'] = $user;
+                return $user;
+            } else
+                return 'guest';
     }
 
 
@@ -97,8 +130,6 @@ class methodsBase
         } else {
             $field_list = "*";
         }
-
-
 
 
         $distinctfields = '';
@@ -141,7 +172,7 @@ class methodsBase
         $statement = $statement . ' ' . $orderfields;
 
 
-        $statement_count =  $statement;
+        $statement_count = $statement;
         if ($params["limit"] != 0 or $params["offset"] != 0) {
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
@@ -218,9 +249,9 @@ class methodsBase
             case "G":
                 return $field . " > '" . pg_escape_string($value) . "'";
             case "F":
-                return  id_quote($value) . "($field)";
+                return id_quote($value) . "($field)";
             case "FC":
-                return  id_quote($value) . "('" . pg_escape_string($params["schemaName"] . '.' . $params["entityName"]) . "', $field)";
+                return id_quote($value) . "('" . pg_escape_string($params["schemaName"] . '.' . $params["entityName"]) . "', $field)";
             case "EQF":
                 return $field . " =  " . id_quote($value) . "()";
             case "FEQ":
@@ -306,6 +337,7 @@ class methodsBase
                 return '(' . $where . ')';
         }
     }
+
     public static function makePredicateString($predicate_object, $replace_rules, $fields, $params)
     {
 
@@ -322,6 +354,7 @@ class methodsBase
         }
         return $string;
     }
+
     //---------------------------------------------------------------------------------------
     public static function makeOrderAndDistinctString($order_object, $params)
     {
@@ -367,11 +400,12 @@ class methodsBase
         }
         return array('orderfields' => $orderfields, 'distinctfields' => $distinctfields);
     }
+
     //---------------------------------------------------------------------------------------
 
     public static function getTableDataPredicate($params)
     {
-        $desc =  isset($params['desc']) ? $params['desc'] : '';
+        $desc = isset($params['desc']) ? $params['desc'] : '';
         $replace_rules = array();
 
         if (isset($params["fields"])) {
@@ -461,7 +495,6 @@ class methodsBase
         }
 
 
-
         $join = "";
 
         foreach ($params["join"] as $k => $j) {
@@ -507,13 +540,13 @@ class methodsBase
 
         if ($predicate != '') {
             $statement = $statement . ' where ' . $predicate;
-            $sql_aggregates = $sql_aggregates .  ' where ' . $predicate;
+            $sql_aggregates = $sql_aggregates . ' where ' . $predicate;
             $count = $count . ' where ' . $predicate;
         } else
             $predicate = 'true';
 
         $rollupfields = '';
- 
+
         $statement = $statement . "  " . $orderfields;
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
@@ -528,9 +561,8 @@ class methodsBase
         }
 
 
-
         $statement_count = $statement;
-        if (($params["limit"] != 0 and $params["limit"] != -1) or ($params["offset"] != 0  &&  $params["offset"] >= 0)) {
+        if (($params["limit"] != 0 and $params["limit"] != -1) or ($params["offset"] != 0 && $params["offset"] >= 0)) {
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
@@ -629,7 +661,7 @@ class methodsBase
     public static function addEntities($params)
     {
 
-        $desc =  isset($params['desc']) ? $params['desc'] : '';
+        $desc = isset($params['desc']) ? $params['desc'] : '';
         $sql = '';
 
         foreach ($params["fields"] as $r => $row) {
@@ -639,8 +671,7 @@ class methodsBase
                 if ($value) {
                     $type_conversion = '';
                     if ($params["types"][$field]) {
-                    }
-                    else
+                    } else
                         $type_conversion = "'" . pg_escape_string($value) . "'";
 
                     if ($fields) {
@@ -661,7 +692,6 @@ class methodsBase
                 id_quote($params["entityName"]) . ' (' . $fields .
                 ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
         }
-
 
 
         $ins_ret = sql($sql, null, true, 'object', $desc . " (файлы)");
@@ -719,6 +749,7 @@ class methodsBase
 
         return sql($sql, null, true);
     }
+
     public static function getPIDs($params)
     {
         $r = sql('SELECT * FROM pg_stat_activity where datname = current_database()');
@@ -786,7 +817,6 @@ class methodsBase
         }
 
 
-
         $prop_arr = methodsBase::getAllEntities(array(
             "schemaName" => $metaSchema,
             "entityName" => "view_projection_property"
@@ -810,13 +840,12 @@ class methodsBase
 
     private static function sql_count_estimate($params, $statement, $count)
     {
-        $desc =  isset($params['desc']) ? $params['desc'] : '';
+        $desc = isset($params['desc']) ? $params['desc'] : '';
         $count_explain = 'explain (format json) ' . $statement;
         $json_explain = sql($count_explain, false, false, 'object', $desc . " (характеристики)");
         $obj_json = json_decode($json_explain[0]["QUERY PLAN"]);
         $plan_rows = $obj_json[0]->{"Plan"}->{"Plan Rows"};
         $total_cost = $obj_json[0]->{"Plan"}->{"Total Cost"};
-
 
 
         $threshold_plan_rows = 10000;
