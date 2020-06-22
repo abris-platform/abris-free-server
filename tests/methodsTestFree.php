@@ -71,8 +71,8 @@ final class methodsTest extends TestCase
         'types' => NULL,
    ];
 
-    $res = methodsBase::addEntities($params);
-    $this->assertEquals($res, [
+   $res = methodsBase::addEntities($params);
+   $this->assertEquals($res, [
       0 => [
           'book_ref' => '123456',
       ],
@@ -1165,6 +1165,19 @@ public function test_getTableData()
                 "table_name" => "airports"
             ) ) 
           );
+        
+    }
+
+    public function test_getUserDescription(){
+      $_SESSION['login'] = "admins";
+      $res = methodsBase::getUserDescription();
+      $this->assertEquals(
+         $res,
+           array(
+            "user" => "admins",
+            "comment" => "Администратор"
+           )
+      );
         
     }
 

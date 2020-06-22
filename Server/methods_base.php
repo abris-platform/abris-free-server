@@ -860,4 +860,14 @@ class methodsBase
         $plan_rows = $arr_count[0]["count"];
         return $plan_rows;
     }
+
+
+    public static function getUserDescription()
+    {
+        $res = sql('SELECT rolname AS user,  description AS comment
+        FROM pg_roles r
+        JOIN pg_shdescription c ON c.objoid = r.oid 
+        WHERE r.rolname = \''.methodsBase::getCurrentUser().'\'');
+        return $res[0];
+    }
 }
