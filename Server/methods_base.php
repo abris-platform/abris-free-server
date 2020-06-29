@@ -13,6 +13,8 @@ if (file_exists(dirname(__FILE__) . '/xlsxwriter.class.php'))
     include_once(dirname(__FILE__) . '/xlsxwriter.class.php');
 
 require_once "db.php";
+require_once "sql_view_projection.php";
+
 if (file_exists(dirname(__FILE__) . '/plugins.php'))
     require_once "plugins.php";
 
@@ -782,7 +784,7 @@ class methodsBase
         return [];
     }
 
-    private static function mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons)
+    private static function mergeMetadata($proj_arr, $prop_arr, $rel_arr , $buttons)
     {
         $metadata = array();
 
@@ -811,24 +813,36 @@ class methodsBase
     public static function getAllModelMetadata()
     {
         global $metaSchema;
-        $proj_arr = sql("SELECT * FROM $metaSchema.view_projection_entity");
-        if (@count($proj_arr) == 0) {
-            //throw new Exception("Metadata: no projections");
+        global $sql_view_projection;
+        $buttons = "";
+        $pages = "";
+
+        $extension = sql("SELECT * FROM pg_namespace WHERE nspname = '".$metaSchema."'");
+        if(empty($extension[0])) {
+            $proj_arr = sql($sql_view_projection["view_projection_entity"]);
+            $prop_arr = sql($sql_view_projection["view_projection_property"]);
+            $rel_arr = sql($sql_view_projection["view_projection_relation"]);
+           
+        }
+        else{
+            $proj_arr = sql("SELECT * FROM $metaSchema.view_projection_entity");
+            if (@count($proj_arr) == 0) {
+                //throw new Exception("Metadata: no projections");
+            }
+    
+            $prop_arr = methodsBase::getAllEntities(array(
+                "schemaName" => $metaSchema,
+                "entityName" => "view_projection_property"
+            ));
+    
+            $rel_arr = methodsBase::getAllEntities(array(
+                "schemaName" => $metaSchema,
+                "entityName" => "view_projection_relation"
+            ));
         }
 
+        $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr , $buttons);
 
-        $prop_arr = methodsBase::getAllEntities(array(
-            "schemaName" => $metaSchema,
-            "entityName" => "view_projection_property"
-        ));
-
-        $rel_arr = methodsBase::getAllEntities(array(
-            "schemaName" => $metaSchema,
-            "entityName" => "view_projection_relation"
-        ));
-
-
-        $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons);
         return array('projections' => $metadata, 'pages' => $pages);
     }
 
