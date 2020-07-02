@@ -12,7 +12,7 @@
         "db",
         "database"
     ],
-    "homepage":" https://abrisplatform.com",
+    "homepage":"https://abrisplatform.com",
     "license": "MIT",
     "require": {
         "php": "^7.0"
