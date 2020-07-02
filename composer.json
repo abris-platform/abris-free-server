@@ -1,0 +1,20 @@
+{
+    "name": "abris-platform/abris-free-server",
+    "description": "Free REST server for PostgreSQL used in Abris Platform",
+    "keywords": [
+        "pgsql",
+        "postgres",
+        "postgresql",
+        "select",
+        "insert",
+        "update",
+        "delete",
+        "db",
+        "database"
+    ],
+    "homepage":" https://abrisplatform.com",
+    "license": "MIT",
+    "require": {
+        "php": "^7.0"
+    }
+}
