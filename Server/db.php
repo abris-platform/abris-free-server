@@ -57,7 +57,7 @@ function id_quote($identifier) {
 
 // The function checks the availability of the administration scheme and sets the corresponding flag to the variable $ _SESSION ["enable_admin"]
 function checkSchemaAdmin() {
-    gglobal $adminSchema,  $D_SESSION;
+    global $adminSchema,  $D_SESSION;
     $D_SESSION["enable_admin"] = sql_s("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '" . $adminSchema . "');")[0]["exists"];
 }
 
