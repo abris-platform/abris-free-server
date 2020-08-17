@@ -16,21 +16,21 @@ final class methodsTest extends TestCase
 
  public function test_getPIDS_simple(){
     sql('select version()');
-    $res = methodsBase::getPIDS([]);
+    /*$res = methodsBase::getPIDS([]);
 
     $this->assertEquals($res, array(
       'pids' => 
      array (
      ),
-    ));
+    ));*/
 
-    /*$_SESSION['pids'] = ["test"=>"123456"];
+    $_SESSION['pids'] = ["test"=>"123456"];
     $res = methodsBase::getPIDS([]);
     $this->assertEquals($res, array(
       'pids' => 
      array (
      ),
-    )); */
+    )); 
 
 
 
