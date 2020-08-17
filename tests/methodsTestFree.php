@@ -758,10 +758,10 @@ $this->assertEquals($res,
    ], 
 "records" => [
                                        [
-                                          "count" => "104" 
+                                          "count" => 60
                                        ] 
                                     ], 
-"offset" => 50, 
+"offset" => '50', 
 "fields" => [
                                              "airport_code", 
                                              "airport_name", 
