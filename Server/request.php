@@ -53,15 +53,22 @@ function request() {
 	session_start();
 	$usename = '';
 	$pid_count = '';
-	if (isset($_SESSION['login']))
-		$usename = $_SESSION['login'];
+	
+	if(!$flag_asta) {   
+        session_start();
 
-	if (isset($_SESSION["dbname"])) {
-		$dbname = $_SESSION["dbname"];
-	}
+        if (isset($_SESSION['login']))
+            $usename = $_SESSION['login'];
 
-	if (!isset($_SESSION['lang']))
-		$_SESSION['lang'] = $dbDefaultLanguage;
+        if (isset($_SESSION["dbname"])) 
+            $dbname = $_SESSION["dbname"];
+
+        if (!isset($_SESSION['lang']))
+            $_SESSION['lang'] = $dbDefaultLanguage;
+    }
+    else{
+        $usename = methods::getShortEnvKRB5currentUser();
+    }
 
 	$pid_count = isset($_SESSION['pids']) ? count($_SESSION['pids']) : 0;
 
