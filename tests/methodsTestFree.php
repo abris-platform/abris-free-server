@@ -24,13 +24,13 @@ final class methodsTest extends TestCase
      ),
     ));
 
-    $_SESSION['pids'] = ["test"=>"123456"];
+    /*$_SESSION['pids'] = ["test"=>"123456"];
     $res = methodsBase::getPIDS([]);
     $this->assertEquals($res, array(
       'pids' => 
      array (
      ),
-    ));
+    )); */
 
 
 
