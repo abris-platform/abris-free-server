@@ -571,8 +571,8 @@ class methodsBase
         $data_resul_statement = sql($statement, false, false, (isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object', $desc);
         $count_data = count($data_resul_statement);
 
-        if ($count_data < $params["limit"]) {
-            $number_count[0]["count"] = $count_data;
+        if ($count_data < $params["limit"] + $params["offset"]) {
+            $number_count[0]["count"] = $count_data + $params["offset"];
         } else {
             $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count, $count);
         }
