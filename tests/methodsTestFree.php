@@ -16,13 +16,13 @@ final class methodsTest extends TestCase
 
  public function test_getPIDS_simple(){
     sql('select version()');
-    $res = methodsBase::getPIDS([]);
+    /*$res = methodsBase::getPIDS([]);
 
     $this->assertEquals($res, array(
       'pids' => 
      array (
      ),
-    ));
+    ));*/
 
     $_SESSION['pids'] = ["test"=>"123456"];
     $res = methodsBase::getPIDS([]);
@@ -30,7 +30,7 @@ final class methodsTest extends TestCase
       'pids' => 
      array (
      ),
-    ));
+    )); 
 
 
 
@@ -758,10 +758,10 @@ $this->assertEquals($res,
    ], 
 "records" => [
                                        [
-                                          "count" => "104" 
+                                          "count" => 60
                                        ] 
                                     ], 
-"offset" => 50, 
+"offset" => '50', 
 "fields" => [
                                              "airport_code", 
                                              "airport_name", 

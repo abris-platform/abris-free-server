@@ -64,29 +64,54 @@ class methodsBase
             throw new Exception('Invalid password detected! Password can be changed!');
     }
 
+    public static function setEnvKRB5currentUser() {
+        putenv("KRB5CCNAME=".$_SERVER['KRB5CCNAME']);
+    }
+    
+    public static function getEnvKRB5currentUser() {
+        return getenv('KRB5CCNAME');
+    }
+    
+    public static function getShortEnvKRB5currentUser() {
+        global $nameALD;
+        methodsBase::setEnvKRB5currentUser();
+        return (!methodsBase::getEnvKRB5currentUser()) ? $_SERVER['PHP_AUTH_USER'] : str_replace("@$nameALD", '', $_SERVER['PHP_AUTH_USER']);
+    } 
+
     public static function authenticate($params)
     {
-        if ($params['usename'] <> '' and $params['passwd'] <> '') {
-            $_SESSION['login'] = $params['usename'];
-            $_SESSION['password'] = $params['passwd'];
+        global $flag_asta;
 
-            checkSchemaAdmin();
-            $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
+        if(!$flag_asta) {
+            if ($params['usename'] <> '' and $params['passwd'] <> '') {
+                $_SESSION['login'] = $params['usename'];
+                $_SESSION['password'] = $params['passwd'];
 
-            $_SESSION['password'] = methodsBase::EncryptStr($_SESSION['password'], $_COOKIE['PHPSESSID']);
+                checkSchemaAdmin();
+                $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
 
-            return $usenameDB;
-        } else {
-            if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
-                global $adminSchema;
-                global $ipAddr;
-                if ($_SESSION['enable_admin'] == 't')
-                    sql("SELECT $adminSchema.update_session('$_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
+                $_SESSION['password'] = methodsBase::EncryptStr($_SESSION['password'], $_COOKIE['PHPSESSID']);
+
+                return $usenameDB;
+            } else {
+                if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
+                    global $adminSchema;
+                    global $ipAddr;
+                    if ($_SESSION['enable_admin'] == 't')
+                        sql("SELECT $adminSchema.update_session('$_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
+                }
+
+                unset($_SESSION['login']);
+                unset($_SESSION['password']);
+                unset($_SESSION['enable_admin']);
             }
-
-            unset($_SESSION['login']);
-            unset($_SESSION['password']);
-            unset($_SESSION['enable_admin']);
+        }
+        else{             
+            $slogin = methodsBase::getShortEnvKRB5currentUser();
+             
+             checkSchemaAdmin();
+             $usenameDB = sql("SELECT ' $slogin ' as usename", false, false, 'object', '', false); //run a request to verify authentication
+             return $usenameDB;
         }
     }
 
@@ -97,7 +122,11 @@ class methodsBase
 
     public static function getCurrentUser()
     {
-        global $domain, $user;
+        global $domain, $user, $flag_asta;
+
+        if($flag_asta) 
+            return methodsBase::getShortEnvKRB5currentUser();
+
         if (isset($_SESSION['login']) && ($_SESSION['login']) <> '') {
             return $_SESSION['login'];
         } else
@@ -113,6 +142,10 @@ class methodsBase
 
     public static function isGuest()
     {
+        global $flag_asta;
+        if($flag_asta) 
+            return $_SERVER['PHP_AUTH_USER'];
+
         return isset($_SESSION['login']);
     }
 
