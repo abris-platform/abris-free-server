@@ -758,7 +758,7 @@ $this->assertEquals($res,
    ], 
 "records" => [
                                        [
-                                          "count" => 60
+                                          "count" => 104
                                        ] 
                                     ], 
 "offset" => '50', 
