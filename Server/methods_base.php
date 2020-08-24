@@ -792,10 +792,11 @@ class methodsBase
         foreach ($r as $i => $v) {
             $pid_map[$v['pid']] = 1;
         }
-        foreach ($_SESSION['pids'] as $p => $v) {
-            if (!isset($pid_map[$p]))
-                unset($_SESSION['pids'][$p]);
-        }
+        if(isset($_SESSION['pids']))
+            foreach ($_SESSION['pids'] as $p => $v) {
+                if (!isset($pid_map[$p]))
+                    unset($_SESSION['pids'][$p]);
+            }
         return array('pids' => $_SESSION['pids']);
     }
 
