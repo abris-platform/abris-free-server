@@ -797,7 +797,7 @@ class methodsBase
                 if (!isset($pid_map[$p]))
                     unset($_SESSION['pids'][$p]);
             }
-        return array('pids' => $_SESSION['pids']);
+        return array('pids' => isset($_SESSION['pids'])?$_SESSION['pids']:array());
     }
 
     public static function killPID($params)
