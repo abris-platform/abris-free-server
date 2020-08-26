@@ -702,7 +702,7 @@ $params =
       
 ];       
 $res = methodsBase::getTableDataPredicate($params);
-$this->assertEquals($res, 
+$this->assertEquals(
 [
 "data" => [
       [
@@ -768,7 +768,7 @@ $this->assertEquals($res,
                                              "timezone" 
                                           ], 
 "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 50" 
-]
+                                       ],$res
 );
 }
 
