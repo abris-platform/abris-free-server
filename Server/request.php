@@ -50,8 +50,8 @@ function normalizeKey($key) {
 function request() {
 	cors();
 	global $dbname, $dbDefaultLanguage;
-	ini_set('session.cookie_samesite', 'None');
-	ini_set('session.cookie_secure', 'On');
+	// ini_set('session.cookie_samesite', 'None');
+	// ini_set('session.cookie_secure', 'On');
 	session_start();
 	$usename = '';
 	$pid_count = '';
