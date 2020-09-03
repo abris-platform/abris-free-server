@@ -37,5 +37,5 @@ $dbLanguageList = ['en', 'ru'];
 $cryptMethod = 'AES-256-CBC';
 
 // ASTRA SE mode
-$flag_asta = false;
+$flag_astra = false;
 $nameALD = '';

@@ -80,9 +80,9 @@ class methodsBase
 
     public static function authenticate($params)
     {
-        global $flag_asta;
+        global $flag_astra;
 
-        if(!$flag_asta) {
+        if(!$flag_astra) {
             if ($params['usename'] <> '' and $params['passwd'] <> '') {
                 $_SESSION['login'] = $params['usename'];
                 $_SESSION['password'] = $params['passwd'];
@@ -102,6 +102,7 @@ class methodsBase
                 }
 
                 unset($_SESSION['login']);
+                unset($_SESSION['full_usename']);
                 unset($_SESSION['password']);
                 unset($_SESSION['enable_admin']);
             }
@@ -122,9 +123,9 @@ class methodsBase
 
     public static function getCurrentUser()
     {
-        global $domain, $user, $flag_asta;
+        global $domain, $user, $flag_astra;
 
-        if($flag_asta) 
+        if($flag_astra) 
             return methodsBase::getShortEnvKRB5currentUser();
 
         if (isset($_SESSION['login']) && ($_SESSION['login']) <> '') {
@@ -142,8 +143,8 @@ class methodsBase
 
     public static function isGuest()
     {
-        global $flag_asta;
-        if($flag_asta) 
+        global $flag_astra;
+        if($flag_astra) 
             return $_SERVER['PHP_AUTH_USER'];
 
         return isset($_SESSION['login']);
