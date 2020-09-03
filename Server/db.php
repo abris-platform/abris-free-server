@@ -56,14 +56,13 @@ function id_quote($identifier) {
 }
 
 // The function checks the availability of the administration scheme and sets the corresponding flag to the variable $ _SESSION ["enable_admin"]
-function checkSchemaAdmin()
-{
+function checkSchemaAdmin() {
     global $adminSchema, $D_SESSION;
-    if (!isset($D_SESSION["enable_admin"])) {
-        $D_SESSION["enable_admin"] = sql_s("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '" . $adminSchema . "');")[0]["exists"];
+    if (!isset($D_SESSION['enable_admin'])) {
+        $D_SESSION['enable_admin'] = sql_s("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$adminSchema');")[0]["exists"];
 
         if (isset($_SESSION))
-            $_SESSION["enable_admin"] = $D_SESSION["enable_admin"];
+            $_SESSION['enable_admin'] = $D_SESSION['enable_admin'];
     }
 }
 
@@ -83,40 +82,38 @@ function sql_handler_test($query, $format) {
 
     if (!isset($D_SESSION['pids']))
         $D_SESSION['pids'] = array();
-    if (!isset($D_SESSION["enable_admin"]))
-        $D_SESSION["enable_admin"] = "f";
+    if (!isset($D_SESSION['enable_admin']))
+        $D_SESSION['enable_admin'] = 'f';
 
     $query = str_replace(array("\r\n", "\r", "\n"), ' ', $query);
-    $query_test_array = file("test_query_response_json.txt", FILE_IGNORE_NEW_LINES);
+    $query_test_array = file('test_query_response_json.txt', FILE_IGNORE_NEW_LINES);
     foreach ($query_test_array as $line_num => $line) {
         $json_response = json_decode($line, true);
-        if (($json_response["query"] == $query) && ($json_response["format"] == $format))
-            return $json_response["response"];
+        if (($json_response['query'] == $query) && ($json_response['format'] == $format))
+            return $json_response['response'];
     }
 
-    return "new_query_test";
+    return 'new_query_test';
 }
 
-function unset_auth_session()
-{
+function unset_auth_session() {
     global $D_SESSION;
 
     // TODO may be necessary delete arrays _SESSION and D_SESSION
     unset($D_SESSION['login']);
     unset($D_SESSION['password']);
     unset($D_SESSION['full_usename']);
-    unset($D_SESSION["enable_admin"]);
+    unset($D_SESSION['enable_admin']);
 
     if (isset($_SESSION)) {
         unset($_SESSION['login']);
         unset($_SESSION['password']);
         unset($_SESSION['full_usename']);
-        unset($_SESSION["enable_admin"]);
+        unset($_SESSION['enable_admin']);
     }
 }
 
-function custom_pg_connect($encrypt_password)
-{
+function custom_pg_connect($encrypt_password) {
     global $D_SESSION, $host, $dbname, $port, $dbuser, $dbpass, $flag_astra, $anotherPrefLog;
     $usename = '';
     if (isset($D_SESSION['dbname']))
@@ -161,8 +158,7 @@ function custom_pg_connect($encrypt_password)
     throw new Exception("Unable to connect by user $usename.");
 }
 
-function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true)
-{
+function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true) {
     global $adminSchema, $adminLogTable, $dbDefaultLanguage, $flag_astra, $D_SESSION;
 
     if ($flag_astra) {
@@ -177,7 +173,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
 
     if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
         $response = sql_handler_test($query, $format);
-        if ($response != "new_query_test") return $response;
+        if ($response != 'new_query_test') return $response;
     }
 
 
@@ -199,13 +195,13 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     if (isset($D_SESSION['login']) && isset($D_SESSION['password']))
         if (($D_SESSION['login'] <> '') and ($D_SESSION['password'] <> '') and ($D_SESSION["enable_admin"] == 't')) {
             $ipAddr = _get_client_ip();
-            $updDateExit = pg_query($dbconn, "SELECT " . $adminSchema . ".update_session('" . $D_SESSION['login'] . "', '" . $ipAddr . "', '" . $_COOKIE['PHPSESSID'] . "');");
+            $updDateExit = pg_query($dbconn, "SELECT $adminSchema.update_session('$D_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
         }
 
     // Add to user actions in the table (log).
     $logs = array();
-    if ($logDb and ($D_SESSION["enable_admin"] == "t")) {
-        $log = pg_query($dbconn, "INSERT INTO " . $adminSchema . "." . $adminLogTable . "(query) VALUES (" . "'" . pg_escape_string($query) . "') RETURNING key;");
+    if ($logDb and ($D_SESSION['enable_admin'] == 't')) {
+        $log = pg_query($dbconn, "INSERT INTO $adminSchema.$adminLogTable(query) VALUES ('" . pg_escape_string($query) . "') RETURNING key;");
 
         while ($line = pg_fetch_array($log, null, PGSQL_ASSOC)) {
             if (!$do_not_preprocess)
@@ -242,11 +238,11 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     if (!$result) {
         // If an error has occurred from the side of the database, then try to push this into the query logging table (log_query).
         $lastError = pg_last_error();
-        if ($D_SESSION["enable_admin"] == "t") {
+        if ($D_SESSION['enable_admin'] == 't') {
             if (array_key_exists('key', $logs[0]))
-                pg_query($dbconn, "UPDATE " . $adminSchema . "." . $adminLogTable . " SET error = '" . pg_escape_string($lastError) . "' WHERE key = '" . $logs[0]['key'] . "';");
+                pg_query($dbconn, "UPDATE $adminSchema.$adminLogTable SET error = '" . pg_escape_string($lastError) . "' WHERE key = '$logs[0][key]';");
             else
-                pg_query($dbconn, "INSERT INTO " . $adminSchema . "." . $adminLogTable . "(query, error) VALUES ('" . pg_escape_string($query) . "', '" . pg_escape_string($lastError) . "');");
+                pg_query($dbconn, "INSERT INTO $adminSchema.$adminLogTable(query, error) VALUES ('" . pg_escape_string($query) . "', '" . pg_escape_string($lastError) . "');");
         }
         throw new Exception($lastError);
     }
@@ -266,11 +262,11 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
 
     // test_write -------------------------------
     if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
-        $fp = fopen("test_query_response_json.txt", "a+");
+        $fp = fopen('test_query_response_json.txt', 'a+');
         $json = [
-            "query" => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
-            "format" => $format,
-            "response" => $response,
+            'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
+            'format' => $format,
+            'response' => $response,
 
         ];
         fwrite($fp, json_encode($json) . PHP_EOL);
@@ -285,8 +281,8 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
 function sql_s($query) {
 
     if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
-        $response = sql_handler_test($query, "");
-        if ($response != "new_query_test") return $response;
+        $response = sql_handler_test($query, '');
+        if ($response != 'new_query_test') return $response;
     }
 
     global $host, $dbname, $port, $dbuser, $dbpass;
@@ -305,11 +301,11 @@ function sql_s($query) {
 
     // test_write -------------------------------
     if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
-        $fp = fopen("test_query_response_json.txt", "a+");
+        $fp = fopen('test_query_response_json.txt', 'a+');
         $json = [
-            "query" => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
-            "format" => "",
-            "response" => $response,
+            'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
+            'format' => '',
+            'response' => $response,
 
         ];
         fwrite($fp, json_encode($json) . PHP_EOL);
