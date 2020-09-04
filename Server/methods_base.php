@@ -97,8 +97,9 @@ class methodsBase
                 if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
                     global $adminSchema;
                     global $ipAddr;
-                    if ($_SESSION['enable_admin'] == 't')
-                        sql("SELECT $adminSchema.update_session('$_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
+                    if (isset($_SESSION['enable_admin']))
+                        if ($_SESSION['enable_admin'] == 't')
+                            sql("SELECT $adminSchema.update_session('$_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
                 }
 
                 unset($_SESSION['login']);
