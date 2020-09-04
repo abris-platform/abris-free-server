@@ -49,14 +49,13 @@ function normalizeKey($key) {
 
 function request() {
 	cors();
-	global $dbname, $dbDefaultLanguage;
-	ini_set('session.cookie_samesite', 'None');
-	ini_set('session.cookie_secure', 'On');
-	session_start();
+	global $dbname, $dbDefaultLanguage, $flag_astra;
+	// ini_set('session.cookie_samesite', 'None');
+	// ini_set('session.cookie_secure', 'On');
 	$usename = '';
 	$pid_count = '';
 	
-	if(!$flag_asta) {   
+	if(!$flag_astra) {   
         session_start();
 
         if (isset($_SESSION['login']))
