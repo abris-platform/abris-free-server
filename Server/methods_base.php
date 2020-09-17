@@ -501,7 +501,10 @@ class methodsBase
                         }
                         $j_field_list .= "COALESCE(" . $field_description["subfields_table_alias"][$m] . "." . id_quote($j_field) . "::text,'')";
                     }
-                    $field_list .= "(row_to_json(row($j_field_list, " . id_quote($field_description["table_alias"]) . "." . id_quote($field_name) . "::text))::text) collate \"C\" as " . id_quote($field_name);
+                    if(isset($field_description["virtual"]))
+                        $field_list .= "(row_to_json(row($j_field_list, " . $field_description["subfields_navigate_alias"] . "." . id_quote($field_description["subfields_key"]) . "::text))::text) collate \"C\" as " . id_quote($field_name);
+                    else
+                        $field_list .= "(row_to_json(row($j_field_list, " . id_quote($field_description["table_alias"]) . "." . id_quote($field_name) . "::text))::text) collate \"C\" as " . id_quote($field_name);
                     $field_array[] = $field_name;
 
                     $replace_rules[$field_name] = $j_field_list;
