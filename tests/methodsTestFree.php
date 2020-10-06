@@ -1180,7 +1180,61 @@ public function test_getTableData()
       );
         
     }
+    public function test_getTableDataPredicate_duration(){
+      $params = 
+        [
+          "format" => "array",    
+          "entityName" => "flights", 
+              "schemaName" => "bookings", 
+              "predicate" => [
+                 "strict" => true, 
+                 "operands" => [
+                    [
+                                "levelup" => false, 
+                                "operand" => [
+                                   "field" => "scheduled_departure", 
+                                   "path" => [
+                                      "scheduled_departure" 
+                                   ], 
+                                   "op" => "DUR", 
+                                   "value" => "P3Y6M4D", 
+                                   "table_alias" => "t",
+                                   "search_in_key"=>false
+                                ] 
+                             ] 
+                 ] 
+              ], 
+              "aggregate" => [], 
+              "limit" => 10, 
+              "offset" => 0, 
+              "primaryKey" => "flight_id", 
+              "currentKey" => "", 
+              "fields" => [
+                        "flight_no" => [
+                           "table_alias" => "t" 
+                        ], 
+                         "scheduled_departure" => [
+                              "table_alias" => "t" 
+                           ], 
+                                         ], 
+              "join" => [], 
+              "order" => [], 
+              "process" => null, 
+              "functions" => [] 
+            
+     ];       
+   
+     $res = methodsBase::getTableDataPredicate($params);
 
+     $this->assertEquals(
+      "SELECT  \"t\".\"flight_no\", \"t\".\"scheduled_departure\" FROM \"bookings\".\"flights\" as t  where (\"t\".\"scheduled_departure\" <= now() and \"t\".\"scheduled_departure\" > now() - 'P3Y6M4D'::interval)   LIMIT 10 OFFSET 0",
+      $res['sql']
+    );
+  
+ 
+  
+   
+   } 
 
 
 

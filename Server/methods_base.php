@@ -331,6 +331,8 @@ class methodsBase
                 return $field . " IS NULL ";
             case "ISNN":
                 return $field . " IS NOT NULL ";
+            case "DUR":
+                return $field . " <= now() and " .$field. " > now() - '".$value."'::interval";
             case "FTS":
 
                 $fts = json_decode($value, true);
