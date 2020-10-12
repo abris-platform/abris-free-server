@@ -747,15 +747,21 @@ class methodsBase
 
     public static function updateEntity($params)
     {
-
-        if (is_array($params["value"]))
-            $key_arr = $params["value"];
-        else
-            $key_arr = array($params["value"]);
-
         $sql = '';
+
+        if(is_array($params["key"])) {
+            $key_arr = $params["value"][0];
+        }
+        else{
+            $key_arr = $params["value"];
+        }
+
+        if (!is_array($key_arr))
+            $key_arr = array($key_arr);
+       
         foreach ($key_arr as $i => $key) {
             $set = null;
+
             foreach ($params["fields"] as $field => $values) {
 
 
@@ -763,7 +769,6 @@ class methodsBase
                     $value = $values[$i];
                 else
                     $value = $values;
-
 
                 if (isset($value) && trim($value) !== '') {
                     $type_conversion = '';
@@ -784,12 +789,26 @@ class methodsBase
                 }
             };
 
+            $sqlWhere = '';
             $type_conversion = '';
-            if ($params["types"][$params["key"]])
-                $type_conversion = '::' . $params["types"][$params["key"]];
+            if(is_array($params["key"])){
+                foreach ($params["key"] as $j => $nameKey){
+                    if ($params["types"][$nameKey]) 
+                        $type_conversion = '::' . $params["types"][$nameKey];
+                    $sqlWhere .= id_quote($nameKey) . $type_conversion . " = '" . pg_escape_string($params["value"][$j][$i]) . "'" . $type_conversion;
+                    if($nameKey != end($params["key"])) 
+                        $sqlWhere .= " AND " ;
+                }
+            }
+            else{
+                if ($params["types"][$params["key"]]) 
+                    $type_conversion = '::' . $params["types"][$params["key"]];
+                $sqlWhere .= id_quote($params["key"]) . $type_conversion . " = '" . pg_escape_string($key) . "'" . $type_conversion;
+            }
 
-            $sql .= 'UPDATE ' . id_quote($params["schemaName"]) . '.' .
-                id_quote($params["entityName"]) . ' SET ' . $set . '  where ' . id_quote($params["key"]) . $type_conversion . " = '" . pg_escape_string($key) . "'" . $type_conversion . ';';
+    
+            $sql .= 'UPDATE ' . id_quote($params["schemaName"]) . '.' .id_quote($params["entityName"]) . ' SET ' . $set . '  WHERE ' . $sqlWhere . ';';
+            
         }
 
         return sql($sql, null, true);

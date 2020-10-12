@@ -128,6 +128,48 @@ $this->assertEquals($res, [
  }
 
 public function test_updateEntity(){
+   
+   
+   $params = [
+      'entityName' => 'bookings', 
+      'schemaName' => 'bookings', 
+      'key' => ['book_ref', "total_amount"],
+      'value' => [
+         0 => ['000068'],
+         1 => ['18100'],
+      ],
+      'fields' => [
+         "book_date" => "2020-03-12 18:18:00+03",
+      ], 
+      'files' => [], 
+      'types' => NULL,
+   ]; 
+
+   $res = methodsBase::updateEntity($params);
+   $this->assertEquals($res,[]);  
+   
+    
+   
+   $params = [
+      'entityName' => 'bookings', 
+      'schemaName' => 'bookings', 
+      'key' => ['book_ref', "total_amount"],
+      'value' => [
+         0 => ['000068','000181','000012'],
+         1 => ['18100','131800','37900'],
+      ],
+      'fields' => [
+         "book_date" => ["2020-03-12 18:18:00+03", "2020-03-12 18:18:00+03","2020-03-12 18:18:00+03"],
+      ], 
+      'files' => [], 
+      'types' => NULL,
+   ]; 
+
+   $res = methodsBase::updateEntity($params);
+   $this->assertEquals($res,[]);
+  
+
+  
    $params = [
       'entityName' => 'bookings', 
       'schemaName' => 'bookings', 
@@ -146,6 +188,8 @@ public function test_updateEntity(){
 
    $res = methodsBase::updateEntity($params);
    $this->assertEquals($res,[]);
+
+   
 
    $params = [
       "entityName" => "text_types", 
