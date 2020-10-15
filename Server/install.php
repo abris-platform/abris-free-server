@@ -66,6 +66,14 @@ function CreateDatabase($host, $port, $dbname, $username, $password) {
     echo "</pre>";
 }
 
+function CreateMenu($host, $port, $dbname, $username, $password) {
+    echo "Demo info creation";
+    $command = "PGPASSWORD=$password psql -h $host -p $port -d $dbname -U $username -c 'select meta.create_menu()'";
+    echo "<pre>";
+    system($command);
+    echo "</pre>";
+}
+
 
 
 function StartInstall() {
@@ -86,6 +94,9 @@ function StartInstall() {
             InstallFree($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"], $_REQUEST["username"], $_REQUEST["userpas"]);
             if (isset($_REQUEST['demo'])) {
                 CreateDemo($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"], $_REQUEST["username"], $_REQUEST["userpas"]);
+            }
+            if (isset($_REQUEST['menu'])) {
+                CreateMenu($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"], $_REQUEST["username"], $_REQUEST["userpas"]);
             }
             echo "Install completed";
         } else {
