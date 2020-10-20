@@ -55,6 +55,9 @@ function request() {
 	$usename = '';
 	$pid_count = '';
 	
+	if (!file_exists(dirname(__FILE__) . '/config.php'))
+	  return  json_encode(array("jsonrpc" => "2.0", "result" => null, "fatal" => null, "error" => "No configuration file", "usename" => null, "pids" => null));
+
 	if(!$flag_astra) {   
         session_start();
 
