@@ -39,7 +39,7 @@ function CreateConfig($host, $port, $dbname) {
 
     echo "<p>config.php creation</p>";
     $config_text = "<?php\n\t\$host = \"$host\";\n\t\$port = \"$port\";\n\t\$dbname = \"$dbname\";\n\t\$dbuser = \"$dbuser\";\n\t\$dbpass = \"$dbpass\"\n;\t\$metaSchema = \"$metaSchema\";\n?>";
-    file_put_contents(__DIR__ . "/config.php", $config_text, LOCK_EX);
+    file_put_contents(__DIR__ . "/configs/config.php", $config_text, LOCK_EX);
 }
 
 function InstallFree($host, $port, $dbname, $username, $password) {
