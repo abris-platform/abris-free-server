@@ -7,7 +7,7 @@
  * @date Sat Sep 17 2016 09:45:15
  */
 
-include 'configs/config_default.php';
+include 'config_default.php';
 if (file_exists(dirname(__FILE__) . '/configs/config.php'))
     include dirname(__FILE__) . '/configs/config.php';
 
