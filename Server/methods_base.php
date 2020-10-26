@@ -906,7 +906,9 @@ class methodsBase
 
         $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr , $buttons);
 
-        return array('projections' => $metadata, 'pages' => $pages);
+        $options = sql("SELECT * FROM $metaSchema.options");
+
+        return array('projections' => $metadata, 'pages' => $pages, 'options' => $options);
     }
 
 
