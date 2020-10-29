@@ -38,6 +38,7 @@ function CreateConfig($host, $port, $dbname) {
     global $dbuser, $dbpass, $metaSchema;
 
     echo "<p>config.php creation</p>";
+    mkdir(__DIR__ . "/configs");
     $config_text = "<?php\n\t\$host = \"$host\";\n\t\$port = \"$port\";\n\t\$dbname = \"$dbname\";\n\t\$dbuser = \"$dbuser\";\n\t\$dbpass = \"$dbpass\"\n;\t\$metaSchema = \"$metaSchema\";\n?>";
     file_put_contents(__DIR__ . "/configs/config.php", $config_text, LOCK_EX);
 }
