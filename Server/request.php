@@ -50,7 +50,8 @@ function normalizeKey($key) {
 function request() {
 	cors();
 	global $dbname, $dbDefaultLanguage, $flag_astra;
-	// ini_set('session.cookie_samesite', 'None');
+	if($_SERVER['HTTPS'])
+		ini_set('session.cookie_samesite', 'None');
 	// ini_set('session.cookie_secure', 'On');
 	$usename = '';
 	$pid_count = '';
