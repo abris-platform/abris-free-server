@@ -7,28 +7,29 @@ declare
   task_to_emp_entity_id integer;
   project_to_emp_entity_id integer;
 begin
-insert into meta.entity (table_name, title) values('project', 'Projects'); 
+insert into meta.entity (table_name, title, create_pkey) values('project', 'Projects', true); 
 select entity_id from meta.entity where table_name = 'project' into project_entity_id;
 insert into meta.property(entity_id, column_name, type, data_type, title) values (project_entity_id, 'name',	 'caption',	'text',	    'Name');
 insert into meta.property(entity_id, column_name, type, data_type, title) values (project_entity_id, 'info',	 'plain',	'text',	    'Information');
 insert into meta.property(entity_id, column_name, type, data_type, title) values (project_entity_id, 'cost',	 'money',	'numeric',	'Total cost');
 insert into meta.property(entity_id, column_name, data_type, title)       values (project_entity_id, 'deadline',         'date',	    'Deadline');
 
-insert into meta.entity (table_name, title) values('employee',	'Employees'); 
+insert into meta.entity (table_name, title, create_pkey) values('employee',	'Employees', true); 
 select entity_id from meta.entity where table_name = 'employee' into employee_entity_id;
 insert into meta.property(entity_id, column_name, title) values (employee_entity_id, 'name',	'Name');
 insert into meta.property(entity_id, column_name, type, data_type, title) values (employee_entity_id, 'work_from',	'time', 'time with time zone', 'From');
 insert into meta.property(entity_id, column_name, type, data_type, title) values (employee_entity_id, 'work_to',	'time', 'time with time zone', 'To');
 
-insert into meta.entity (table_name, title) values('task',	'Tasks'); 
+insert into meta.entity (table_name, title, create_pkey) values('task',	'Tasks', true); 
 select entity_id from meta.entity where table_name = 'task' into task_entity_id;
 insert into meta.property(entity_id, column_name,  type, data_type, title) values (task_entity_id, 'title',	'caption',	'text',	'Title');	
 insert into meta.property(entity_id, column_name, type, data_type,  title) values (task_entity_id, 'due_time',	'datetime',	'timestamp with time zone',	'Due time');
 insert into meta.property(entity_id, column_name, type, data_type,  title) values (task_entity_id, 'progress',	'progress',	'integer',	'Progress');	
 insert into meta.property(entity_id, column_name, type, data_type,   title) values (task_entity_id, 'description',	'text',	'text',	'Description');	
+
 insert into meta.property(entity_id, ref_entity) values (task_entity_id, project_entity_id);
 
-insert into meta.entity (table_name, title) values('task_to_emp',	'Participants') ; 
+insert into meta.entity (table_name, title, create_pkey) values('task_to_emp',	'Participants', true) ; 
 select entity_id from meta.entity where table_name = 'task_to_emp' into task_to_emp_entity_id;
 insert into meta.property(entity_id, ref_entity) values (task_to_emp_entity_id, task_entity_id);
 insert into meta.property(entity_id, ref_entity) values (task_to_emp_entity_id, employee_entity_id);
