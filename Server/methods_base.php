@@ -606,7 +606,7 @@ class methodsBase
         $rollupfields = '';
         if(isset($pred_res["m_order"])){
             if($orderfields)
-                $orderfields .= $pred_res["m_order"];
+                $orderfields .= ', '.$pred_res["m_order"];
             else
                 $orderfields = 'ORDER BY '.$pred_res["m_order"];
         }
