@@ -1280,6 +1280,51 @@ public function test_getTableData()
    
    } 
 
+   public function test_getTableDataPredicate_match_order(){
+      $params = 
+        [
+              "entityName" => "airports", 
+              "schemaName" => "bookings", 
+              "predicate" => [
+                 "strict" => true, 
+                 "operands" => [
+                    [
+                                "levelup" => false, 
+                                "operand" => [
+                                   "path" => [], 
+                                   "op" => "C", 
+                                   "value" => "N", 
+                                   "m_order" => true
+                                ] 
+                             ] 
+                 ] 
+              ], 
+              "aggregate" => [], 
+              "limit" => 15, 
+              "offset" => 0, 
+              "primaryKey" => "airport_code", 
+              "currentKey" => "", 
+              "fields" => [
+                                            "airport_code" => [
+                                               "table_alias" => "t", 
+                                               "subfields" => null, 
+                                               "hidden" => false 
+                                            ], 
+                                            "timezone" => [
+                                                           "table_alias" => "t" 
+                                                        ] 
+                                         ], 
+              "join" => [], 
+              "order" => [], 
+              "process" => null, 
+              "functions" => [] 
+            
+      ];       
+      $res = methodsBase::getTableDataPredicate($params);
 
+      $this->assertEquals('[{"airport_code":"NAL","timezone":"Europe\/Moscow"},{"airport_code":"NBC","timezone":"Europe\/Moscow"},{"airport_code":"NFG","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NJC","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NNM","timezone":"Europe\/Moscow"},{"airport_code":"NOJ","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NOZ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"NSK","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"NUX","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NYA","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NYM","timezone":"Asia\/Yekaterinburg"},{"airport_code":"ABA","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"BAX","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"CEK","timezone":"Asia\/Yekaterinburg"},{"airport_code":"CNN","timezone":"Asia\/Yakutsk"}]',
+      json_encode($res['data']));
+      }
+      
 
 }

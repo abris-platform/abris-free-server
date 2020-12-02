@@ -233,23 +233,25 @@ class methodsBase
         return "'" . pg_escape_string($n) . "'";
     }
 
-    public static function makeSimplePredicate($operand, $replace_rules, $fields, $params)
+    public static function makeSimplePredicate($operand, $replace_rules, $fields, $params, &$result)
     {
         $func = null;
         $type_desc = '';
-
-        $field = $operand["field"];
+        $field = '';
+        if(isset( $operand["field"]))
+            $field = $operand["field"];
         if (isset($operand["func"]))
             $func = $operand["func"];
 
-        if (isset($fields[$field]['type']))
+        if (isset($fields[$field])) 
+          if(isset($fields[$field]['type']))
             $type_desc = '::' . $fields[$field]['type'];
 
 
-        if (!$operand["search_in_key"] && isset($replace_rules[$field])) {
+        if (!isset($operand["search_in_key"]) && isset($replace_rules[$field])) {
             $field = $replace_rules[$field];
         } else {
-            if ($operand["table_alias"]) {
+            if (isset($operand["table_alias"])) {
                 $field = id_quote($operand["table_alias"]) . "." . id_quote($field);
             } else {
                 $field = "t." . id_quote($field);
@@ -258,6 +260,7 @@ class methodsBase
 
         if (isset($operand["type"]))
             $field .= '::' . id_quote($operand["type"]);
+
 
         $value = $operand["value"];
         switch ($operand["op"]) {
@@ -307,24 +310,35 @@ class methodsBase
                         $where = "";
 
                         foreach ($fields as $k => $field_description) {
-                            if (!$field_description["hidden"]) {
-                                if (isset($field_description["subfields"])) {
-                                    foreach ($field_description["subfields"] as $m => $j_field) {
-                                        if ($where) {
-                                            $where .= " OR ";
-                                        }
-                                        $where .= $field_description["subfields_table_alias"][$m] . "." . id_quote($j_field) . "::TEXT ILIKE '" . pg_escape_string('%' . $value . '%') . "'::TEXT";
-                                    }
-                                } else {
+                            if(isset($field_description["hidden"]))
+                                if ($field_description["hidden"])
+                                    continue;
+                            if (isset($field_description["subfields"])) {
+                                foreach ($field_description["subfields"] as $m => $j_field) {
                                     if ($where) {
                                         $where .= " OR ";
                                     }
-                                    $where .= "t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string('%' . $value . '%') . "'::TEXT";
+                                    $where .= $field_description["subfields_table_alias"][$m] . "." . id_quote($j_field) . "::TEXT ILIKE '" . pg_escape_string('%' . $value . '%') . "'::TEXT";
                                 }
+                            } else {
+                                if ($where) {
+                                    $where .= " OR ";
+                                }
+                                $where .= "t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string('%' . $value . '%') . "'::TEXT";
                             }
+                            if($operand["m_order"]){
+                                if(isset($result["m_order"]))
+                                    $result["m_order"] .= ", ";
+                                else
+                                    $result["m_order"] = "";
+                                $result["m_order"] .= "not(t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string($value . '%') . "'::TEXT), t." . id_quote($k) . "::TEXT";
+                            }
+
                         }
+
                         return "($where)";
                     }
+
                 } else
                     return "true";
             case "ISN":
@@ -377,7 +391,7 @@ class methodsBase
         }
     }
 
-    public static function makePredicateString($predicate_object, $replace_rules, $fields, $params)
+    public static function makePredicateString($predicate_object, $replace_rules, $fields, $params, &$result)
     {
 
         $operator = '';
@@ -385,9 +399,9 @@ class methodsBase
         foreach ($predicate_object["operands"] as $op) {
 
             if (!$op["levelup"]) {
-                $string .= $operator . '(' . self::makeSimplePredicate($op["operand"], $replace_rules, $fields, $params) . ')';
+                $string .= $operator . '(' . self::makeSimplePredicate($op["operand"], $replace_rules, $fields, $params, $result) . ')';
             } else {
-                $string .= $operator . '(' . self::makePredicateString($op["operand"], $replace_rules, $fields, $params) . ')';
+                $string .= $operator . '(' . self::makePredicateString($op["operand"], $replace_rules, $fields, $params, $result) . ')';
             }
             $operator = ($predicate_object["strict"]) ? " AND " : " OR ";
         }
@@ -553,8 +567,10 @@ class methodsBase
         $order_distinct = self::makeOrderAndDistinctString($params['order'], $params);
         $orderfields = $order_distinct['orderfields'];
         $distinctfields = $order_distinct['distinctfields'];
+        
+        $pred_res = array();
+        $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params, $pred_res);
 
-        $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params);
         if ($distinctfields)
             $count = 'SELECT count(distinct ' . $distinctfields . ') FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
         else
@@ -588,7 +604,12 @@ class methodsBase
             $predicate = 'true';
 
         $rollupfields = '';
-
+        if(isset($pred_res["m_order"])){
+            if($orderfields)
+                $orderfields .= $pred_res["m_order"];
+            else
+                $orderfields = 'ORDER BY '.$pred_res["m_order"];
+        }
         $statement = $statement . "  " . $orderfields;
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
