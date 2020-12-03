@@ -339,9 +339,9 @@ class methodsBase
                                 if(isset($result["m_order"]))
                                     $result["m_order"] .= ", ";
                                 else
-                                    $result["m_order"] = " ";
+                                    $result["m_order"] = "";
                                 $value = $value_parts[0];
-                                $result["m_order"] .= "not(t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string($value . '%') . "'::TEXT), t." . id_quote($k) . "::TEXT";
+                                $result["m_order"] .= " not(t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string($value . '%') . "'::TEXT), t." . id_quote($k) . "::TEXT";
                             }
 
                         }
