@@ -304,8 +304,13 @@ class methodsBase
                 return $field . " <= '" . pg_escape_string($value) . "'";
             case "C":
                 if ($value) {
+                    $value_parts = explode(' ', $value);
+                    $where_arr = array();
+
                     if ($field != "t.\"\"") {
-                        return $field . "::TEXT ilike '%" . pg_escape_string($value) . "%'::TEXT";
+                        foreach($value_parts as $i => $v)
+                            $where_arr[] = $field . "::TEXT ilike '%" . pg_escape_string($v) . "%'::TEXT";
+                        return implode(' and ', $where_arr);
                     } else {
                         $where = "";
 
@@ -324,13 +329,18 @@ class methodsBase
                                 if ($where) {
                                     $where .= " OR ";
                                 }
-                                $where .= "t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string('%' . $value . '%') . "'::TEXT";
+                                $where_arr = array();
+                                foreach($value_parts as $i => $v)
+                                    $where_arr[] = "t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string('%' . $v . '%') . "'::TEXT";
+
+                                $where .= implode(' and ', $where_arr);
                             }
                             if($operand["m_order"]){
                                 if(isset($result["m_order"]))
                                     $result["m_order"] .= ", ";
                                 else
                                     $result["m_order"] = " ";
+                                $value = $value_parts[0];
                                 $result["m_order"] .= "not(t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string($value . '%') . "'::TEXT), t." . id_quote($k) . "::TEXT";
                             }
 

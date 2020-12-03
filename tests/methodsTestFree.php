@@ -1325,6 +1325,63 @@ public function test_getTableData()
       $this->assertEquals('[{"airport_code":"NAL","timezone":"Europe\/Moscow"},{"airport_code":"NBC","timezone":"Europe\/Moscow"},{"airport_code":"NFG","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NJC","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NNM","timezone":"Europe\/Moscow"},{"airport_code":"NOJ","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NOZ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"NSK","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"NUX","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NYA","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NYM","timezone":"Asia\/Yekaterinburg"},{"airport_code":"ABA","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"BAX","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"CEK","timezone":"Asia\/Yekaterinburg"},{"airport_code":"CNN","timezone":"Asia\/Yakutsk"}]',
       json_encode($res['data']));
       }
+      public function test_getTableDataPredicate_space_search(){
+         $params = 
+           [
+             "format" => "array",    
+             "entityName" => "airports", 
+                 "schemaName" => "bookings", 
+                 "predicate" => [
+                    "strict" => true, 
+                    "operands" => [
+                       [
+                                   "levelup" => false, 
+                                   "operand" => [
+                                      "field" => "timezone", 
+                                      "path" => [
+                                         "timezone" 
+                                      ], 
+                                      "op" => "C", 
+                                      "value" => "As vo", 
+                                      "search_in_key" => false, 
+                                      "table_alias" => "t" 
+                                   ] 
+                                ] 
+                    ] 
+                 ], 
+                 "aggregate" => [], 
+                 "limit" => 10, 
+                 "offset" => 0, 
+                 "primaryKey" => "airport_code", 
+                 "currentKey" => "", 
+                 "fields" => [
+                                               "airport_code" => [
+                                                  "table_alias" => "t", 
+                                                  "subfields" => null, 
+                                                  "hidden" => false 
+                                               ], 
+                                               "airport_name" => [
+                                                     "table_alias" => "t" 
+                                                  ], 
+                                               "timezone" => [
+                                                              "table_alias" => "t" 
+                                                           ] 
+                                            ], 
+                 "join" => [], 
+                 "order" => [], 
+                 "process" => null, 
+                 "functions" => [] 
+               
+        ];       
+        $res = methodsBase::getTableDataPredicate($params);
+      
+     
+        $this->assertEquals(
+         'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone"::TEXT ilike \'%As%\'::TEXT and "t"."timezone"::TEXT ilike \'%vo%\'::TEXT)   LIMIT 10 OFFSET 0',  
+         $res['sql']
+       );
+      
+   }
       
 
 }
