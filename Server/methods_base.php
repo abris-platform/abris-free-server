@@ -582,7 +582,7 @@ class methodsBase
         $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params, $pred_res);
 
         if ($distinctfields)
-            $count = 'SELECT count(distinct ' . $distinctfields . ') FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(distinct ' . $distinctfields . ') FROM (SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
         else
             $count = 'SELECT count(*) FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
@@ -612,6 +612,9 @@ class methodsBase
             $count = $count . ' where ' . $predicate;
         } else
             $predicate = 'true';
+        
+        if ($distinctfields)
+             $count .= ') asdf';
 
         $rollupfields = '';
         if(isset($pred_res["m_order"])){
