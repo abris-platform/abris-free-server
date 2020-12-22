@@ -614,7 +614,7 @@ class methodsBase
             $predicate = 'true';
         
         if ($distinctfields)
-             $count .= ') asdf';
+             $count .= ') t';
 
         $rollupfields = '';
         if(isset($pred_res["m_order"])){
