@@ -111,8 +111,9 @@ function request() {
 try {
 	echo request();
 } catch (Exception $e) {
+	global $data_result;
 	$usename = '';
 	if (isset($_SESSION['login']))
 		$usename = $_SESSION['login'];
-	echo json_encode(array("jsonrpc" => "2.0", "result" => null, "error" => $e->getMessage(), "usename" => $usename, "pids" => $pid_count));
+	echo json_encode(array("jsonrpc" => "2.0", "result" =>  $data_result, "error" => $e->getMessage(), "usename" => $usename, "pids" => $pid_count));
 }

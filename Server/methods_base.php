@@ -18,6 +18,8 @@ require_once "sql_view_projection.php";
 if (file_exists(dirname(__FILE__) . '/plugins.php'))
     require_once "plugins.php";
 
+$data_result = array();
+
 function relation($schema, $table)
 {
     global $dbUnrollViews;
@@ -645,6 +647,13 @@ class methodsBase
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
+        global $data_result;
+		$data_result = array( 
+            "offset" => $params["offset"],
+            "fields" => $field_array,
+            "sql" => $statement
+        );
+
         $data_resul_statement = sql($statement, false, false, (isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object', $desc);
         $count_data = count($data_resul_statement);
 
@@ -654,15 +663,8 @@ class methodsBase
             $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count, $count);
         }
 
-
-        $data_result = array(
-            "data" => $data_resul_statement,
-            "records" => $number_count,
-            "offset" => $params["offset"],
-            "fields" => $field_array,
-            "sql" => $statement
-        );
-
+        $data_result["data"] = $data_resul_statement;
+	    $data_result["records"] = $number_count;
 
         if (isset($params['predicate']['operands'][0])) {
             $fst_operand = $params['predicate']['operands'][0];
