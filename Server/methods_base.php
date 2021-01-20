@@ -629,9 +629,14 @@ class methodsBase
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
             if ($params["currentKey"] && ($params["limit"] != 0 and $params["limit"] != -1)) {
-                $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE (trunc((k.row_number-1)/' . $params["limit"] . ')*' . $params["limit"] . ') END as row_number
-                FROM (select row_number() over (' . $orderfields . '), t.' . id_quote($params["primaryKey"]) .
-                    '  from ('.$statement.') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
+                if($params["middleRow"])
+                    $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE trunc(k.row_number-('.$params["limit"].'/2)-1) END as row_number
+                    FROM (select row_number() over (' . $orderfields . '), t.' . id_quote($params["primaryKey"]) .
+                        '  from ('.$statement.') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
+                else
+                    $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE (trunc((k.row_number-1)/' . $params["limit"] . ')*' . $params["limit"] . ') END as row_number
+                    FROM (select row_number() over (' . $orderfields . '), t.' . id_quote($params["primaryKey"]) .
+                        '  from ('.$statement.') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
 
                 $rowNumberRes = sql($pageNumberStatement);
                 $params["offset"] = $rowNumberRes[0]["row_number"];
