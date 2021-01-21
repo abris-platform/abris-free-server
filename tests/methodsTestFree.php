@@ -814,7 +814,92 @@ $this->assertEquals(
 "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 50" 
                                        ],$res
 );
+
+$params["middleRow"] = true;
+$res = methodsBase::getTableDataPredicate($params);
+$this->assertEquals(
+   [
+   "data" => [
+      [
+          'NFG',
+          'Нефтеюганск',
+          'Asia/Yekaterinburg'
+      ],
+
+      [
+          'NBC',
+          'Бегишево',
+          'Europe/Moscow'
+      ],
+
+      [
+          'NAL',
+          'Нальчик',
+          'Europe/Moscow'
+      ],
+
+      [
+          'MRV',
+          'Минеральные Воды',
+          'Europe/Moscow'
+      ],
+
+      [
+          'MQF',
+          'Магнитогорск',
+          'Asia/Yekaterinburg'
+      ],
+
+      [
+          'MMK',
+          'Мурманск',
+          'Europe/Moscow'
+      ],
+
+      [
+          'MJZ',
+          'Мирный',
+          'Asia/Yakutsk'
+      ],
+
+      [
+          'MCX',
+          'Уйташ',
+          'Europe/Moscow'
+      ],
+
+      [
+          'LPK',
+          'Липецк',
+          'Europe/Moscow'
+      ],
+
+      [
+          'LED',
+          'Пулково',
+          'Europe/Moscow'
+      ],
+
+      ], 
+      "records" => [
+                                          [
+                                             "count" => 104
+                                          ] 
+                                       ], 
+      "offset" => '52', 
+      "fields" => [
+                                                "airport_code", 
+                                                "airport_name", 
+                                                "timezone" 
+                                             ], 
+      "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 52" ,
+   ],$res);
+
 }
+
+
+
+
 
 
 public function test_getTableDataPredicate_groups(){
