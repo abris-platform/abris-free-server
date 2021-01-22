@@ -635,7 +635,8 @@ class methodsBase
                 }
                 $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE '. $equation .' END as row_number
                     FROM (select row_number() over (' . $orderfields . '), t.' . id_quote($params["primaryKey"]) .
-                    '  from ('.$statement.') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
+                        '  from ('.$statement.') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
+
                 $rowNumberRes = sql($pageNumberStatement);
                 $params["offset"] = $rowNumberRes[0]["row_number"];
                 if(!$params["offset"])
@@ -738,8 +739,46 @@ class methodsBase
 
     public static function deleteEntitiesByKey($params)
     {
-        return sql('DELETE FROM ' . id_quote($params["schemaName"]) . '.' .
-            id_quote($params["entityName"]) . ' WHERE ' . id_quote($params["key"]) . ' = \'' . pg_escape_string($params["value"]) . '\'', null, true);
+        $sql = '';
+
+        if(is_array($params["key"])) {
+            $key_arr = $params["value"][0];
+        }
+        else{
+            $key_arr = $params["value"];
+        }
+
+        if (!is_array($key_arr))
+            $key_arr = array($key_arr);
+       
+        foreach ($key_arr as $i => $key) {
+            $set = null;
+
+            $sqlWhere = '';
+            $type_conversion = '';
+            if(is_array($params["key"])){
+                foreach ($params["key"] as $j => $nameKey){
+                    if(isset($params["types"]))
+                        if ($params["types"][$nameKey]) 
+                            $type_conversion = '::' . $params["types"][$nameKey];
+                    $sqlWhere .= id_quote($nameKey) . $type_conversion . " = '" . pg_escape_string($params["value"][$j][$i]) . "'" . $type_conversion;
+                    if($nameKey != end($params["key"])) 
+                        $sqlWhere .= " AND " ;
+                }
+            }
+            else{
+                if(isset($params["types"]))
+                    if ($params["types"][$params["key"]]) 
+                        $type_conversion = '::' . $params["types"][$params["key"]];
+                $sqlWhere .= id_quote($params["key"]) . $type_conversion . " = '" . pg_escape_string($key) . "'" . $type_conversion;
+            }
+
+    
+            $sql .= 'DELETE FROM ' . id_quote($params["schemaName"]) . '.' .id_quote($params["entityName"]) . ' WHERE ' . $sqlWhere . ';';
+            
+        }
+
+        return sql($sql, null, true);
     }
 
     public static function addEntities($params)

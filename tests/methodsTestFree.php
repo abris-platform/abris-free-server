@@ -234,7 +234,7 @@ public function test_updateEntity(){
 
   public function test_deleteEntitiesByKey(){
 
-     $params = [
+   $params = [
             "entityName" => "bookings", 
             "schemaName" => "bookings", 
             "key" => "book_ref", 
@@ -243,6 +243,36 @@ public function test_updateEntity(){
 
     $res = methodsBase::deleteEntitiesByKey($params);
     $this->assertEquals($res,[]);
+
+   $params = [
+      "entityName" => "bookings", 
+      "schemaName" => "bookings", 
+      'key' => ['book_ref', "total_amount"],
+      'value' => [
+         0 => ['000013','000014'],
+         1 => ['000045','000055'],
+      ],
+   ];
+    
+   $res = methodsBase::deleteEntitiesByKey($params);
+   $this->assertEquals($res,[]);
+
+   $params = [
+      "entityName" => "bookings", 
+      "schemaName" => "bookings", 
+      'key' => 'book_ref',
+      'value' => ['000015','000016'],
+   ];
+    
+   $res = methodsBase::deleteEntitiesByKey($params);
+   $this->assertEquals($res,[]);
+
+
+
+   //print_r($params);
+   //die;
+
+
   }
 
   public function test_authenticate(){
