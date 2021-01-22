@@ -146,7 +146,9 @@ public function test_updateEntity(){
    ]; 
 
    $res = methodsBase::updateEntity($params);
-   $this->assertEquals($res,[]);  
+   $this->assertEquals($res,[
+      "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03'  WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';"
+   ]);  
    
     
    
@@ -166,7 +168,9 @@ public function test_updateEntity(){
    ]; 
 
    $res = methodsBase::updateEntity($params);
-   $this->assertEquals($res,[]);
+   $this->assertEquals($res,[
+      "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03'  WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03'  WHERE \"book_ref\" = '000181' AND \"total_amount\" = '131800';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03'  WHERE \"book_ref\" = '000012' AND \"total_amount\" = '37900';"
+   ]);
   
 
   
@@ -187,7 +191,9 @@ public function test_updateEntity(){
    ]; 
 
    $res = methodsBase::updateEntity($params);
-   $this->assertEquals($res,[]);
+   $this->assertEquals($res,[
+      "sql" => "UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '6666', \"book_date\" = '2020-03-12 18:44:00+03'  WHERE \"book_ref\" = '123456';UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '9999', \"book_date\" = '2020-03-12 18:55:00+03'  WHERE \"book_ref\" = '44444';"
+   ]);
 
    
 
@@ -207,7 +213,9 @@ public function test_updateEntity(){
    ];
 
    $res = methodsBase::updateEntity($params);
-   $this->assertEquals($res,[]);
+   $this->assertEquals($res,[
+      "sql" => "UPDATE \"test_schema\".\"text_types\" SET \"meta_plain\" = NULL, \"meta_text\" = NULL, \"detail_plain\" = NULL  WHERE \"text_types_key\" = 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137';"
+   ]);
 
 
    $params = [
@@ -225,7 +233,9 @@ public function test_updateEntity(){
    ]; 
 
    $res = methodsBase::updateEntity($params);
-   $this->assertEquals($res,[]);
+   $this->assertEquals($res,[
+      "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_ref\" = '22222'::text  WHERE \"book_ref\"::text = '123456'::text;"
+   ]);
 
 
 
@@ -235,14 +245,16 @@ public function test_updateEntity(){
   public function test_deleteEntitiesByKey(){
 
    $params = [
-            "entityName" => "bookings", 
-            "schemaName" => "bookings", 
-            "key" => "book_ref", 
-            "value" => "22222" 
-    ]; 
-
-    $res = methodsBase::deleteEntitiesByKey($params);
-    $this->assertEquals($res,[]);
+      "entityName" => "bookings", 
+      "schemaName" => "bookings", 
+      'key' => 'book_ref',
+      'value' => ['000015','000016'],
+   ];
+    
+   $res = methodsBase::deleteEntitiesByKey($params);
+   $this->assertEquals($res,[
+      "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000015';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000016';"
+   ]);
 
    $params = [
       "entityName" => "bookings", 
@@ -255,22 +267,21 @@ public function test_updateEntity(){
    ];
     
    $res = methodsBase::deleteEntitiesByKey($params);
-   $this->assertEquals($res,[]);
+   $this->assertEquals($res,[
+      "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000013' AND \"total_amount\" = '000045';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000014' AND \"total_amount\" = '000055';"
+   ]);
 
    $params = [
-      "entityName" => "bookings", 
-      "schemaName" => "bookings", 
-      'key' => 'book_ref',
-      'value' => ['000015','000016'],
-   ];
-    
+            "entityName" => "bookings", 
+            "schemaName" => "bookings", 
+            "key" => "book_ref", 
+            "value" => "22222" 
+    ]; 
+
    $res = methodsBase::deleteEntitiesByKey($params);
-   $this->assertEquals($res,[]);
-
-
-
-   //print_r($params);
-   //die;
+   $this->assertEquals($res,[
+      "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '22222';"
+   ]);
 
 
   }

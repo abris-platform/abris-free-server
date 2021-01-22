@@ -740,45 +740,53 @@ class methodsBase
     public static function deleteEntitiesByKey($params)
     {
         $sql = '';
+        $value_arr = array();
+        $key_arr = array();
+        $request_number = array();
 
         if(is_array($params["key"])) {
-            $key_arr = $params["value"][0];
-        }
-        else{
-            $key_arr = $params["value"];
-        }
-
-        if (!is_array($key_arr))
-            $key_arr = array($key_arr);
-       
-        foreach ($key_arr as $i => $key) {
-            $set = null;
-
-            $sqlWhere = '';
-            $type_conversion = '';
-            if(is_array($params["key"])){
-                foreach ($params["key"] as $j => $nameKey){
-                    if(isset($params["types"]))
-                        if ($params["types"][$nameKey]) 
-                            $type_conversion = '::' . $params["types"][$nameKey];
-                    $sqlWhere .= id_quote($nameKey) . $type_conversion . " = '" . pg_escape_string($params["value"][$j][$i]) . "'" . $type_conversion;
-                    if($nameKey != end($params["key"])) 
-                        $sqlWhere .= " AND " ;
-                }
+            $key_arr = $params["key"];
+            $value_arr = $params["value"];
+            if(is_array($params["value"][0])){
+                $request_number = $params["value"][0];
             }
             else{
-                if(isset($params["types"]))
-                    if ($params["types"][$params["key"]]) 
-                        $type_conversion = '::' . $params["types"][$params["key"]];
-                $sqlWhere .= id_quote($params["key"]) . $type_conversion . " = '" . pg_escape_string($key) . "'" . $type_conversion;
+                $request_number = array($params["value"][0]);
             }
-
-    
-            $sql .= 'DELETE FROM ' . id_quote($params["schemaName"]) . '.' .id_quote($params["entityName"]) . ' WHERE ' . $sqlWhere . ';';
             
         }
+        else {
+            $key_arr = array($params["key"]);
+            if(is_array($params["value"])) 
+                $value_arr[0] = $params["value"];
+            else 
+                $value_arr[0] = array($params["value"]);
+            $request_number = $value_arr[0];
 
-        return sql($sql, null, true);
+        }
+
+        foreach ($request_number as $i => $request) {
+            $sql_where = '';
+            $type_conversion = '';
+
+            foreach($key_arr as $j => $key){
+                if(isset($params["types"]))
+                    if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
+                    $sql_where .= id_quote($key) . $type_conversion . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
+                    if($key != end($key_arr)) 
+                        $sql_where .= " AND " ;
+                    
+            }
+
+            $sql .= 'DELETE FROM ' . id_quote($params["schemaName"]) . '.' .id_quote($params["entityName"]) . ' WHERE ' . $sql_where . ';';
+
+            
+            
+        }
+        
+        sql($sql, null, true, 'object');
+        $return_data["sql"] = $sql;
+        return $return_data;
     }
 
     public static function addEntities($params)
@@ -827,21 +835,38 @@ class methodsBase
     {
         $sql = '';
 
+        $sql = '';
+        $value_arr = array();
+        $key_arr = array();
+        $request_number = array();
+
         if(is_array($params["key"])) {
-            $key_arr = $params["value"][0];
+            $key_arr = $params["key"];
+            $value_arr = $params["value"];
+            if(is_array($params["value"][0])){
+                $request_number = $params["value"][0];
+            }
+            else{
+                $request_number = array($params["value"][0]);
+            }
+            
         }
-        else{
-            $key_arr = $params["value"];
+        else {
+            $key_arr = array($params["key"]);
+            if(is_array($params["value"])) 
+                $value_arr[0] = $params["value"];
+            else 
+                $value_arr[0] = array($params["value"]);
+            $request_number = $value_arr[0];
+
         }
 
-        if (!is_array($key_arr))
-            $key_arr = array($key_arr);
-       
-        foreach ($key_arr as $i => $key) {
-            $set = null;
+        foreach ($request_number as $i => $request) {
+            $set = '';
+            $sql_where = '';
+            $type_conversion = '';
 
             foreach ($params["fields"] as $field => $values) {
-
 
                 if (is_array($values))
                     $value = $values[$i];
@@ -867,29 +892,23 @@ class methodsBase
                 }
             };
 
-            $sqlWhere = '';
-            $type_conversion = '';
-            if(is_array($params["key"])){
-                foreach ($params["key"] as $j => $nameKey){
-                    if ($params["types"][$nameKey]) 
-                        $type_conversion = '::' . $params["types"][$nameKey];
-                    $sqlWhere .= id_quote($nameKey) . $type_conversion . " = '" . pg_escape_string($params["value"][$j][$i]) . "'" . $type_conversion;
-                    if($nameKey != end($params["key"])) 
-                        $sqlWhere .= " AND " ;
-                }
-            }
-            else{
-                if ($params["types"][$params["key"]]) 
-                    $type_conversion = '::' . $params["types"][$params["key"]];
-                $sqlWhere .= id_quote($params["key"]) . $type_conversion . " = '" . pg_escape_string($key) . "'" . $type_conversion;
+            foreach($key_arr as $j => $key){
+                if(isset($params["types"]))
+                    if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
+                    $sql_where .= id_quote($key) . $type_conversion . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
+                    if($key != end($key_arr)) 
+                        $sql_where .= " AND " ;
+                    
             }
 
-    
-            $sql .= 'UPDATE ' . id_quote($params["schemaName"]) . '.' .id_quote($params["entityName"]) . ' SET ' . $set . '  WHERE ' . $sqlWhere . ';';
+            $sql .= 'UPDATE '.id_quote($params["schemaName"]).'.'.id_quote($params["entityName"]).' SET '.$set.'  WHERE '.$sql_where.';';
+            
             
         }
 
-        return sql($sql, null, true);
+        sql($sql, null, true, 'object');
+        $return_data["sql"] = $sql;
+        return $return_data;
     }
 
     public static function getPIDs($params)
