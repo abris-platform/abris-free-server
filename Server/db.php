@@ -171,7 +171,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
         $D_SESSION = $_SESSION;
     }
 
-    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
+    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
         $response = sql_handler_test($query, $format);
         if ($response != 'new_query_test') return $response;
     }
@@ -229,7 +229,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     }
 
     $result = pg_query($dbconn, $query);
-    if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__')) {
+    if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() != PHP_SESSION_NONE)) {
         session_start();
     }
 
