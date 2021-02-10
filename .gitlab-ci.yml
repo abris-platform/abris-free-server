@@ -29,7 +29,13 @@ test:
     - wget -O phpunit https://phar.phpunit.de/phpunit-8.phar
     - chmod +x phpunit
     - cp tests/config.php Server/config.php
-    - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base
+    - mkdir report
+    - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
+  artifacts:
+    name: 'abris-server-base-report'
+    paths:
+      - repotr
+  
 
 
 
