@@ -296,10 +296,27 @@ class methodsBase
             case "NEQ":
                 if (is_array($value)) {
                     if (count($value) > 0) {
+                        $null_condition = '';
+                        foreach ($value as $k=>$v){
+                            if(!$v){
+                                $null_condition = $field . " is not null and " . $field . "::text <> ''";
+                                unset($value[$k]);
+
+                            }
+
+                        }
                         $value_list = implode(",", array_map("methodsBase::quote", $value));
-                        return $field . " NOT IN ($value_list)";
+                        if(count($value) == 0)
+                            return  $null_condition;
+                        else
+                        if ($null_condition == '')
+                            return  $field . " NOT IN ($value_list)";
+                        return  $null_condition.' and '.$field . " NOT IN ($value_list)";
                     } else
-                        return $field . " is not null and " . $field . " <> ''";
+                        return $field . " is not null and " . $field . "::text <> ''";
+                }
+                if (is_null($value)) {
+                    return $field . " is not null";
                 }
                 return $field . " <> '" . pg_escape_string($value) . "'";
             case "G":
