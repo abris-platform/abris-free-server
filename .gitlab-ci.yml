@@ -22,14 +22,23 @@ test:
     - apt-get update
     - apt-get -y install wget libpq-dev libmagickwand-dev libzip-dev
     - pecl install imagick
+    - pecl install xdebug
     - docker-php-ext-install pgsql
     - docker-php-ext-install zip
     - docker-php-ext-enable imagick
+    - docker-php-ext-enable xdebug
   script:
     - wget -O phpunit https://phar.phpunit.de/phpunit-8.phar
     - chmod +x phpunit
     - cp tests/config.php Server/config.php
-    - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base
+    - mkdir report
+    - export XDEBUG_MODE=coverage
+    - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
+  artifacts:
+    name: 'abris-server-base-report'
+    paths:
+      - report
+  
 
 
 
