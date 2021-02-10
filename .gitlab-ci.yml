@@ -32,6 +32,7 @@ test:
     - chmod +x phpunit
     - cp tests/config.php Server/config.php
     - mkdir report
+    - export XDEBUG_MODE=coverage
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
   artifacts:
     name: 'abris-server-base-report'
