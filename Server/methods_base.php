@@ -269,10 +269,24 @@ class methodsBase
             case "EQ":
                 if (is_array($value)) {
                     if (count($value) > 0) {
-                        $value_list = implode(",", array_map("methods::quote", $value));
-                        return $field . " IN ($value_list)";
+                        $null_condition = '';
+                        foreach ($value as $k=>$v){
+                            if(!$v){
+                                $null_condition = $field . " is null or " . $field . "::text = ''";
+                                unset($value[$k]);
+
+                            }
+
+                        }
+                        $value_list = implode(",", array_map("methodsBase::quote", $value));
+                        if(count($value) == 0)
+                            return  $null_condition;
+                        else
+                        if ($null_condition == '')
+                            return  $field . " IN ($value_list)";
+                        return  $null_condition.' or '.$field . " IN ($value_list)";
                     } else
-                        return $field . " is null or " . $field . " = ''";
+                        return $field . " is null or " . $field . "::text = ''";
                 }
                 if (is_null($value)) {
                     return $field . " is null";
@@ -282,7 +296,7 @@ class methodsBase
             case "NEQ":
                 if (is_array($value)) {
                     if (count($value) > 0) {
-                        $value_list = implode(",", array_map("methods::quote", $value));
+                        $value_list = implode(",", array_map("methodsBase::quote", $value));
                         return $field . " NOT IN ($value_list)";
                     } else
                         return $field . " is not null and " . $field . " <> ''";
