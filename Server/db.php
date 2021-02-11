@@ -120,7 +120,7 @@ function custom_pg_connect($encrypt_password) {
         $dbname = $D_SESSION['dbname'];
 
     if ((isset($D_SESSION['login']) || isset($D_SESSION['full_usename'])) && isset($D_SESSION['password'])) {
-        $password = $encrypt_password ? methodsBase::DecryptStr($D_SESSION['password'], $_COOKIE['PHPSESSID']) : $D_SESSION['password'];
+        $password = /*$encrypt_password ? methodsBase::DecryptStr($D_SESSION['password'], $_COOKIE['PHPSESSID']) :*/ $D_SESSION['password'];
         checkSchemaAdmin();
 
         $session_usename = isset($D_SESSION['full_usename']) ? $D_SESSION['full_usename'] : $D_SESSION['login'];

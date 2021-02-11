@@ -92,7 +92,7 @@ class methodsBase
                 checkSchemaAdmin();
                 $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
 
-                $_SESSION['password'] = methodsBase::EncryptStr($_SESSION['password'], $_COOKIE['PHPSESSID']);
+               // $_SESSION['password'] = methodsBase::EncryptStr($_SESSION['password'], $_COOKIE['PHPSESSID']);
 
                 return $usenameDB;
             } else {
