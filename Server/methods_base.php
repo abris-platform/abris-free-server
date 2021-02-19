@@ -286,7 +286,7 @@ class methodsBase
                             return  $field . " IN ($value_list)";
                         return  $null_condition.' or '.$field . " IN ($value_list)";
                     } else
-                        return $field . " is null or trim(" . $field . ")::text = ''";
+                        return $field . " is null or trim(" . $field . "::text) = ''";
                 }
                 if (is_null($value)) {
                     return $field . " is null";
@@ -299,7 +299,7 @@ class methodsBase
                         $null_condition = '';
                         foreach ($value as $k=>$v){
                             if(!$v){
-                                $null_condition = $field . " is not null and " . $field . "::text <> ''";
+                                $null_condition = $field . " is not null and trim(" . $field . "::text) <> ''";
                                 unset($value[$k]);
 
                             }
