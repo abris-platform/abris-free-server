@@ -286,7 +286,7 @@ class methodsBase
                             return  $field . " IN ($value_list)";
                         return  $null_condition.' or '.$field . " IN ($value_list)";
                     } else
-                        return $field . " is null or " . $field . "::text = ''";
+                        return $field . " is null or trim(" . $field . ")::text = ''";
                 }
                 if (is_null($value)) {
                     return $field . " is null";
