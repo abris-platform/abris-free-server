@@ -89,6 +89,7 @@ function sql_handler_test($query, $format) {
     $query_test_array = file('test_query_response_json.txt', FILE_IGNORE_NEW_LINES);
     foreach ($query_test_array as $line_num => $line) {
         $json_response = json_decode($line, true);
+        if(isset($json_response['query']) && isset($json_response['format']))
         if (($json_response['query'] == $query) && ($json_response['format'] == $format))
             return $json_response['response'];
     }

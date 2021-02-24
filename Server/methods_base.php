@@ -832,9 +832,13 @@ class methodsBase
             foreach ($row as $field => $value) {
                 if ($value) {
                     $type_conversion = '';
-                    if ($params["types"][$field]) {
-                    } else
-                        $type_conversion = "'" . pg_escape_string($value) . "'";
+                    $type_conversion = "'" . pg_escape_string($value) . "'";
+                    if(isset($params["types"])){
+                        if ($params["types"][$field]) { 
+                            $type_conversion += '::' . $params["types"][$field];
+                        } 
+                    }
+                    
 
                     if ($fields) {
                         $fields .= ', ' . id_quote($field);
@@ -852,9 +856,8 @@ class methodsBase
 
             $sql .= 'INSERT INTO ' . id_quote($params["schemaName"]) . '.' .
                 id_quote($params["entityName"]) . ' (' . $fields .
-                ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
+                ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';         
         }
-
 
         $ins_ret = sql($sql, null, true, 'object', $desc . " (файлы)");
         $key = $ins_ret[0][$params["key"]];
