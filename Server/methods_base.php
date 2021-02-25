@@ -57,10 +57,8 @@ class methodsBase
             if ($params['usename'] <> '' and $params['passwd'] <> '') {
                 $_SESSION['login'] = $params['usename'];
                 $_SESSION['password'] = $params['passwd'];
-                $_SESSION['test_var'] = '12';
 
                 checkSchemaAdmin();
-//                $usenameDB = array(array('usename' => 'postgres'));
                 $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
 
                 $privateKey = GenerateRandomString();
@@ -68,7 +66,6 @@ class methodsBase
                 setcookie('private_key', $privateKey);
 
                 $_SESSION['password'] = EncryptStr($_SESSION['password'], $privateKey);
-                $_SESSION['test_var'] = 'abcdef1';
                 return $usenameDB;
             } else {
                 if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
