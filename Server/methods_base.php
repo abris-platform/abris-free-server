@@ -20,8 +20,7 @@ if (file_exists(dirname(__FILE__) . '/plugins.php'))
 
 $data_result = array();
 
-function relation($schema, $table)
-{
+function relation($schema, $table) {
     global $dbUnrollViews;
     $rel = id_quote($schema) . "." . id_quote($table);
     if (in_array($rel, $dbUnrollViews ?: array())) {
@@ -33,67 +32,43 @@ function relation($schema, $table)
 
 class methodsBase
 {
-    protected static function postProcessing(&$data_result, &$params)
-    {
+    protected static function postProcessing(&$data_result, &$params) {
         return $data_result;
     }
 
-    protected static function EncryptStr($data, $key)
-    {
-        global $cryptMethod;
-
-        $ivlen = openssl_cipher_iv_length($cryptMethod);
-        $iv = openssl_random_pseudo_bytes($ivlen);
-        $ciphertextRaw = openssl_encrypt($data, $cryptMethod, $key, $options = OPENSSL_RAW_DATA, $iv);
-        $hmac = hash_hmac('sha256', $ciphertextRaw, $key, $as_binary = true);
-        return base64_encode($iv . $hmac . $ciphertextRaw);
-    }
-
-    public static function DecryptStr($data, $key) {
-        global $cryptMethod;
-
-        $c = base64_decode($data);
-        $ivlen = openssl_cipher_iv_length($cryptMethod);
-        $iv = substr($c, 0, $ivlen);
-        $hmac = substr($c, $ivlen, $sha2len=32);
-        $ciphertextRaw = substr($c, $ivlen+$sha2len);
-        $plainText = openssl_decrypt($ciphertextRaw, $cryptMethod, $key, $options=OPENSSL_RAW_DATA, $iv);
-        $calcmac = hash_hmac('sha256', $ciphertextRaw, $key, $as_binary=true);
-
-        if (hash_equals($hmac, $calcmac))
-            return $plainText;
-        else
-            throw new Exception('Invalid password detected! Password can be changed!');
-    }
-
     public static function setEnvKRB5currentUser() {
-        putenv("KRB5CCNAME=".$_SERVER['KRB5CCNAME']);
+        putenv("KRB5CCNAME=" . $_SERVER['KRB5CCNAME']);
     }
-    
+
     public static function getEnvKRB5currentUser() {
         return getenv('KRB5CCNAME');
     }
-    
+
     public static function getShortEnvKRB5currentUser() {
         global $nameALD;
         methodsBase::setEnvKRB5currentUser();
         return (!methodsBase::getEnvKRB5currentUser()) ? $_SERVER['PHP_AUTH_USER'] : str_replace("@$nameALD", '', $_SERVER['PHP_AUTH_USER']);
-    } 
+    }
 
-    public static function authenticate($params)
-    {
+    public static function authenticate($params) {
         global $flag_astra;
 
-        if(!$flag_astra) {
+        if (!$flag_astra) {
             if ($params['usename'] <> '' and $params['passwd'] <> '') {
                 $_SESSION['login'] = $params['usename'];
                 $_SESSION['password'] = $params['passwd'];
+                $_SESSION['test_var'] = '12';
 
                 checkSchemaAdmin();
+//                $usenameDB = array(array('usename' => 'postgres'));
                 $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
 
-               // $_SESSION['password'] = methodsBase::EncryptStr($_SESSION['password'], $_COOKIE['PHPSESSID']);
+                $privateKey = GenerateRandomString();
+                setcookie('private_key', null, -1);
+                setcookie('private_key', $privateKey);
 
+                $_SESSION['password'] = EncryptStr($_SESSION['password'], $privateKey);
+                $_SESSION['test_var'] = 'abcdef1';
                 return $usenameDB;
             } else {
                 if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
@@ -104,31 +79,25 @@ class methodsBase
                             sql("SELECT $adminSchema.update_session('$_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
                 }
 
-                unset($_SESSION['login']);
-                unset($_SESSION['full_usename']);
-                unset($_SESSION['password']);
-                unset($_SESSION['enable_admin']);
+                unset_auth_session();
             }
-        }
-        else{             
+        } else {
             $slogin = methodsBase::getShortEnvKRB5currentUser();
-             
-             checkSchemaAdmin();
-             $usenameDB = sql("SELECT ' $slogin ' as usename", false, false, 'object', '', false); //run a request to verify authentication
-             return $usenameDB;
+
+            checkSchemaAdmin();
+            $usenameDB = sql("SELECT ' $slogin ' as usename", false, false, 'object', '', false); //run a request to verify authentication
+            return $usenameDB;
         }
     }
 
-    public static function getAllEntities($params)
-    {
+    public static function getAllEntities($params) {
         return sql('SELECT * FROM ' . relation($params["schemaName"], $params["entityName"]) . ' t');
     }
 
-    public static function getCurrentUser()
-    {
+    public static function getCurrentUser() {
         global $domain, $user, $flag_astra;
 
-        if($flag_astra) 
+        if ($flag_astra)
             return methodsBase::getShortEnvKRB5currentUser();
 
         if (isset($_SESSION['login']) && ($_SESSION['login']) <> '') {
@@ -144,18 +113,16 @@ class methodsBase
     }
 
 
-    public static function isGuest()
-    {
+    public static function isGuest() {
         global $flag_astra;
-        if($flag_astra) 
+        if ($flag_astra)
             return $_SERVER['PHP_AUTH_USER'];
 
         return isset($_SESSION['login']);
     }
 
 
-    public static function getTableData($params)
-    {
+    public static function getTableData($params) {
 
         if ($params["fields"]) {
             $field_list = "";
@@ -230,24 +197,22 @@ class methodsBase
     }
     //---------------------------------------------------------------------------------------
     // If anything return to function - getTableDataPredicate 
-    public static function quote($n)
-    {
+    public static function quote($n) {
         return "'" . pg_escape_string($n) . "'";
     }
 
-    public static function makeSimplePredicate($operand, $replace_rules, $fields, $params, &$result)
-    {
+    public static function makeSimplePredicate($operand, $replace_rules, $fields, $params, &$result) {
         $func = null;
         $type_desc = '';
         $field = '';
-        if(isset( $operand["field"]))
+        if (isset($operand["field"]))
             $field = $operand["field"];
         if (isset($operand["func"]))
             $func = $operand["func"];
 
-        if (isset($fields[$field])) 
-          if(isset($fields[$field]['type']))
-            $type_desc = '::' . $fields[$field]['type'];
+        if (isset($fields[$field]))
+            if (isset($fields[$field]['type']))
+                $type_desc = '::' . $fields[$field]['type'];
 
 
         if (!isset($operand["search_in_key"]) && isset($replace_rules[$field])) {
@@ -270,8 +235,8 @@ class methodsBase
                 if (is_array($value)) {
                     if (count($value) > 0) {
                         $null_condition = '';
-                        foreach ($value as $k=>$v){
-                            if(!$v){
+                        foreach ($value as $k => $v) {
+                            if (!$v) {
                                 $null_condition = $field . " is null or " . $field . "::text = ''";
                                 unset($value[$k]);
 
@@ -279,12 +244,12 @@ class methodsBase
 
                         }
                         $value_list = implode(",", array_map("methodsBase::quote", $value));
-                        if(count($value) == 0)
-                            return  $null_condition;
+                        if (count($value) == 0)
+                            return $null_condition;
                         else
-                        if ($null_condition == '')
-                            return  $field . " IN ($value_list)";
-                        return  $null_condition.' or '.$field . " IN ($value_list)";
+                            if ($null_condition == '')
+                                return $field . " IN ($value_list)";
+                        return $null_condition . ' or ' . $field . " IN ($value_list)";
                     } else
                         return $field . " is null or trim(" . $field . "::text) = ''";
                 }
@@ -306,12 +271,12 @@ class methodsBase
 
                         }
                         $value_list = implode(",", array_map("methodsBase::quote", $value));
-                        if(count($value) == 0)
-                            return  $null_condition;
+                        if (count($value) == 0)
+                            return $null_condition;
                         else
-                        if ($null_condition == '')
-                            return  $field . " NOT IN ($value_list)";
-                        return  $null_condition.' and '.$field . " NOT IN ($value_list)";
+                            if ($null_condition == '')
+                                return $field . " NOT IN ($value_list)";
+                        return $null_condition . ' and ' . $field . " NOT IN ($value_list)";
                     } else
                         return $field . " is not null and " . $field . "::text <> ''";
                 }
@@ -341,14 +306,14 @@ class methodsBase
                     $where_arr = array();
 
                     if ($field != "t.\"\"") {
-                        foreach($value_parts as $i => $v)
+                        foreach ($value_parts as $i => $v)
                             $where_arr[] = $field . "::TEXT ilike '%" . pg_escape_string($v) . "%'::TEXT";
                         return implode(' and ', $where_arr);
                     } else {
                         $where = "";
 
                         foreach ($fields as $k => $field_description) {
-                            if(isset($field_description["hidden"]))
+                            if (isset($field_description["hidden"]))
                                 if ($field_description["hidden"])
                                     continue;
                             if (isset($field_description["subfields"])) {
@@ -363,13 +328,13 @@ class methodsBase
                                     $where .= " OR ";
                                 }
                                 $where_arr = array();
-                                foreach($value_parts as $i => $v)
+                                foreach ($value_parts as $i => $v)
                                     $where_arr[] = "t." . id_quote($k) . "::TEXT ILIKE '" . pg_escape_string('%' . $v . '%') . "'::TEXT";
 
                                 $where .= implode(' and ', $where_arr);
                             }
-                            if($operand["m_order"]){
-                                if(isset($result["m_order"]))
+                            if ($operand["m_order"]) {
+                                if (isset($result["m_order"]))
                                     $result["m_order"] .= ", ";
                                 else
                                     $result["m_order"] = "";
@@ -389,7 +354,7 @@ class methodsBase
             case "ISNN":
                 return $field . " IS NOT NULL ";
             case "DUR":
-                return $field . " <= now() and " .$field. " > now() - '".$value."'::interval";
+                return $field . " <= now() and " . $field . " > now() - '" . $value . "'::interval";
             case "FTS":
 
                 $fts = json_decode($value, true);
@@ -434,8 +399,7 @@ class methodsBase
         }
     }
 
-    public static function makePredicateString($predicate_object, $replace_rules, $fields, $params, &$result)
-    {
+    public static function makePredicateString($predicate_object, $replace_rules, $fields, $params, &$result) {
 
         $operator = '';
         $string = '';
@@ -452,8 +416,7 @@ class methodsBase
     }
 
     //---------------------------------------------------------------------------------------
-    public static function makeOrderAndDistinctString($order_object, $params)
-    {
+    public static function makeOrderAndDistinctString($order_object, $params) {
         $orderfields = '';
         $distinctfields = '';
         foreach ($order_object as $i => $o) {
@@ -499,8 +462,7 @@ class methodsBase
 
     //---------------------------------------------------------------------------------------
 
-    public static function getTableDataPredicate($params)
-    {
+    public static function getTableDataPredicate($params) {
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $replace_rules = array();
 
@@ -560,7 +522,7 @@ class methodsBase
                         }
                         $j_field_list .= "COALESCE(" . $field_description["subfields_table_alias"][$m] . "." . id_quote($j_field) . "::text,'')";
                     }
-                    if(isset($field_description["virtual"]))
+                    if (isset($field_description["virtual"]))
                         $field_list .= "(row_to_json(row($j_field_list, " . $field_description["subfields_navigate_alias"] . "." . id_quote($field_description["subfields_key"]) . "::text))::text) collate \"C\" as " . id_quote($field_name);
                     else
                         $field_list .= "(row_to_json(row($j_field_list, " . id_quote($field_description["table_alias"]) . "." . id_quote($field_name) . "::text))::text) collate \"C\" as " . id_quote($field_name);
@@ -610,7 +572,7 @@ class methodsBase
         $order_distinct = self::makeOrderAndDistinctString($params['order'], $params);
         $orderfields = $order_distinct['orderfields'];
         $distinctfields = $order_distinct['distinctfields'];
-        
+
         $pred_res = array();
         $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params, $pred_res);
 
@@ -645,36 +607,35 @@ class methodsBase
             $count = $count . ' where ' . $predicate;
         } else
             $predicate = 'true';
-        
+
         if ($distinctfields)
-             $count .= ') t';
+            $count .= ') t';
 
         $rollupfields = '';
-        if(isset($pred_res["m_order"])){
-            if($orderfields)
-                $orderfields .= ', '.$pred_res["m_order"];
+        if (isset($pred_res["m_order"])) {
+            if ($orderfields)
+                $orderfields .= ', ' . $pred_res["m_order"];
             else
-                $orderfields = 'ORDER BY '.$pred_res["m_order"];
+                $orderfields = 'ORDER BY ' . $pred_res["m_order"];
         }
         $statement = $statement . "  " . $orderfields;
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
             if ($params["currentKey"] && ($params["limit"] != 0 and $params["limit"] != -1)) {
                 $equation = '(trunc((k.row_number-1)/' . $params["limit"] . ')*' . $params["limit"] . ')';
-                if(isset($params["middleRow"])){
-                    if($params["middleRow"]) $equation = 'trunc(k.row_number-('.$params["limit"].'/2)-1)';
+                if (isset($params["middleRow"])) {
+                    if ($params["middleRow"]) $equation = 'trunc(k.row_number-(' . $params["limit"] . '/2)-1)';
                 }
-                $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE '. $equation .' END as row_number
+                $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE ' . $equation . ' END as row_number
                     FROM (select row_number() over (' . $orderfields . '), t.' . id_quote($params["primaryKey"]) .
-                        '  from ('.$statement.') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
+                    '  from (' . $statement . ') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
 
                 $rowNumberRes = sql($pageNumberStatement);
                 $params["offset"] = $rowNumberRes[0]["row_number"];
-                if(!$params["offset"])
-                  $params["offset"] = 0;
+                if (!$params["offset"])
+                    $params["offset"] = 0;
             }
         }
-        
 
 
         $statement_count = $statement;
@@ -683,7 +644,7 @@ class methodsBase
         }
 
         global $data_result;
-		$data_result = array( 
+        $data_result = array(
             "offset" => $params["offset"],
             "fields" => $field_array,
             "sql" => $statement
@@ -699,7 +660,7 @@ class methodsBase
         }
 
         $data_result["data"] = $data_resul_statement;
-	    $data_result["records"] = $number_count;
+        $data_result["records"] = $number_count;
 
         if (isset($params['predicate']['operands'][0])) {
             $fst_operand = $params['predicate']['operands'][0];
@@ -721,8 +682,7 @@ class methodsBase
         return static::postProcessing($data_result, $params);
     }
 
-    public static function getEntitiesByKey($params, $order_by_key = true)
-    {
+    public static function getEntitiesByKey($params, $order_by_key = true) {
         if (isset($params["fields"])) {
             $field_list = "";
             foreach ($params["fields"] as $k => $n) {
@@ -768,29 +728,26 @@ class methodsBase
         return sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . id_quote($params["key"]) . ' = \'' . pg_escape_string($params["value"]) . '\'');
     }
 
-    public static function deleteEntitiesByKey($params)
-    {
+    public static function deleteEntitiesByKey($params) {
         $sql = '';
         $value_arr = array();
         $key_arr = array();
         $request_number = array();
 
-        if(is_array($params["key"])) {
+        if (is_array($params["key"])) {
             $key_arr = $params["key"];
             $value_arr = $params["value"];
-            if(is_array($params["value"][0])){
+            if (is_array($params["value"][0])) {
                 $request_number = $params["value"][0];
-            }
-            else{
+            } else {
                 $request_number = array($params["value"][0]);
             }
-            
-        }
-        else {
+
+        } else {
             $key_arr = array($params["key"]);
-            if(is_array($params["value"])) 
+            if (is_array($params["value"]))
                 $value_arr[0] = $params["value"];
-            else 
+            else
                 $value_arr[0] = array($params["value"]);
             $request_number = $value_arr[0];
 
@@ -800,28 +757,26 @@ class methodsBase
             $sql_where = '';
             $type_conversion = '';
 
-            foreach($key_arr as $j => $key){
-                if(isset($params["types"]))
+            foreach ($key_arr as $j => $key) {
+                if (isset($params["types"]))
                     if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
-                    $sql_where .= id_quote($key) . $type_conversion . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
-                    if($key != end($key_arr)) 
-                        $sql_where .= " AND " ;
-                    
+                $sql_where .= id_quote($key) . $type_conversion . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
+                if ($key != end($key_arr))
+                    $sql_where .= " AND ";
+
             }
 
-            $sql .= 'DELETE FROM ' . id_quote($params["schemaName"]) . '.' .id_quote($params["entityName"]) . ' WHERE ' . $sql_where . ';';
+            $sql .= 'DELETE FROM ' . id_quote($params["schemaName"]) . '.' . id_quote($params["entityName"]) . ' WHERE ' . $sql_where . ';';
 
-            
-            
+
         }
-        
+
         sql($sql, null, true, 'object');
         $return_data["sql"] = $sql;
         return $return_data;
     }
 
-    public static function addEntities($params)
-    {
+    public static function addEntities($params) {
 
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $sql = '';
@@ -865,8 +820,7 @@ class methodsBase
         return $ins_ret;
     }
 
-    public static function updateEntity($params)
-    {
+    public static function updateEntity($params) {
         $sql = '';
 
         $sql = '';
@@ -874,22 +828,20 @@ class methodsBase
         $key_arr = array();
         $request_number = array();
 
-        if(is_array($params["key"])) {
+        if (is_array($params["key"])) {
             $key_arr = $params["key"];
             $value_arr = $params["value"];
-            if(is_array($params["value"][0])){
+            if (is_array($params["value"][0])) {
                 $request_number = $params["value"][0];
-            }
-            else{
+            } else {
                 $request_number = array($params["value"][0]);
             }
-            
-        }
-        else {
+
+        } else {
             $key_arr = array($params["key"]);
-            if(is_array($params["value"])) 
+            if (is_array($params["value"]))
                 $value_arr[0] = $params["value"];
-            else 
+            else
                 $value_arr[0] = array($params["value"]);
             $request_number = $value_arr[0];
 
@@ -926,18 +878,18 @@ class methodsBase
                 }
             };
 
-            foreach($key_arr as $j => $key){
-                if(isset($params["types"]))
+            foreach ($key_arr as $j => $key) {
+                if (isset($params["types"]))
                     if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
-                    $sql_where .= id_quote($key) . $type_conversion . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
-                    if($key != end($key_arr)) 
-                        $sql_where .= " AND " ;
-                    
+                $sql_where .= id_quote($key) . $type_conversion . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
+                if ($key != end($key_arr))
+                    $sql_where .= " AND ";
+
             }
 
-            $sql .= 'UPDATE '.id_quote($params["schemaName"]).'.'.id_quote($params["entityName"]).' SET '.$set.'  WHERE '.$sql_where.';';
-            
-            
+            $sql .= 'UPDATE ' . id_quote($params["schemaName"]) . '.' . id_quote($params["entityName"]) . ' SET ' . $set . '  WHERE ' . $sql_where . ';';
+
+
         }
 
         sql($sql, null, true, 'object');
@@ -945,41 +897,36 @@ class methodsBase
         return $return_data;
     }
 
-    public static function getPIDs($params)
-    {
+    public static function getPIDs($params) {
         $r = sql('SELECT * FROM pg_stat_activity where datname = current_database()');
         $pid_map = array();
         foreach ($r as $i => $v) {
             $pid_map[$v['pid']] = 1;
         }
-        if(isset($_SESSION['pids']))
+        if (isset($_SESSION['pids']))
             foreach ($_SESSION['pids'] as $p => $v) {
                 if (!isset($pid_map[$p]))
                     unset($_SESSION['pids'][$p]);
             }
-        return array('pids' => isset($_SESSION['pids'])?$_SESSION['pids']:array());
+        return array('pids' => isset($_SESSION['pids']) ? $_SESSION['pids'] : array());
     }
 
-    public static function killPID($params)
-    {
+    public static function killPID($params) {
         $r = sql('select pg_terminate_backend(' . pg_escape_string($params['pid']) . ')');
         unset($_SESSION['pids'][$params['pid']]);
         return $r;
     }
 
-    public static function getExtensionsVersion($params)
-    {
+    public static function getExtensionsVersion($params) {
         $r = sql("SELECT * FROM pg_available_extensions pe where pe.name in ('pg_abris')");
         return $r;
     }
 
-    public static function getTableDefaultValues($params)
-    {
+    public static function getTableDefaultValues($params) {
         return [];
     }
 
-    private static function mergeMetadata($proj_arr, $prop_arr, $rel_arr , $buttons)
-    {
+    private static function mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons) {
         $metadata = array();
 
         foreach ($proj_arr as $i => $p) {
@@ -1004,38 +951,36 @@ class methodsBase
         return $metadata;
     }
 
-    public static function getAllModelMetadata()
-    {
+    public static function getAllModelMetadata() {
         global $metaSchema;
         global $sql_view_projection;
         $buttons = "";
         $pages = "";
 
-        $extension = sql("SELECT * FROM pg_namespace WHERE nspname = '".$metaSchema."'");
-        if(empty($extension[0])) {
+        $extension = sql("SELECT * FROM pg_namespace WHERE nspname = '" . $metaSchema . "'");
+        if (empty($extension[0])) {
             $proj_arr = sql($sql_view_projection["view_projection_entity"]);
             $prop_arr = sql($sql_view_projection["view_projection_property"]);
             $rel_arr = sql($sql_view_projection["view_projection_relation"]);
-           
-        }
-        else{
+
+        } else {
             $proj_arr = sql("SELECT * FROM $metaSchema.view_projection_entity");
             if (@count($proj_arr) == 0) {
                 //throw new Exception("Metadata: no projections");
             }
-    
+
             $prop_arr = methodsBase::getAllEntities(array(
                 "schemaName" => $metaSchema,
                 "entityName" => "view_projection_property"
             ));
-    
+
             $rel_arr = methodsBase::getAllEntities(array(
                 "schemaName" => $metaSchema,
                 "entityName" => "view_projection_relation"
             ));
         }
 
-        $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr , $buttons);
+        $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons);
 
         $options = sql("SELECT * FROM $metaSchema.options");
 
@@ -1043,13 +988,11 @@ class methodsBase
     }
 
 
-    public static function test($params)
-    {
+    public static function test($params) {
         return $params;
     }
 
-    private static function sql_count_estimate($params, $statement, $count)
-    {
+    private static function sql_count_estimate($params, $statement, $count) {
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $count_explain = 'explain (format json) ' . $statement;
         $json_explain = sql($count_explain, false, false, 'object', $desc . " (характеристики)");
@@ -1072,12 +1015,11 @@ class methodsBase
     }
 
 
-    public static function getUserDescription()
-    {
+    public static function getUserDescription() {
         $res = sql('SELECT rolname AS user,  description AS comment
         FROM pg_roles r
         JOIN pg_shdescription c ON c.objoid = r.oid 
-        WHERE r.rolname = \''.methodsBase::getCurrentUser().'\'');
+        WHERE r.rolname = \'' . methodsBase::getCurrentUser() . '\'');
         return $res[0];
     }
 }

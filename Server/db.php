@@ -8,6 +8,7 @@
  */
 
 include 'config_default.php';
+include 'services_methods.php';
 if (file_exists(dirname(__FILE__) . '/configs/config.php'))
     include dirname(__FILE__) . '/configs/config.php';
 
@@ -15,25 +16,6 @@ $D_SESSION = array();
 
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
-}
-
-function _get_client_ip() {
-    $ipaddress = '';
-    if (isset($_SERVER['HTTP_CLIENT_IP']))
-        $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-    else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    else if (isset($_SERVER['HTTP_X_FORWARDED']))
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-    else if (isset($_SERVER['HTTP_FORWARDED_FOR']))
-        $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-    else if (isset($_SERVER['HTTP_FORWARDED']))
-        $ipaddress = $_SERVER['HTTP_FORWARDED'];
-    else if (isset($_SERVER['REMOTE_ADDR']))
-        $ipaddress = $_SERVER['REMOTE_ADDR'];
-    else
-        $ipaddress = 'UNKNOWN';
-    return $ipaddress;
 }
 
 function unpackJSON($text) {
@@ -106,6 +88,9 @@ function unset_auth_session() {
     unset($D_SESSION['full_usename']);
     unset($D_SESSION['enable_admin']);
 
+    if (isset($_COOKIE['private_key']))
+        setcookie('private_key', null, -1);
+
     if (isset($_SESSION)) {
         unset($_SESSION['login']);
         unset($_SESSION['password']);
@@ -121,7 +106,11 @@ function custom_pg_connect($encrypt_password) {
         $dbname = $D_SESSION['dbname'];
 
     if ((isset($D_SESSION['login']) || isset($D_SESSION['full_usename'])) && isset($D_SESSION['password'])) {
-        $password = /*$encrypt_password ? methodsBase::DecryptStr($D_SESSION['password'], $_COOKIE['PHPSESSID']) :*/ $D_SESSION['password'];
+        $privateKey = '';
+        if (isset($_COOKIE['private_key']))
+            $privateKey = $_COOKIE['private_key'];
+
+        $password = $encrypt_password ? DecryptStr($D_SESSION['password'], $privateKey) : $D_SESSION['password'];
         checkSchemaAdmin();
 
         $session_usename = isset($D_SESSION['full_usename']) ? $D_SESSION['full_usename'] : $D_SESSION['login'];
@@ -195,7 +184,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     // Update the release date in the table (sessions)
     if (isset($D_SESSION['login']) && isset($D_SESSION['password']))
         if (($D_SESSION['login'] <> '') and ($D_SESSION['password'] <> '') and ($D_SESSION["enable_admin"] == 't')) {
-            $ipAddr = _get_client_ip();
+            $ipAddr = GetClientIP();
             $updDateExit = pg_query($dbconn, "SELECT $adminSchema.update_session('$D_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
         }
 
@@ -225,12 +214,14 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     if (!$result)
         throw new Exception(pg_last_error());
     /* eof language setup */
+
+
     if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__')) {
         session_commit();
     }
 
     $result = pg_query($dbconn, $query);
-    if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() != PHP_SESSION_NONE)) {
+    if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() == PHP_SESSION_NONE)) {
         session_start();
     }
 
