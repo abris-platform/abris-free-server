@@ -62,8 +62,10 @@ class methodsBase
                 $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
 
                 $privateKey = GenerateRandomString();
-                setcookie('private_key', null, -1);
-                setcookie('private_key', $privateKey);
+                if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))){
+                    setcookie('private_key', null, -1);
+                    setcookie('private_key', $privateKey);    
+                }
 
                 $_SESSION['password'] = EncryptStr($_SESSION['password'], $privateKey);
                 return $usenameDB;
@@ -858,8 +860,9 @@ class methodsBase
 
                 if (isset($value) && trim($value) !== '') {
                     $type_conversion = '';
-                    if ($params["types"][$field])
-                        $type_conversion = '::' . $params["types"][$field];
+                    if(isset($params["types"]))
+                        if ($params["types"][$field])
+                            $type_conversion = '::' . $params["types"][$field];
 
                     if ($set) {
                         $set .= ', ' . id_quote($field) . " = '" . pg_escape_string($value) . "'" . $type_conversion;
