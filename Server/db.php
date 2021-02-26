@@ -9,6 +9,7 @@
 
 include 'config_default.php';
 include 'services_methods.php';
+include 'web_storage.php';
 if (file_exists(dirname(__FILE__) . '/configs/config.php'))
     include dirname(__FILE__) . '/configs/config.php';
 
@@ -39,12 +40,9 @@ function id_quote($identifier) {
 
 // The function checks the availability of the administration scheme and sets the corresponding flag to the variable $ _SESSION ["enable_admin"]
 function checkSchemaAdmin() {
-    global $adminSchema, $D_SESSION;
-    if (!isset($D_SESSION['enable_admin'])) {
-        $D_SESSION['enable_admin'] = sql_s("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$adminSchema');")[0]["exists"];
-
-        if (isset($_SESSION))
-            $_SESSION['enable_admin'] = $D_SESSION['enable_admin'];
+    global $adminSchema, $_STORAGE;
+    if (!isset($_STORAGE['enable_admin'])) {
+        $_STORAGE['enable_admin'] = sql_s("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$adminSchema');")[0]['exists'];
     }
 }
 
@@ -60,60 +58,52 @@ function preprocess_data($data) {
 }
 
 function sql_handler_test($query, $format) {
-    global $D_SESSION;
+    global $D_SESSION, $_STORAGE;
 
-    if (!isset($D_SESSION['pids']))
-        $D_SESSION['pids'] = array();
-    if (!isset($D_SESSION['enable_admin']))
-        $D_SESSION['enable_admin'] = 'f';
+    if (!isset($_STORAGE['pids']))
+        $_STORAGE['pids'] = array();
+    if (!isset($_STORAGE['enable_admin']))
+        $_STORAGE['enable_admin'] = 'f';
 
     $query = str_replace(array("\r\n", "\r", "\n"), ' ', $query);
     $query_test_array = file('test_query_response_json.txt', FILE_IGNORE_NEW_LINES);
     foreach ($query_test_array as $line_num => $line) {
         $json_response = json_decode($line, true);
-        if(isset($json_response['query']) && isset($json_response['format']))
-        if (($json_response['query'] == $query) && ($json_response['format'] == $format))
-            return $json_response['response'];
+        if (isset($json_response['query']) && isset($json_response['format']))
+            if (($json_response['query'] == $query) && ($json_response['format'] == $format))
+                return $json_response['response'];
     }
 
     return 'new_query_test';
 }
 
 function unset_auth_session() {
-    global $D_SESSION;
+    global $_STORAGE;
 
     // TODO may be necessary delete arrays _SESSION and D_SESSION
-    unset($D_SESSION['login']);
-    unset($D_SESSION['password']);
-    unset($D_SESSION['full_usename']);
-    unset($D_SESSION['enable_admin']);
+    unset($_STORAGE['login']);
+    unset($_STORAGE['password']);
+    unset($_STORAGE['full_usename']);
+    unset($_STORAGE['enable_admin']);
 
     if (isset($_COOKIE['private_key']))
         setcookie('private_key', null, -1);
-
-    if (isset($_SESSION)) {
-        unset($_SESSION['login']);
-        unset($_SESSION['password']);
-        unset($_SESSION['full_usename']);
-        unset($_SESSION['enable_admin']);
-    }
 }
 
 function custom_pg_connect($encrypt_password) {
-    global $D_SESSION, $host, $dbname, $port, $dbuser, $dbpass, $flag_astra, $anotherPrefLog;
+    global $_STORAGE, $host, $dbname, $port, $dbuser, $dbpass, $flag_astra, $anotherPrefLog;
     $usename = '';
-    if (isset($D_SESSION['dbname']))
-        $dbname = $D_SESSION['dbname'];
+    $dbname = isset($_STORAGE['dbname']) ? $_STORAGE['dbname'] : $dbname;
 
-    if ((isset($D_SESSION['login']) || isset($D_SESSION['full_usename'])) && isset($D_SESSION['password'])) {
+    if ((isset($_STORAGE['login']) || isset($_STORAGE['full_usename'])) && isset($_STORAGE['password'])) {
         $privateKey = '';
         if (isset($_COOKIE['private_key']))
             $privateKey = $_COOKIE['private_key'];
 
-        $password = $encrypt_password ? DecryptStr($D_SESSION['password'], $privateKey) : $D_SESSION['password'];
+        $password = $encrypt_password ? DecryptStr($_STORAGE['password'], $privateKey) : $_STORAGE['password'];
         checkSchemaAdmin();
 
-        $session_usename = isset($D_SESSION['full_usename']) ? $D_SESSION['full_usename'] : $D_SESSION['login'];
+        $session_usename = isset($_STORAGE['full_usename']) ? $_STORAGE['full_usename'] : $_STORAGE['login'];
         $variants_login = array(
             $session_usename,
             "$anotherPrefLog@$session_usename",
@@ -124,13 +114,12 @@ function custom_pg_connect($encrypt_password) {
             $usename = $login;
             $dbconnect = @pg_connect("host=$host dbname=$dbname port=$port user=$login password=$password");
             if ($dbconnect) {
-                $D_SESSION['full_usename'] = $login;
-                @$_SESSION['full_usename'] = $login;
+                $_STORAGE['full_usename'] = $login;
                 return $dbconnect;
             }
         }
-    } elseif ($flag_astra && (isset($D_SESSION['login']) || isset($D_SESSION['full_usename']))) {
-        $session_usename = isset($D_SESSION['full_usename']) ? $D_SESSION['full_usename'] : $D_SESSION['login'];
+    } elseif ($flag_astra && (isset($_STORAGE['login']) || isset($_STORAGE['full_usename']))) {
+        $session_usename = isset($_STORAGE['full_usename']) ? $_STORAGE['full_usename'] : $_STORAGE['login'];
         $usename = $session_usename;
 
         $dbconnect = @pg_connect("host=$host dbname=$dbname port=$port user=$session_usename");
@@ -149,16 +138,14 @@ function custom_pg_connect($encrypt_password) {
 }
 
 function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true) {
-    global $adminSchema, $adminLogTable, $dbDefaultLanguage, $flag_astra, $D_SESSION;
+    global $adminSchema, $adminLogTable, $dbDefaultLanguage, $flag_astra, $_STORAGE;
 
     if ($flag_astra) {
-        $D_SESSION['login'] = methodsBase::getShortEnvKRB5currentUser();
+        $_STORAGE['login'] = methodsBase::getShortEnvKRB5currentUser();
 
         if (isset($_SERVER['PHP_AUTH_PW'])) {
-            $D_SESSION['password'] = $_SERVER['PHP_AUTH_PW'];
+            $_STORAGE['password'] = $_SERVER['PHP_AUTH_PW'];
         }
-    } else {
-        $D_SESSION = $_SESSION;
     }
 
     if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
@@ -173,24 +160,24 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     $dbconn = custom_pg_connect($encrypt_pass);
 
     $pid = pg_get_pid($dbconn);
-    if (!isset($D_SESSION['pids']))
-        $D_SESSION['pids'] = array();
+    if (!isset($_STORAGE['pids']))
+        $_STORAGE['pids'] = array();
     else
-        $D_SESSION['pids'][$pid] = array('query' => $query, 'desc' => $query_description, 'timestamp' => date('Y-m-d H:i:s', time()));
+        $_STORAGE['pids'][$pid] = array('query' => $query, 'desc' => $query_description, 'timestamp' => date('Y-m-d H:i:s', time()));
 
 
     file_put_contents("sql.log", date('Y-m-d H:i:s', time()) . "\t" . (isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : 'cli') . "\t" . $pid . "\t" . $query . "\n", FILE_APPEND);
 
     // Update the release date in the table (sessions)
-    if (isset($D_SESSION['login']) && isset($D_SESSION['password']))
-        if (($D_SESSION['login'] <> '') and ($D_SESSION['password'] <> '') and ($D_SESSION["enable_admin"] == 't')) {
+    if (isset($_STORAGE['login']) && isset($_STORAGE['password']))
+        if (($_STORAGE['login'] <> '') and ($_STORAGE['password'] <> '') and ($_STORAGE["enable_admin"] == 't')) {
             $ipAddr = GetClientIP();
-            $updDateExit = pg_query($dbconn, "SELECT $adminSchema.update_session('$D_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
+            $updDateExit = pg_query($dbconn, "SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
         }
 
     // Add to user actions in the table (log).
     $logs = array();
-    if ($logDb and ($D_SESSION['enable_admin'] == 't')) {
+    if ($logDb and ($_STORAGE['enable_admin'] == 't')) {
         $log = pg_query($dbconn, "INSERT INTO $adminSchema.$adminLogTable(query) VALUES ('" . pg_escape_string($query) . "') RETURNING key;");
 
         while ($line = pg_fetch_array($log, null, PGSQL_ASSOC)) {
@@ -207,30 +194,28 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     }
 
     /* setup language */
-    if (isset($D_SESSION['language']))
-        $lang = $D_SESSION['language'];
-    else $lang = $dbDefaultLanguage;
+    $lang = isset($_STORAGE['language']) ? $_STORAGE['language'] : $dbDefaultLanguage;
+
     $result = pg_query($dbconn, "set abris.language = '$lang'");
     if (!$result)
         throw new Exception(pg_last_error());
     /* eof language setup */
 
-
     if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__')) {
         session_commit();
     }
-
+    // TODO ЗАЧЕМ???????????
     $result = pg_query($dbconn, $query);
     if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() == PHP_SESSION_NONE)) {
         session_start();
     }
 
-    unset($D_SESSION['pids'][$pid]);
+    unset($_STORAGE['pids'][$pid]);
 
     if (!$result) {
         // If an error has occurred from the side of the database, then try to push this into the query logging table (log_query).
         $lastError = pg_last_error();
-        if ($D_SESSION['enable_admin'] == 't') {
+        if ($_STORAGE['enable_admin'] == 't') {
             if (array_key_exists('key', $logs[0]))
                 pg_query($dbconn, "UPDATE $adminSchema.$adminLogTable SET error = '" . pg_escape_string($lastError) . "' WHERE key = '$logs[0][key]';");
             else
@@ -308,6 +293,8 @@ function sql_s($query) {
     return $response;
 }
 
+
+// TODO под удаление!!!!!
 function sql_auth($query) {
     global $host, $dbname, $port, $dbuser, $dbpass;
     $dbconn = pg_connect("host=$host dbname=$dbname port=$port user=$dbuser password=$dbpass") or die('Could not connect: ' . pg_last_error());

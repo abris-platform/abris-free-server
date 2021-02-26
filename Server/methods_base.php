@@ -51,12 +51,12 @@ class methodsBase
     }
 
     public static function authenticate($params) {
-        global $flag_astra;
+        global $flag_astra, $_STORAGE;
 
         if (!$flag_astra) {
             if ($params['usename'] <> '' and $params['passwd'] <> '') {
-                $_SESSION['login'] = $params['usename'];
-                $_SESSION['password'] = $params['passwd'];
+                $_STORAGE['login'] = $params['usename'];
+                $_STORAGE['password'] = $params['passwd'];
 
                 checkSchemaAdmin();
                 $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
@@ -67,15 +67,13 @@ class methodsBase
                     setcookie('private_key', $privateKey);    
                 }
 
-                $_SESSION['password'] = EncryptStr($_SESSION['password'], $privateKey);
+                $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $privateKey);
                 return $usenameDB;
             } else {
-                if ($_SESSION['login'] <> '' and $_SESSION['password'] <> '') {
-                    global $adminSchema;
-                    global $ipAddr;
-                    if (isset($_SESSION['enable_admin']))
-                        if ($_SESSION['enable_admin'] == 't')
-                            sql("SELECT $adminSchema.update_session('$_SESSION[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
+                if ($_STORAGE['login'] <> '' and $_STORAGE['password'] <> '') {
+                    global $adminSchema, $ipAddr;
+                    if ($_STORAGE['enable_admin'] == 't')
+                        sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
                 }
 
                 unset_auth_session();
@@ -94,18 +92,18 @@ class methodsBase
     }
 
     public static function getCurrentUser() {
-        global $domain, $user, $flag_astra;
+        global $domain, $user, $flag_astra, $_STORAGE;
 
         if ($flag_astra)
             return methodsBase::getShortEnvKRB5currentUser();
 
-        if (isset($_SESSION['login']) && ($_SESSION['login']) <> '') {
-            return $_SESSION['login'];
+        if (strval($_STORAGE['login']) <> '') {
+            return $_STORAGE['login'];
         } else
             if (isset($_SERVER['REMOTE_USER'])) {
                 $cred = explode('\\', $_SERVER['REMOTE_USER']);
                 list($domain, $user) = $cred;
-                $_SESSION['login'] = $user;
+                $_STORAGE['login'] = $user;
                 return $user;
             } else
                 return 'guest';
@@ -113,11 +111,11 @@ class methodsBase
 
 
     public static function isGuest() {
-        global $flag_astra;
+        global $flag_astra, $_STORAGE;
         if ($flag_astra)
             return $_SERVER['PHP_AUTH_USER'];
 
-        return isset($_SESSION['login']);
+        return isset($_STORAGE['login']);
     }
 
 
@@ -261,8 +259,8 @@ class methodsBase
                 if (is_array($value)) {
                     if (count($value) > 0) {
                         $null_condition = '';
-                        foreach ($value as $k=>$v){
-                            if(!$v){
+                        foreach ($value as $k => $v) {
+                            if (!$v) {
                                 $null_condition = $field . " is not null and trim(" . $field . "::text) <> ''";
                                 unset($value[$k]);
 
@@ -787,12 +785,12 @@ class methodsBase
                 if ($value) {
                     $type_conversion = '';
                     $type_conversion = "'" . pg_escape_string($value) . "'";
-                    if(isset($params["types"])){
-                        if ($params["types"][$field]) { 
+                    if (isset($params["types"])) {
+                        if ($params["types"][$field]) {
                             $type_conversion += '::' . $params["types"][$field];
-                        } 
+                        }
                     }
-                    
+
 
                     if ($fields) {
                         $fields .= ', ' . id_quote($field);
@@ -810,7 +808,7 @@ class methodsBase
 
             $sql .= 'INSERT INTO ' . id_quote($params["schemaName"]) . '.' .
                 id_quote($params["entityName"]) . ' (' . $fields .
-                ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';         
+                ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
         }
 
         $ins_ret = sql($sql, null, true, 'object', $desc . " (файлы)");
@@ -898,22 +896,24 @@ class methodsBase
     }
 
     public static function getPIDs($params) {
+        global $_STORAGE;
         $r = sql('SELECT * FROM pg_stat_activity where datname = current_database()');
         $pid_map = array();
         foreach ($r as $i => $v) {
             $pid_map[$v['pid']] = 1;
         }
-        if (isset($_SESSION['pids']))
-            foreach ($_SESSION['pids'] as $p => $v) {
+        if (isset($_STORAGE['pids']))
+            foreach ($_STORAGE['pids'] as $p => $v) {
                 if (!isset($pid_map[$p]))
-                    unset($_SESSION['pids'][$p]);
+                    unset($_STORAGE['pids'][$p]);
             }
-        return array('pids' => isset($_SESSION['pids']) ? $_SESSION['pids'] : array());
+        return array('pids' => isset($_STORAGE['pids']) ? $_STORAGE['pids'] : array());
     }
 
     public static function killPID($params) {
+        global $_STORAGE;
         $r = sql('select pg_terminate_backend(' . pg_escape_string($params['pid']) . ')');
-        unset($_SESSION['pids'][$params['pid']]);
+        unset($_STORAGE['pids'][$params['pid']]);
         return $r;
     }
 
