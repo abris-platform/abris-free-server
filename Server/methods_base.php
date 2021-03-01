@@ -180,17 +180,17 @@ class methodsBase
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
-        $data_resul_statement = sql($statement);
-        $count_data = count($data_resul_statement);
+        $data_result_statement = sql($statement);
+        $count_data = count($data_result_statement);
 
         if ($count_data < $params["limit"]) {
             $number_count[0]["count"] = $count_data + $params["offset"];
-        } else {
+        } elseif ($count_data > 1) {
             $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count, $count);
         }
 
 
-        return array("data" => $data_resul_statement, "records" => $number_count);
+        return array("data" => $data_result_statement, "records" => $number_count);
     }
     //---------------------------------------------------------------------------------------
     // If anything return to function - getTableDataPredicate 
@@ -607,16 +607,16 @@ class methodsBase
             "sql" => $statement
         );
 
-        $data_resul_statement = sql($statement, false, false, (isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object', $desc);
-        $count_data = count($data_resul_statement);
+        $data_result_statement = sql($statement, false, false, (isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object', $desc);
+        $count_data = count($data_result_statement);
 
         if ($count_data < $params["limit"]) {
             $number_count[0]["count"] = $count_data + $params["offset"];
-        } else {
+        } elseif ($count_data > 1) {
             $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count, $count);
         }
 
-        $data_result["data"] = $data_resul_statement;
+        $data_result["data"] = $data_result_statement;
         $data_result["records"] = $number_count;
 
         if (isset($params['predicate']['operands'][0])) {
