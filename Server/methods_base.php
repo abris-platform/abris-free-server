@@ -352,47 +352,7 @@ class methodsBase
                 return $field . " IS NOT NULL ";
             case "DUR":
                 return $field . " <= now() and " . $field . " > now() - '" . $value . "'::interval";
-            case "FTS":
 
-                $fts = json_decode($value, true);
-                $where = "";
-                $ft_query = $fts["ft_query"];
-                $lang = $fts['language'];
-
-                foreach (array_merge($fts["oth_props"], $fts["ft_props"]) as $prop) {
-                    $field = $fields[$prop];
-                    if (!$field["hidden"]) {
-                        if (isset($field["subfields"])) {
-                            foreach ($field["subfields"] as $m => $j_field) {
-                                if ($where) $where .= " OR ";
-                                $where .= $field["subfields_table_alias"][$m] . "." . id_quote($j_field) .
-                                    "::TEXT ILIKE '" . pg_escape_string('%' . $ft_query . '%') . "'::TEXT";;
-                            }
-                        } else {
-                            if ($where) $where .= " OR ";
-                            $where .= "t." . id_quote($prop) . "::TEXT ILIKE '" .
-                                pg_escape_string('%' . $ft_query . '%') . "'::TEXT";
-                        }
-                    }
-                }
-
-                foreach ($fts["ft_props"] as $prop) {
-                    $field = $fields[$prop];
-                    if (!$field["hidden"]) {
-                        if (isset($field["subfields"])) {
-                            foreach ($field["subfields"] as $m => $j_field) {
-                                if ($where) $where .= " OR ";
-                                $where .= "to_tsvector('" . $lang . "', " . $field["subfields_table_alias"][$m] . "." . id_quote($j_field) .
-                                    ") @@ plainto_tsquery('" . $lang . "', '" . pg_escape_string($ft_query) . "'::TEXT";
-                            }
-                        } else {
-                            if ($where) $where .= " OR ";
-                            $where .= "to_tsvector('" . $lang . "', t." . id_quote($prop) . ") @@ plainto_tsquery('" . $lang . "', '" . pg_escape_string($ft_query) . "')";
-                        }
-                    }
-                }
-
-                return '(' . $where . ')';
         }
     }
 

@@ -313,7 +313,8 @@ public function test_updateEntity(){
  
   public function test_getCurrentUser()
   {
-   $_SESSION['login'] = '';
+   global $_STORAGE;
+   $_STORAGE['login'] = '';
    $res = methodsBase::getCurrentUser();
    $this->assertEquals($res,"guest");
    $_SERVER['REMOTE_USER'] = "abris.site\\postgres";
@@ -1339,7 +1340,8 @@ public function test_getTableData()
     }
 
     public function test_getUserDescription(){
-      $_SESSION['login'] = "admins";
+      global $_STORAGE;
+      $_STORAGE['login'] = "admins";
       $res = methodsBase::getUserDescription();
       $this->assertEquals(
          $res,
