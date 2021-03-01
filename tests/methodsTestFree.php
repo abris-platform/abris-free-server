@@ -16,24 +16,21 @@ final class methodsTest extends TestCase
 
  public function test_getPIDS_simple(){
     sql('select version()');
+    global $_STORAGE;
     /*$res = methodsBase::getPIDS([]);
-
     $this->assertEquals($res, array(
       'pids' => 
      array (
      ),
     ));*/
 
-    $_SESSION['pids'] = ["test"=>"123456"];
+    $_STORAGE['pids'] = ["test"=>"123456"];
     $res = methodsBase::getPIDS([]);
     $this->assertEquals($res, array(
       'pids' => 
      array (
      ),
     )); 
-
-
-
   }
 
   public function test_killPID(){
@@ -56,6 +53,31 @@ final class methodsTest extends TestCase
  }
 
  public function test_addEntities(){
+
+   $params = [
+      'entityName' => 'bookings',
+      'schemaName' => 'bookings',
+      'fields' => [
+        0 => [
+          'book_ref' => '44444',
+          'book_date' => '2020-03-12 12:01:00+03',
+          'total_amount' => '44444',
+        ],
+       ],
+      'files' => [],
+      'key' => 'book_ref',
+      'types' => [
+         'book_ref' => 'text'
+      ],
+   ];
+
+  $res = methodsBase::addEntities($params);
+  $this->assertEquals($res, [
+    0 => [
+        'book_ref' => '44444',
+    ],
+  ]); 
+
    $params = [
         'entityName' => 'bookings',
         'schemaName' => 'bookings',
@@ -78,28 +100,6 @@ final class methodsTest extends TestCase
       ],
     ]);  
     
- $params = [
-      'entityName' => 'bookings',
-      'schemaName' => 'bookings',
-      'fields' => [
-        0 => [
-          'book_ref' => '44444',
-          'book_date' => '2020-03-12 12:01:00+03',
-          'total_amount' => '44444',
-        ],
-       ],
-      'files' => [],
-      'key' => 'book_ref',
-      'types' => NULL,
-   ];
-
-  $res = methodsBase::addEntities($params);
-  $this->assertEquals($res, [
-    0 => [
-        'book_ref' => '44444',
-    ],
-  ]); 
-
   $params = [
    "entityName" => "text_types", 
    "schemaName" => "test_schema", 
@@ -275,12 +275,15 @@ public function test_updateEntity(){
             "entityName" => "bookings", 
             "schemaName" => "bookings", 
             "key" => "book_ref", 
-            "value" => "22222" 
+            "value" => "22222",
+            "types" => [
+               "book_ref"=> "text",
+            ],
     ]; 
 
    $res = methodsBase::deleteEntitiesByKey($params);
    $this->assertEquals($res,[
-      "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '22222';"
+      "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '22222'::text;"
    ]);
 
 
@@ -313,7 +316,7 @@ public function test_updateEntity(){
  
   public function test_getCurrentUser()
   {
-   global $_STORAGE;
+   global $_STORAGE, $flag_astra;
    $_STORAGE['login'] = '';
    $res = methodsBase::getCurrentUser();
    $this->assertEquals($res,"guest");
@@ -323,13 +326,30 @@ public function test_updateEntity(){
    $res = methodsBase::getCurrentUser();
    $this->assertEquals($res,"postgres");
 
+   $flag_astra = true;   
+   $_SERVER['KRB5CCNAME']= "";
+   $_SERVER['PHP_AUTH_USER'] = "postgres";
+   $res = methodsBase::getCurrentUser();
+   $this->assertEquals($res,"postgres");
+   $flag_astra = false;
+
+
   }
 
   public function test_isGuest()
   {
+   global $_STORAGE, $flag_astra;
    $_SESSION['login'] = 'postgres'; 
    $res = methodsBase::isGuest();
    $this->assertEquals($res,1);
+
+   $flag_astra = true;   
+   $_SERVER['PHP_AUTH_USER'] = "postgres";
+   $res = methodsBase::isGuest();
+   $this->assertEquals($res,"postgres");
+   $flag_astra = false;
+
+
   }
 
 
@@ -784,7 +804,8 @@ $params =
         "join" => [], 
         "order" => [["field"=>"airport_code" ,"desc"=>"1"]], 
         "process" => null, 
-        "functions" => [] 
+        "functions" => [],
+        "max_cost" => 10,
       
 ];       
 $res = methodsBase::getTableDataPredicate($params);
@@ -1213,16 +1234,13 @@ public function test_getTableData()
          "passenger_id" 
       ], 
       "predicate" => "21312", 
-      "limit" => 15, 
+      "limit" => 10, 
       "offset" => 0, 
       "key" => null, 
       "value" => null, 
       "distinct" => true, 
-      "exclude" => [
-         ], 
-      "desc" => 'Загрузка списка "Tickets"' 
-
-      
+      "exclude" => [], 
+      "desc" => 'Загрузка списка "Tickets"'
    ];
    $res = methodsBase::getTableData($params);
    $this->assertEquals($res,[
@@ -1237,8 +1255,8 @@ public function test_getTableData()
          7 => ["passenger_id" => '6704 621312'],
          8 => ["passenger_id" => '6772 213122'],
          9 => ["passenger_id" => '6991 021312'],
-         10 => ["passenger_id" => '7437 921312'],
-         11 => ["passenger_id" => '9183 213124'],
+         //10 => ["passenger_id" => '7437 921312'],
+         //11 => ["passenger_id" => '9183 213124'],
 
       ],
       "records" =>[
@@ -1509,6 +1527,20 @@ public function test_getTableData()
          $res['sql']
        );
       
+   }
+
+   public function test_getAllModelMetadata()
+   {
+     $res = methodsBase::getAllModelMetadata();
+     // check relations loaded
+     $this->assertArrayHasKey("aircrafts_data_bookings_aircrafts_data_bookings_seats_aircraft_code",$res['projections']['aircrafts_data']['relations']);
+
+   }
+
+   public function test_getTableDefaultValues(){
+      $params = [];
+      $res = methodsBase::getTableDefaultValues($params);
+      $this->assertEquals([],$res);
    }
       
 

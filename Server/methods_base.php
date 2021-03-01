@@ -716,8 +716,9 @@ class methodsBase
 
             foreach ($key_arr as $j => $key) {
                 if (isset($params["types"]))
-                    if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
-                $sql_where .= id_quote($key) . $type_conversion . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
+                    if(isset($params["types"][$key]))
+                        if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
+                $sql_where .= id_quote($key). " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
                 if ($key != end($key_arr))
                     $sql_where .= " AND ";
 
@@ -746,11 +747,11 @@ class methodsBase
                     $type_conversion = '';
                     $type_conversion = "'" . pg_escape_string($value) . "'";
                     if (isset($params["types"])) {
-                        if ($params["types"][$field]) {
-                            $type_conversion += '::' . $params["types"][$field];
-                        }
+                        if(isset($params["types"][$field]))
+                            if ($params["types"][$field]) {
+                                $type_conversion .= '::' .$params["types"][$field];
+                            }
                     }
-
 
                     if ($fields) {
                         $fields .= ', ' . id_quote($field);
@@ -963,7 +964,7 @@ class methodsBase
 
         $threshold_plan_rows = 10000;
 
-        if (isset($params["max_cost"])) {
+        if (isset($params["max_cost"])){
             if ($total_cost > $params["max_cost"]) {
                 return $plan_rows;
             }
