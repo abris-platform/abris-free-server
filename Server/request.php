@@ -13,9 +13,9 @@
 */
 
 if (file_exists(dirname(__FILE__) . '/methods.php'))
-    require dirname(__FILE__) . '/methods.php';
+    require_once dirname(__FILE__) . '/methods.php';
 else
-    require dirname(__FILE__) . '/methods_base.php';
+    require_once dirname(__FILE__) . '/methods_base.php';
 
 ///////////////////////////////////////////////////////////////////////
 global $flag_astra;
@@ -81,8 +81,16 @@ function request() {
     $pid_count = isset($_STORAGE['pids']) ? count($_STORAGE['pids']) : 0;
 
     if (!isset($_POST['method'])) {
-        if (file_exists(dirname(__FILE__) . '/get_methods.php'))
-            include dirname(__FILE__) . '/get_methods.php';
+        $current_dir_path = dirname(__FILE__);
+        $main_server_path = str_replace('/abris-free-server/Server', '', $current_dir_path);
+
+        if ((stripos($current_dir_path, 'abris-free-server') !== false) && (file_exists("$main_server_path/get_methods.php"))) {
+            include_once "$main_server_path/methods.php";
+            include_once "$main_server_path/get_methods.php";
+        } elseif (file_exists("$current_dir_path/get_methods.php")) {
+            include "$current_dir_path/get_methods.php";
+        }
+
         return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'error' => 'method', 'usename' => $usename, 'pids' => $pid_count));
     } else {
         if (!isset($_POST['params'])) {
