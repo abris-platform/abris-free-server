@@ -183,9 +183,9 @@ class methodsBase
         $data_result_statement = sql($statement);
         $count_data = count($data_result_statement);
 
-        if ($count_data < $params["limit"]) {
+        if (($count_data < $params["limit"])||($params["limit"]==1)) {
             $number_count[0]["count"] = $count_data + $params["offset"];
-        } elseif ($count_data > 1) {
+        } else{
             $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count, $count);
         }
 
@@ -610,9 +610,9 @@ class methodsBase
         $data_result_statement = sql($statement, false, false, (isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object', $desc);
         $count_data = count($data_result_statement);
 
-        if ($count_data < $params["limit"]) {
+        if (($count_data < $params["limit"])||($params["limit"]==1)) {
             $number_count[0]["count"] = $count_data + $params["offset"];
-        } elseif ($count_data > 1) {
+        } else {
             $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count, $count);
         }
 

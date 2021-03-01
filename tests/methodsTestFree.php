@@ -731,7 +731,7 @@ $this->assertEquals($res,
 
 "records" => [
    0 => [
-      "count" => 104,
+      "count" => 1,
    ],
 ],
 
@@ -1292,12 +1292,16 @@ public function test_getTableData()
 
   public function test_getEntityByKey_One(): void
     {
-        $this->assertEquals(
-          methodsBase::getEntitiesByKey(array("schemaName" => "meta",
+        $params = [
+           "schemaName" => "meta",
             "entityName" => "view_projection_entity",
             "key" => "projection_name",
-            "value" => "airports")),
-            array(array( 
+            "value" => "airports"
+         ];
+
+        $res = methodsBase::getEntitiesByKey($params);
+        $this->assertEquals($res,
+            [[
                 "projection_name" => "airports",
                 "title" => "Airports",
                 "jump" => "airports",
@@ -1307,17 +1311,18 @@ public function test_getTableData()
                 "hint" => null, 
                 "table_schema" => "bookings",
                 "table_name" => "airports"
-            ) ) 
+            ]] 
           );
 
+          $params =[
+            "schemaName" => "meta",
+            "entityName" => "view_projection_relation",
+            "key" => "projection_name",
+            "value" => "aircrafts_data"
+          ];
 
-          $this->assertEquals(
-            count(methodsBase::getEntitiesByKey(array("schemaName" => "meta",
-              "entityName" => "view_projection_relation",
-              "key" => "projection_name",
-              "value" => "aircrafts_data"))),
-              3
-            );
+          $res = count(methodsBase::getEntitiesByKey($params));
+          $this->assertEquals($res,3);
         
     }
 
@@ -1527,6 +1532,151 @@ public function test_getTableData()
          $res['sql']
        );
       
+   }
+
+   public function test_getTableDataPredicate_EQ(){
+      $params = [
+        "format" => "array",    
+        "entityName" => "airports", 
+            "schemaName" => "bookings", 
+            "predicate" => [
+               "strict" => true, 
+               "operands" => [
+                  [
+                              "levelup" => false, 
+                              "operand" => [
+                                 "field" => "timezone", 
+                                 "path" => [
+                                    "timezone" 
+                                 ], 
+                                 "op" => "EQ", 
+                                 "value" => [
+                                    "Asia/Novokuznetsk",  "Asia/Yakutsk", ""
+                                 ],
+                                 "search_in_key" => false, 
+                                 "table_alias" => "t" 
+                              ] 
+                           ] 
+               ] 
+            ], 
+            "aggregate" => [], 
+            "limit" => 10, 
+            "offset" => 0, 
+            "primaryKey" => "airport_code", 
+            "currentKey" => "", 
+            "fields" => [
+                                          "airport_code" => [
+                                             "table_alias" => "t", 
+                                             "subfields" => null, 
+                                             "hidden" => false 
+                                          ], 
+                                          "airport_name" => [
+                                                "table_alias" => "t" 
+                                             ], 
+                                          "timezone" => [
+                                                         "table_alias" => "t" 
+                                                      ] 
+                                       ], 
+            "join" => [], 
+            "order" => [], 
+            "process" => null, 
+            "functions" => [] 
+          
+      ];  
+
+      $res = methodsBase::getTableDataPredicate($params);  
+      $this->assertEquals($res,[
+            'offset' => 0,
+            'fields' => ['airport_code','airport_name','timezone'],
+            'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is null or "t"."timezone"::text = \'\' or "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
+            'data' => [
+            ['YKS','Якутск','Asia/Yakutsk'],
+            ['MJZ','Мирный','Asia/Yakutsk'],
+            ['KEJ','Кемерово','Asia/Novokuznetsk'],
+            ['PYJ','Полярный','Asia/Yakutsk'],
+            ['NOZ','Спиченково','Asia/Novokuznetsk'],
+            ['BQS','Игнатьево','Asia/Yakutsk'],
+            ['CNN','Чульман','Asia/Yakutsk'],
+            ],
+            'records' => [
+               ['count' => 7]
+            ],
+         ]
+      );
+   }
+
+   public function test_getTableDataPredicate_NEQ(){
+      $params = [
+        "format" => "array",    
+        "entityName" => "airports", 
+            "schemaName" => "bookings", 
+            "predicate" => [
+               "strict" => true, 
+               "operands" => [
+                  [
+                              "levelup" => false, 
+                              "operand" => [
+                                 "field" => "timezone", 
+                                 "path" => [
+                                    "timezone" 
+                                 ], 
+                                 "op" => "NEQ", 
+                                 "value" => [
+                                    "Asia/Novokuznetsk",  "Asia/Yakutsk", ""
+                                 ],
+                                 "search_in_key" => false, 
+                                 "table_alias" => "t" 
+                              ] 
+                           ] 
+               ] 
+            ], 
+            "aggregate" => [], 
+            "limit" => 10, 
+            "offset" => 0, 
+            "primaryKey" => "airport_code", 
+            "currentKey" => "", 
+            "fields" => [
+                                          "airport_code" => [
+                                             "table_alias" => "t", 
+                                             "subfields" => null, 
+                                             "hidden" => false 
+                                          ], 
+                                          "airport_name" => [
+                                                "table_alias" => "t" 
+                                             ], 
+                                          "timezone" => [
+                                                         "table_alias" => "t" 
+                                                      ] 
+                                       ], 
+            "join" => [], 
+            "order" => [], 
+            "process" => null, 
+            "functions" => [] 
+          
+      ];  
+
+      $res = methodsBase::getTableDataPredicate($params);  
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['airport_code','airport_name','timezone'],
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
+         'data' => [
+            ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
+            ['PKC', 'Елизово', 'Asia/Kamchatka'],
+            ['UUS', 'Хомутово', 'Asia/Sakhalin'],
+            ['VVO','Владивосток','Asia/Vladivostok'],
+            ['LED','Пулково','Europe/Moscow'],
+            ['KGD','Храброво','Europe/Kaliningrad'],
+            ['CEK','Челябинск','Asia/Yekaterinburg'],
+            ['MQF','Магнитогорск','Asia/Yekaterinburg'],
+            ['PEE','Пермь','Asia/Yekaterinburg'],
+            ['SGC','Сургут','Asia/Yekaterinburg'],
+         ],
+         'records' => [
+          ['count' => 97]
+         ],
+         ]
+      );
    }
 
    public function test_getAllModelMetadata()
