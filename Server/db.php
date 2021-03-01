@@ -19,21 +19,6 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
 }
 
-function unpackJSON($text) {
-    if ($j = json_decode($text)) {
-        if (is_object($j)) {
-            if (property_exists($j, 'f1'))
-                return $j->{'f1'};
-            if (property_exists($j, 'name'))
-                return $j->{'name'};
-            return '';
-        }
-        return $text;
-    }
-    return $text;
-}
-
-
 function id_quote($identifier) {
     return '"' . str_replace('"', '""', $identifier) . '"';
 }
