@@ -13,7 +13,6 @@ include 'web_storage.php';
 if (file_exists(dirname(__FILE__) . '/configs/config.php'))
     include dirname(__FILE__) . '/configs/config.php';
 
-$D_SESSION = array();
 
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
@@ -43,7 +42,7 @@ function preprocess_data($data) {
 }
 
 function sql_handler_test($query, $format) {
-    global $D_SESSION, $_STORAGE;
+    global $_STORAGE;
 
     if (!isset($_STORAGE['pids']))
         $_STORAGE['pids'] = array();
@@ -65,11 +64,8 @@ function sql_handler_test($query, $format) {
 function unset_auth_session() {
     global $_STORAGE;
 
-    // TODO may be necessary delete arrays _SESSION and D_SESSION
-    unset($_STORAGE['login']);
-    unset($_STORAGE['password']);
-    unset($_STORAGE['full_usename']);
-    unset($_STORAGE['enable_admin']);
+    $_STORAGE->killStorage();
+    unset($_STORAGE);
 
     if (isset($_COOKIE['private_key']))
         setcookie('private_key', null, -1);
@@ -86,6 +82,10 @@ function custom_pg_connect($encrypt_password) {
             $privateKey = $_COOKIE['private_key'];
 
         $password = $encrypt_password ? DecryptStr($_STORAGE['password'], $privateKey) : $_STORAGE['password'];
+        if (!$password) {
+            throw new Exception('Invalid password detected! Password can be changed!');
+        }
+
         checkSchemaAdmin();
 
         $session_usename = isset($_STORAGE['full_usename']) ? $_STORAGE['full_usename'] : $_STORAGE['login'];
@@ -103,6 +103,8 @@ function custom_pg_connect($encrypt_password) {
                 return $dbconnect;
             }
         }
+
+        $usename = $session_usename;
     } elseif ($flag_astra && (isset($_STORAGE['login']) || isset($_STORAGE['full_usename']))) {
         $session_usename = isset($_STORAGE['full_usename']) ? $_STORAGE['full_usename'] : $_STORAGE['login'];
         $usename = $session_usename;
@@ -119,7 +121,7 @@ function custom_pg_connect($encrypt_password) {
 
     // If returns not worked in previous stages, then connect not worked at all
     unset_auth_session();
-    throw new Exception("Unable to connect by user $usename.");
+    throw new Exception("Unable to connect by user $usename to system.");
 }
 
 function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true) {
@@ -187,12 +189,14 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     /* eof language setup */
 
     if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__')) {
-        session_commit();
+        // Close session because next query into database can be very long and other queries not execute.
+        $_STORAGE->pauseSession();
     }
-    // TODO ЗАЧЕМ???????????
+
     $result = pg_query($dbconn, $query);
     if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() == PHP_SESSION_NONE)) {
-        session_start();
+        // Reopen session after close.
+        $_STORAGE->startSession();
     }
 
     unset($_STORAGE['pids'][$pid]);
@@ -223,7 +227,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     pg_close($dbconn);
 
     // test_write -------------------------------
-    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
+    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
         $fp = fopen('test_query_response_json.txt', 'a+');
         $json = [
             'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
@@ -262,7 +266,7 @@ function sql_s($query) {
     pg_close($dbconn);
 
     // test_write -------------------------------
-    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
+    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
         $fp = fopen('test_query_response_json.txt', 'a+');
         $json = [
             'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
@@ -277,26 +281,6 @@ function sql_s($query) {
 
     return $response;
 }
-
-
-// TODO под удаление!!!!!
-function sql_auth($query) {
-    global $host, $dbname, $port, $dbuser, $dbpass;
-    $dbconn = pg_connect("host=$host dbname=$dbname port=$port user=$dbuser password=$dbpass") or die('Could not connect: ' . pg_last_error());
-    $result = pg_query($dbconn, "select * from sql_auth('" . pg_escape_string($query) . "', '" . @$_SESSION['key'] . "')");
-    if (!$result) {
-        throw new Exception(pg_last_error());
-    }
-
-    $response = array();
-    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-        $response[] = array_map('trim', $line);
-    }
-    pg_free_result($result);
-    pg_close($dbconn);
-    return $response;
-}
-
 
 function sql_img($query) {
     global $host, $dbname, $port, $dbuser, $dbpass;

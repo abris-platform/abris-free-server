@@ -32,10 +32,7 @@ function DecryptStr($data, $key) {
     $plainText = openssl_decrypt($ciphertextRaw, $cryptMethod, $key, $options = OPENSSL_RAW_DATA, $iv);
     $calcmac = hash_hmac('sha256', $ciphertextRaw, $key, $as_binary = true);
 
-    if (hash_equals($hmac, $calcmac))
-        return $plainText;
-    else
-        throw new Exception('Invalid password detected! Password can be changed!');
+    return hash_equals($hmac, $calcmac) ? $plainText : false;
 }
 
 function GetClientIP() {

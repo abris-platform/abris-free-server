@@ -18,7 +18,7 @@ class WebStorage extends ArrayObject
         parent::__construct($storage, self::STD_PROP_LIST);
     }
 
-    private function startSession($fromConstruct = false) {
+    public function startSession($fromConstruct = false) {
         $sStatus = session_status();
 
         if ($sStatus == PHP_SESSION_NONE) {
@@ -57,6 +57,29 @@ class WebStorage extends ArrayObject
 
     public function getDefault() {
         return $this->_defaultValue;
+    }
+
+    public function pauseSession() {
+        if ($this->_isSession)
+            session_commit();
+    }
+
+    public function killStorage() {
+        if ($this->_isSession) {
+            $_SESSION = array();
+
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params['path'], $params['domain'],
+                    $params['secure'], $params['httponly']
+                );
+            }
+
+            session_destroy();
+        }
+
+        parent::exchangeArray(array());
     }
 }
 
