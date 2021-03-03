@@ -225,8 +225,10 @@ class methodsBase
         if (isset($operand["type"]))
             $field .= '::' . id_quote($operand["type"]);
 
-
-        $value = $operand["value"];
+        if(isset($operand["value"]))
+            $value = $operand["value"];
+        else
+            $value = "";
         switch ($operand["op"]) {
             case "EQ":
                 if (is_array($value)) {
@@ -361,7 +363,6 @@ class methodsBase
         $operator = '';
         $string = '';
         foreach ($predicate_object["operands"] as $op) {
-
             if (!$op["levelup"]) {
                 $string .= $operator . '(' . self::makeSimplePredicate($op["operand"], $replace_rules, $fields, $params, $result) . ')';
             } else {

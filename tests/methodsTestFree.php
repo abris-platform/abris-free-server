@@ -1534,78 +1534,76 @@ public function test_getTableData()
       
    }
 
-   public function test_getTableDataPredicate_EQ(){
+   public function test_getTableDataPredicate_operand(){
       $params = [
-        "format" => "array",    
-        "entityName" => "airports", 
-            "schemaName" => "bookings", 
-            "predicate" => [
-               "strict" => true, 
-               "operands" => [
-                  [
-                              "levelup" => false, 
-                              "operand" => [
-                                 "field" => "timezone", 
-                                 "path" => [
-                                    "timezone" 
-                                 ], 
-                                 "op" => "EQ", 
-                                 "value" => [
-                                    "Asia/Novokuznetsk",  "Asia/Yakutsk", ""
-                                 ],
-                                 "search_in_key" => false, 
-                                 "table_alias" => "t" 
-                              ] 
-                           ] 
-               ] 
-            ], 
-            "aggregate" => [], 
-            "limit" => 10, 
-            "offset" => 0, 
-            "primaryKey" => "airport_code", 
-            "currentKey" => "", 
-            "fields" => [
-                                          "airport_code" => [
-                                             "table_alias" => "t", 
-                                             "subfields" => null, 
-                                             "hidden" => false 
-                                          ], 
-                                          "airport_name" => [
-                                                "table_alias" => "t" 
-                                             ], 
-                                          "timezone" => [
-                                                         "table_alias" => "t" 
-                                                      ] 
-                                       ], 
-            "join" => [], 
-            "order" => [], 
-            "process" => null, 
-            "functions" => [] 
-          
-      ];  
+         "format" => "array",    
+         "entityName" => "airports", 
+             "schemaName" => "bookings", 
+             "predicate" => [
+                "strict" => true, 
+                "operands" => [
+                   [
+                               "levelup" => false, 
+                               "operand" => [
+                                  "field" => "timezone", 
+                                  "path" => [
+                                     "timezone" 
+                                  ], 
+                                  "op" => "EQ", 
+                                  "value" => [
+                                     "Asia/Novokuznetsk",  "Asia/Yakutsk", ""
+                                  ],
+                                  "search_in_key" => false, 
+                                  "table_alias" => "t" 
+                               ] 
+                            ] 
+                ] 
+             ], 
+             "aggregate" => [], 
+             "limit" => 10, 
+             "offset" => 0, 
+             "primaryKey" => "airport_code", 
+             "currentKey" => "", 
+             "fields" => [
+                                           "airport_code" => [
+                                              "table_alias" => "t", 
+                                              "subfields" => null, 
+                                              "hidden" => false 
+                                           ], 
+                                           "airport_name" => [
+                                                 "table_alias" => "t" 
+                                              ], 
+                                           "timezone" => [
+                                                          "table_alias" => "t" 
+                                                       ] 
+                                        ], 
+             "join" => [], 
+             "order" => [], 
+             "process" => null, 
+             "functions" => [] 
+           
+       ];  
+ 
+       $res = methodsBase::getTableDataPredicate($params);  
+       $this->assertEquals($res,[
+             'offset' => 0,
+             'fields' => ['airport_code','airport_name','timezone'],
+             'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is null or "t"."timezone"::text = \'\' or "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
+             'data' => [
+             ['YKS','Якутск','Asia/Yakutsk'],
+             ['MJZ','Мирный','Asia/Yakutsk'],
+             ['KEJ','Кемерово','Asia/Novokuznetsk'],
+             ['PYJ','Полярный','Asia/Yakutsk'],
+             ['NOZ','Спиченково','Asia/Novokuznetsk'],
+             ['BQS','Игнатьево','Asia/Yakutsk'],
+             ['CNN','Чульман','Asia/Yakutsk'],
+             ],
+             'records' => [
+                ['count' => 7]
+             ],
+          ]
+       );
 
-      $res = methodsBase::getTableDataPredicate($params);  
-      $this->assertEquals($res,[
-            'offset' => 0,
-            'fields' => ['airport_code','airport_name','timezone'],
-            'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is null or "t"."timezone"::text = \'\' or "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
-            'data' => [
-            ['YKS','Якутск','Asia/Yakutsk'],
-            ['MJZ','Мирный','Asia/Yakutsk'],
-            ['KEJ','Кемерово','Asia/Novokuznetsk'],
-            ['PYJ','Полярный','Asia/Yakutsk'],
-            ['NOZ','Спиченково','Asia/Novokuznetsk'],
-            ['BQS','Игнатьево','Asia/Yakutsk'],
-            ['CNN','Чульман','Asia/Yakutsk'],
-            ],
-            'records' => [
-               ['count' => 7]
-            ],
-         ]
-      );
-   }
-
-   public function test_getTableDataPredicate_NEQ(){
       $params = [
         "format" => "array",    
         "entityName" => "airports", 
@@ -1677,7 +1675,227 @@ public function test_getTableData()
          ],
          ]
       );
+
+      $params = [
+         "entityName"=>"bookings",
+         "schemaName"=>"bookings",
+         "predicate"=>[
+            "strict"=>true,
+            "operands"=>[
+               [
+               "levelup"=>false,
+               "operand"=>[
+                  "field"=>"total_amount",
+                  "path"=>[
+                     "total_amount"],
+                  "op"=>"G",
+                  "value"=>"6000",
+                  "m_order"=>true,
+                  "table_alias"=>"t"],
+               ],
+               [
+               "levelup"=>false,
+               "operand"=>[
+                  "field"=>"book_ref",
+                  "path"=>[
+                     "book_ref"],
+                  "op"=>"ISNN",
+                  'search_in_key' => true,
+                  "table_alias"=>"t"],
+               ],
+            ],
+         ],
+
+         "aggregate"=>[],
+         "limit"=>3,
+         "offset"=>0,
+         "primaryKey"=>"book_ref",
+         "currentKey"=>null,
+         "fields"=>[
+            "book_ref"=>["table_alias"=>"t"],
+            "book_date"=>["table_alias"=>"t"],
+            "total_amount"=>["table_alias"=>"t"]
+         ],
+         "join"=>[],
+         "sample"=>null,
+         "order"=>[
+            [
+            "field"=>"total_amount",
+            "distinct"=>true
+            ],
+         ],
+         "group"=>[],
+         "process"=>null,
+         "functions"=>[],
+         "format"=>"array",
+         "desc"=>"Загрузка таблицы \"Bookings\""
+          
+      ];  
+
+      $res = methodsBase::getTableDataPredicate($params); 
+      $this->assertEquals($res,[
+            'offset' => 0,
+            'fields' => ['book_ref', 'book_date', 'total_amount'],
+            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'data' => [
+            ['0059AA','2017-07-19 11:47:00+00','6200.00'],
+            ['003FA5','2017-08-10 17:19:00+00','6300.00'],
+            ['00551A','2017-07-25 10:32:00+00','6400.00'],
+            ],
+            'records' => [
+               ['count' => 3918]
+            ],
+      ]); 
+
+      $params["predicate"]["operands"][0]["operand"]["op"] = "L";
+      $params["predicate"]["operands"][1]["operand"]["op"] = "ISN";
+      $res = methodsBase::getTableDataPredicate($params); 
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['book_ref', 'book_date', 'total_amount'],
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."total_amount" < \'6000\') AND ("t"."book_ref" IS NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'data' => [],
+         'records' => [
+            ['count' => 0]
+         ],
+      ]); 
+ 
+      $params["predicate"]["operands"][0]["operand"]["op"] = "GEQ";
+      $params["predicate"]["operands"][1]["operand"]["op"] = "LEQ";
+      $params["predicate"]["operands"][1]["operand"]["value"] = "0002D8";
+
+      $res = methodsBase::getTableDataPredicate($params); 
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['book_ref', 'book_date', 'total_amount'],
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'data' => [
+         ['000068','2020-03-12 15:18:00+00','18100.00'],
+         ['0002D8','2017-08-07 18:40:00+00','23600.00'],
+         ['000012','2020-03-12 15:18:00+00','37900.00'],
+         ],
+         'records' => [
+            ['count' => 5]
+         ],
+      ]);
+
+
+      $params = [
+         "entityName"=>"aircrafts",
+         "schemaName"=>"bookings",
+         "predicate"=>[
+            "strict"=>true,
+            "operands"=>[
+               [
+               "levelup"=>false,
+               "operand"=>[
+                  "field"=>"range",
+                  "path"=>["range"],
+                  "op"=>"F",
+                  "value"=> "testint",
+                  "m_order"=>true,
+                  "table_alias"=>"t"],
+               ],
+            ],
+         ],
+
+         "aggregate"=>[],
+         "limit"=>3,
+         "offset"=>0,
+         "primaryKey"=>"aircraft_code",
+         "currentKey"=>null,
+         "fields"=>[
+            "aircraft_code"=>["table_alias"=>"t"],
+            "model"=>["table_alias"=>"t"],
+            "range"=>["table_alias"=>"t"]
+         ],
+         "join"=>[],
+         "sample"=>null,
+         "order"=>[
+            [
+            "field"=>"range",
+            "distinct"=>true
+            ],
+         ],
+         "group"=>[],
+         "process"=>null,
+         "functions"=>[],
+         "format"=>"array",
+         "desc"=>"Загрузка таблицы \"Aircrafts\""
+          
+      ]; 
+
+      $res = methodsBase::getTableDataPredicate($params); 
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['aircraft_code', 'model', 'range'],
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("testint"("t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'data' => [
+         ['CN1','Сессна 208 Караван','1200'],
+         ['CR2','Бомбардье CRJ-200','2700'],
+         ['SU9','Сухой Суперджет-100','3000'],
+         ],
+         'records' => [
+            ['count' => 10]
+         ],
+      ]);
+
+      $params["predicate"]["operands"][0]["operand"]["op"] = "FC";
+      $params["predicate"]["operands"][0]["operand"]["value"] = "testint2";
+      $res = methodsBase::getTableDataPredicate($params); 
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['aircraft_code', 'model', 'range'],
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("testint2"(\'bookings.aircrafts\', "t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'data' => [
+         ['CN1','Сессна 208 Караван','1200'],
+         ['CR2','Бомбардье CRJ-200','2700'],
+         ['SU9','Сухой Суперджет-100','3000'],
+         ],
+         'records' => [
+            ['count' => 10]
+         ],
+      ]);
+
+      $params["predicate"]["operands"][0]["operand"]["op"] = "EQF";
+      $params["predicate"]["operands"][0]["operand"]["value"] = "testint3";
+      $res = methodsBase::getTableDataPredicate($params); 
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['aircraft_code', 'model', 'range'],
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("t"."range" =  "testint3"())  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'data' => [
+         ['CN1','Сессна 208 Караван','1200'],
+         ],
+         'records' => [
+            ['count' => 1]
+         ],
+      ]);
+
+      $params["predicate"]["operands"][0]["operand"]["op"] = "FEQ";
+      $params["predicate"]["operands"][0]["operand"]["value"] = 1200;
+      $params["predicate"]["operands"][0]["operand"]["func"] = "test4";
+      $res = methodsBase::getTableDataPredicate($params); 
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['aircraft_code', 'model', 'range'],
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("test4"("t"."range") =  \'1200\')  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'data' => [
+         ['CN1','Сессна 208 Караван','1200'],
+         ['CR2','Бомбардье CRJ-200','2700'],
+         ['SU9','Сухой Суперджет-100','3000'],
+         ],
+         'records' => [
+            ['count' => 10]
+         ],
+      ]);
+
+
+
+
+
    }
+
 
    public function test_getAllModelMetadata()
    {
