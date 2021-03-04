@@ -58,7 +58,6 @@ class methodsBase
                 $_STORAGE['login'] = $params['usename'];
                 $_STORAGE['password'] = $params['passwd'];
 
-                checkSchemaAdmin();
                 $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
 
                 $privateKey = GenerateRandomString();

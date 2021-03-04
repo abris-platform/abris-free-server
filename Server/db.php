@@ -26,7 +26,11 @@ function id_quote($identifier) {
 function checkSchemaAdmin() {
     global $adminSchema, $_STORAGE;
     if (!isset($_STORAGE['enable_admin'])) {
-        $_STORAGE['enable_admin'] = sql_s("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$adminSchema');")[0]['exists'];
+        $_STORAGE['enable_admin'] = sql(
+            "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$adminSchema');",
+            false, false, 'object',
+            '', false, true
+        )[0]['exists'];
     }
 }
 
@@ -71,18 +75,19 @@ function unset_auth_session() {
         setcookie('private_key', null, -1);
 }
 
-function custom_pg_connect($encrypt_password) {
+function custom_pg_connect($encrypt_password, $default_connection) {
     global $_STORAGE, $host, $dbname, $port, $dbuser, $dbpass, $flag_astra, $anotherPrefLog;
     $usename = '';
     $dbname = isset($_STORAGE['dbname']) ? $_STORAGE['dbname'] : $dbname;
 
-    if ((isset($_STORAGE['login']) || isset($_STORAGE['full_usename'])) && isset($_STORAGE['password'])) {
+    if ((isset($_STORAGE['login']) || isset($_STORAGE['full_usename'])) && isset($_STORAGE['password']) && !$default_connection) {
         $privateKey = '';
         if (isset($_COOKIE['private_key']))
             $privateKey = $_COOKIE['private_key'];
 
         $password = $encrypt_password ? DecryptStr($_STORAGE['password'], $privateKey) : $_STORAGE['password'];
         if (!$password) {
+            unset_auth_session();
             throw new Exception('Invalid password detected! Password can be changed!');
         }
 
@@ -124,7 +129,7 @@ function custom_pg_connect($encrypt_password) {
     throw new Exception("Unable to connect by user $usename to system.");
 }
 
-function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true) {
+function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true, $default_connection = false) {
     global $adminSchema, $adminLogTable, $dbDefaultLanguage, $flag_astra, $_STORAGE;
 
     if ($flag_astra) {
@@ -144,7 +149,7 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     if ($format != 'object' && $format != 'array')
         throw new Exception("'$format' is unknown format!");
 
-    $dbconn = custom_pg_connect($encrypt_pass);
+    $dbconn = custom_pg_connect($encrypt_pass, $default_connection);
 
     $pid = pg_get_pid($dbconn);
     if (!isset($_STORAGE['pids']))
@@ -241,59 +246,5 @@ function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'obje
     // -------------------------------------------
 
 
-    return $response;
-}
-
-function sql_s($query) {
-
-    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {  // если тест
-        $response = sql_handler_test($query, '');
-        if ($response != 'new_query_test') return $response;
-    }
-
-    global $host, $dbname, $port, $dbuser, $dbpass;
-    $dbconn = pg_connect("host=$host dbname=$dbname port=$port user=$dbuser password=$dbpass") or die('Could not connect: ' . pg_last_error());
-    $result = pg_query($dbconn, $query);
-    if (!$result) {
-        throw new Exception(pg_last_error());
-    }
-
-    $response = array();
-    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-        $response[] = array_map('trim', $line);
-    }
-    pg_free_result($result);
-    pg_close($dbconn);
-
-    // test_write -------------------------------
-    if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
-        $fp = fopen('test_query_response_json.txt', 'a+');
-        $json = [
-            'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $query),
-            'format' => '',
-            'response' => $response,
-
-        ];
-        fwrite($fp, json_encode($json) . PHP_EOL);
-        fclose($fp);
-    }
-    // -------------------------------------------
-
-    return $response;
-}
-
-function sql_img($query) {
-    global $host, $dbname, $port, $dbuser, $dbpass;
-    $dbconn = pg_connect("host=$host dbname=$dbname port=$port user=$dbuser password=$dbpass") or die('Could not connect: ' . pg_last_error());
-
-    $result = pg_query($dbconn, $query);
-    if (!$result) {
-        throw new Exception(pg_last_error());
-    }
-
-    $response = pg_unescape_bytea(pg_fetch_result($result, 0));
-
-    pg_free_result($result);
-    pg_close($dbconn);
     return $response;
 }
