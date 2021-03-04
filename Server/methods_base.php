@@ -250,7 +250,8 @@ class methodsBase
                     } else
                         return $field . " is null or trim(" . $field . "::text) = ''";
                 }
-                if (is_null($value)) {
+
+                if (empty($value)) {
                     return $field . " is null";
                 }
 
@@ -587,9 +588,10 @@ class methodsBase
                     '  from (' . $statement . ') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
 
                 $rowNumberRes = sql($pageNumberStatement);
+                $params["offset"] = 0;
+                if(isset($rowNumberRes[0]["row_number"]))
                 $params["offset"] = $rowNumberRes[0]["row_number"];
-                if (!$params["offset"])
-                    $params["offset"] = 0;
+
             }
         }
 

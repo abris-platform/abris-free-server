@@ -33,6 +33,31 @@ final class methodsTest extends TestCase
     )); 
   }
 
+  //public function test_authenticate(){
+   /*global $_STORAGE;
+   $_STORAGE['PHPSESSID'] = "";
+
+   $params =  [
+     "usename" => "postgres", 
+     "passwd" => "123456" 
+   ] ;
+
+   $res = methodsBase::authenticate($params);
+   $this->assertEquals($res,[
+     0 => [
+         "usename"=> "postgres"
+     ],
+   ]); 
+
+   $params =  [
+     "usename" => "", 
+     "passwd" => "" 
+   ] ;
+
+   $res = methodsBase::authenticate($params);
+   $this->assertEquals($res,null); */
+ //} 
+
   public function test_killPID(){
    $params = [
          "pid"=>"13008",
@@ -289,31 +314,7 @@ public function test_updateEntity(){
 
   }
 
-  public function test_authenticate(){
-    /*$_COOKIE['PHPSESSID'] = "";
 
-    $params =  [
-      "usename" => "postgres", 
-      "passwd" => "123456" 
-    ] ;
-
-    $res = methodsBase::authenticate($params);
-    $this->assertEquals($res,[
-      0 => [
-          "usename"=> "postgres"
-      ],
-    ]); 
-
-    $params =  [
-      "usename" => "", 
-      "passwd" => "" 
-    ] ;
-
-    $res = methodsBase::authenticate($params);
-    $this->assertEquals($res,null); */
-  } 
-
- 
   public function test_getCurrentUser()
   {
    global $_STORAGE, $flag_astra;
@@ -1691,7 +1692,8 @@ public function test_getTableData()
                   "op"=>"G",
                   "value"=>"6000",
                   "m_order"=>true,
-                  "table_alias"=>"t"],
+                  "table_alias"=>"t"
+               ],
                ],
                [
                "levelup"=>false,
@@ -1701,7 +1703,8 @@ public function test_getTableData()
                      "book_ref"],
                   "op"=>"ISNN",
                   'search_in_key' => true,
-                  "table_alias"=>"t"],
+                  "table_alias"=>"t"
+               ],
                ],
             ],
          ],
@@ -1892,7 +1895,104 @@ public function test_getTableData()
 
 
 
+      $params = [
+         "entityName"=>"bookings",
+         "schemaName"=>"bookings",
+         "predicate"=>[
+            "strict"=>true,
+            "operands"=>[
+               [
+               "levelup"=>false,
+               "operand"=>[
+                  "field"=>"book_ref",
+                  "path"=>["book_ref"],
+                  "op"=>"EQ",
+                  'search_in_key' => true,
+                  "table_alias"=>"t",
+                  "value" => null
+               ],
+               ],
+            ],
+         ],
 
+         "aggregate"=>[],
+         "limit"=>3,
+         "offset"=>0,
+         "primaryKey"=>"book_ref",
+         "currentKey"=>null,
+         "fields"=>[
+            "book_ref"=>["table_alias"=>"t"],
+            "book_date"=>["table_alias"=>"t"],
+            "total_amount"=>["table_alias"=>"t"]
+         ],
+         "join"=>[],
+         "sample"=>null,
+         "order"=>[
+            [
+            "field"=>"total_amount",
+            "distinct"=>true
+            ],
+         ],
+         "group"=>[],
+         "process"=>null,
+         "functions"=>[],
+         "format"=>"array",
+         "desc"=>"Загрузка таблицы \"Bookings\""
+          
+      ];  
+
+
+      $res = methodsBase::getTableDataPredicate($params);  // 256
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['book_ref', 'book_date', 'total_amount'],
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" is null)  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'data' => [],
+         'records' => [
+            ['count' => 0]
+         ],
+      ]);
+
+
+      $params["predicate"]["operands"][0]["operand"]["value"]= [];
+      $res = methodsBase::getTableDataPredicate($params);  //252
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['book_ref', 'book_date', 'total_amount'],
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" is null or trim("t"."book_ref"::text) = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'data' => [],
+         'records' => [
+            ['count' => 0]
+         ],
+      ]);
+
+
+      $params["predicate"]["operands"][0]["operand"]["value"][0] = "";
+      $params["predicate"]["operands"][0]["operand"]["value"][1] = "";
+      $res = methodsBase::getTableDataPredicate($params);  //246
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['book_ref', 'book_date', 'total_amount'],
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" is null or "t"."book_ref"::text = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'data' => [],
+         'records' => [
+            ['count' => 0]
+         ],
+      ]);
+
+      $params["predicate"]["operands"][0]["operand"]["value"][0] = "Asia/Novokuznetsk";
+      $params["predicate"]["operands"][0]["operand"]["value"][1] = "Europe/Moscow";
+
+      $res = methodsBase::getTableDataPredicate($params);  //249
+      $this->assertEquals($res,[
+         'offset' => 0,
+         'fields' => ['book_ref', 'book_date', 'total_amount'],
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'data' => [],
+         'records' => [
+            ['count' => 0]
+         ],
+      ]);
 
    }
 
