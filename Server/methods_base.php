@@ -250,11 +250,9 @@ class methodsBase
                     } else
                         return $field . " is null or trim(" . $field . "::text) = ''";
                 }
-
                 if (empty($value)) {
                     return $field . " is null";
                 }
-
                 return $field . " = '" . pg_escape_string($value) . "'" . $type_desc;
             case "NEQ":
                 if (is_array($value)) {
@@ -278,8 +276,8 @@ class methodsBase
                     } else
                         return $field . " is not null and " . $field . "::text <> ''";
                 }
-                if (is_null($value)) {
-                    return $field . " is not null";
+                if (empty($value)) {
+                    return $field . " is null";
                 }
                 return $field . " <> '" . pg_escape_string($value) . "'";
             case "G":
