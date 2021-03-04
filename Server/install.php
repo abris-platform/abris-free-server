@@ -75,6 +75,11 @@ function CreateMenu($host, $port, $dbname, $username, $password) {
     echo "</pre>";
 }
 
+function TestConnection($host, $port, $dbname, $username, $password) {
+    $dbconn = pg_connect("host=$host dbname=$dbname port=$port user=$username password=$password") or die('FAIL');
+	die("OK");
+}
+
 
 
 function StartInstall() {
@@ -86,6 +91,10 @@ function StartInstall() {
             $_REQUEST["address"] != '' && $_REQUEST["port"] != '' && $_REQUEST["database"] != ''
             && $_REQUEST["username"] != '' && $_REQUEST["userpas"] != ''
         ) {
+            if(isset($_REQUEST["test"])){
+                TestConnection($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"], $_REQUEST["username"], $_REQUEST["userpas"]);
+            }
+            
             // connection of the "terminal"
             disable_ob();
             CreateConfig($_REQUEST["address"], $_REQUEST["port"], $_REQUEST["database"]);

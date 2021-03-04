@@ -373,11 +373,18 @@ class methodsBase
     //---------------------------------------------------------------------------------------
     public static function makeOrderAndDistinctString($order_object, $params) {
         $orderfields = '';
+        $orderfields_no_aliases = '';
         $distinctfields = '';
         foreach ($order_object as $i => $o) {
             $o_t_alias = $params["fields"][$o["field"]]["table_alias"];
             if (!$o_t_alias)
                 $o_t_alias = 't';
+
+            if ($orderfields_no_aliases) {
+                $orderfields_no_aliases .= ', ' . id_quote($o["field"]);
+            } else {
+                $orderfields_no_aliases = 'ORDER BY ' . id_quote($o["field"]);
+            }
 
             if (isset($params["fields"][$o["field"]]["subfields"]))
                 $o_f = id_quote($o["field"]);
@@ -412,7 +419,7 @@ class methodsBase
         if ($orderfields && $params["primaryKey"]) {
             $orderfields .= ', ' . $params["primaryKey"];
         }
-        return array('orderfields' => $orderfields, 'distinctfields' => $distinctfields);
+        return array('orderfields' => $orderfields, 'orderfields_no_aliases' => $orderfields_no_aliases, 'distinctfields' => $distinctfields);
     }
 
     //---------------------------------------------------------------------------------------
@@ -429,6 +436,7 @@ class methodsBase
 
 
         $orderfields = '';
+        $orderfields_no_aliases = '';
         $distinctfields = '';
 
         if (isset($params["process"])) {
@@ -526,6 +534,7 @@ class methodsBase
 
         $order_distinct = self::makeOrderAndDistinctString($params['order'], $params);
         $orderfields = $order_distinct['orderfields'];
+        $orderfields_no_aliases = $order_distinct['orderfields_no_aliases'];
         $distinctfields = $order_distinct['distinctfields'];
 
         $pred_res = array();
@@ -582,7 +591,7 @@ class methodsBase
                     if ($params["middleRow"]) $equation = 'trunc(k.row_number-(' . $params["limit"] . '/2)-1)';
                 }
                 $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE ' . $equation . ' END as row_number
-                    FROM (select row_number() over (' . $orderfields . '), t.' . id_quote($params["primaryKey"]) .
+                    FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' . id_quote($params["primaryKey"]) .
                     '  from (' . $statement . ') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
 
                 $rowNumberRes = sql($pageNumberStatement);
@@ -629,7 +638,7 @@ class methodsBase
         }
 
         if (sizeof($params["aggregate"])) {
-            $data_aggregates = sql($sql_aggregates, false, false, 'object', $desc . " (агрегирование)");
+            $data_aggregates = sql($sql_aggregates, false, false, 'object', $desc . " (aggregate)");
             foreach ($params["aggregate"] as $aggrIndex => $aggregateDescription) {
                 $data_result[$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'][][$aggregateDescription["func"]] = $data_aggregates[0][$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'];
             }
@@ -771,7 +780,7 @@ class methodsBase
                 ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
         }
 
-        $ins_ret = sql($sql, null, true, 'object', $desc . " (файлы)");
+        $ins_ret = sql($sql, null, true, 'object', $desc . " (files)");
         $key = $ins_ret[0][$params["key"]];
 
         return $ins_ret;
@@ -955,7 +964,7 @@ class methodsBase
     private static function sql_count_estimate($params, $statement, $count) {
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $count_explain = 'explain (format json) ' . $statement;
-        $json_explain = sql($count_explain, false, false, 'object', $desc . " (характеристики)");
+        $json_explain = sql($count_explain, false, false, 'object', $desc . " (explain)");
         $obj_json = json_decode($json_explain[0]["QUERY PLAN"]);
         $plan_rows = $obj_json[0]->{"Plan"}->{"Plan Rows"};
         $total_cost = $obj_json[0]->{"Plan"}->{"Total Cost"};
@@ -969,7 +978,7 @@ class methodsBase
             }
         }
 
-        $arr_count = sql($count, false, false, 'object', $desc . " (количество)");
+        $arr_count = sql($count, false, false, 'object', $desc . " (count)");
         $plan_rows = $arr_count[0]["count"];
         return $plan_rows;
     }

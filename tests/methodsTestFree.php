@@ -963,6 +963,87 @@ $this->assertEquals(
 
 
 
+public function test_getTableDataPredicate_currentKey_costructedField_order(){
+   $params = 
+     [
+           "format" => "array", 
+           "entityName" => "airports", 
+           "schemaName" => "bookings", 
+           "predicate" => [
+              "strict" => true, 
+              "operands" => [] 
+           ], 
+           "aggregate" => [], 
+           "limit" => 2, 
+           "offset" => 0, 
+           "primaryKey" => "airport_code", 
+           "currentKey" => "MMK", 
+           "fields" => [
+                                         "airport_code" => [
+                                            "table_alias" => "t", 
+                                            "subfields" => null, 
+                                            "hidden" => false 
+                                         ], 
+                                         "airport_name" => [
+                                               "table_alias" => "t" 
+                                            ], 
+                                         "timezone" => [
+                                                        "table_alias" => "t" 
+                                                     ],
+                                          "flight_no"=> [
+                                             "table_alias" => "t0",
+                                             "title" => "Flight number"
+                                          ] 
+                                      ], 
+           "join" => [[
+               "key" => "airport_code",
+               "schema" => "bookings",
+               "entity" => "flights",
+               "table_alias" => "t0",
+               "parent_table_alias" => "t",
+               "entityKey" => "departure_airport",
+               "array_mode" => true
+            ]], 
+           "order" => [["field"=>"flight_no" ,"desc"=>"1"]], 
+           "process" => null, 
+           "functions" => []
+         
+   ];       
+   $res = methodsBase::getTableDataPredicate($params);
+
+
+   $this->assertEquals(
+      [
+         "offset" => "6504", 
+         "fields" => [
+               "airport_code", 
+               "airport_name", 
+               "timezone", 
+               "flight_no" 
+            ], 
+         "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  left join \"bookings\".\"flights\" as \"t0\" on \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC, airport_code LIMIT 2 OFFSET 6504", 
+         "data" => [
+                  [
+                     "SCW", 
+                     "Сыктывкар", 
+                     "Europe/Moscow", 
+                     "PG0570" 
+                  ], 
+                  [
+                        "SCW", 
+                        "Сыктывкар", 
+                        "Europe/Moscow", 
+                        "PG0570" 
+                     ] 
+               ], 
+         "records" => [
+                           [
+                              "count" => "33121" 
+                           ] 
+                        ] 
+      ],$res
+   );
+}
 
 
 
