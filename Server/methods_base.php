@@ -413,7 +413,11 @@ class methodsBase
 
             if (isset($o["desc"])) {
                 if ($o["desc"])
+                {
                     $orderfields .= " DESC";
+                    $orderfields_no_aliases .= " DESC";
+                }
+                    
             }
         }
         if ($orderfields && $params["primaryKey"]) {
