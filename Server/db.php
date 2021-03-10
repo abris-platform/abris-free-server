@@ -68,7 +68,8 @@ function sql_handler_test($query, $format) {
 function unset_auth_session() {
     global $_STORAGE;
 
-    $_STORAGE->killStorage();
+    if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) 
+        $_STORAGE->killStorage();
     unset($_STORAGE);
 
     if (isset($_COOKIE['private_key']))

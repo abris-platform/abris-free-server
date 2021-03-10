@@ -930,28 +930,21 @@ class methodsBase
         $buttons = "";
         $pages = "";
 
-        $extension = sql("SELECT * FROM pg_namespace WHERE nspname = '" . $metaSchema . "'");
-        if (empty($extension[0])) {
-            $proj_arr = sql($sql_view_projection["view_projection_entity"]);
-            $prop_arr = sql($sql_view_projection["view_projection_property"]);
-            $rel_arr = sql($sql_view_projection["view_projection_relation"]);
-
-        } else {
-            $proj_arr = sql("SELECT * FROM $metaSchema.view_projection_entity");
-            if (@count($proj_arr) == 0) {
-                //throw new Exception("Metadata: no projections");
-            }
-
-            $prop_arr = methodsBase::getAllEntities(array(
-                "schemaName" => $metaSchema,
-                "entityName" => "view_projection_property"
-            ));
-
-            $rel_arr = methodsBase::getAllEntities(array(
-                "schemaName" => $metaSchema,
-                "entityName" => "view_projection_relation"
-            ));
+        $proj_arr = sql("SELECT * FROM $metaSchema.view_projection_entity");
+        if (@count($proj_arr) == 0) {
+            //throw new Exception("Metadata: no projections");
         }
+
+        $prop_arr = methodsBase::getAllEntities(array(
+            "schemaName" => $metaSchema,
+            "entityName" => "view_projection_property"
+        ));
+
+        $rel_arr = methodsBase::getAllEntities(array(
+            "schemaName" => $metaSchema,
+            "entityName" => "view_projection_relation"
+        ));
+
 
         $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons);
 

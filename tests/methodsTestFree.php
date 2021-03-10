@@ -33,10 +33,9 @@ final class methodsTest extends TestCase
     )); 
   }
 
-  //public function test_authenticate(){
-   /*global $_STORAGE;
+  public function test_authenticate(){
+   global $_STORAGE;
    $_STORAGE['PHPSESSID'] = "";
-
    $params =  [
      "usename" => "postgres", 
      "passwd" => "123456" 
@@ -55,8 +54,9 @@ final class methodsTest extends TestCase
    ] ;
 
    $res = methodsBase::authenticate($params);
-   $this->assertEquals($res,null); */
- //} 
+   $this->assertEquals($res,null); 
+
+ } 
 
   public function test_killPID(){
    $params = [
@@ -2162,6 +2162,77 @@ public function test_getTableData()
          ],
          ]
       );
+   }
+
+   public function test_getTableDataPredicate_operand_С(){
+      $params = [
+         "entityName"=>"tickets",
+         "schemaName"=>"bookings",
+         "predicate"=>[
+            "strict"=>true,
+            "operands"=>[
+               [
+               "levelup"=>false,
+               "operand"=>[
+                  "field"=>"book_ref",
+                  "path"=>["book_ref","book_ref"],
+                  "op"=>"C",
+                  "value"=>"F313DD",
+                  "search_in_key"=>null,
+                  "table_alias"=>"t0"
+                  ]
+               ]
+            ]
+         ],
+         "aggregate"=>[],
+         "limit"=>10,
+         "offset"=>0,
+         "primaryKey"=>"ticket_no",
+         "currentKey"=>"0005432000991",
+         "fields"=>[
+            "ticket_no"=>["table_alias"=>"t"],
+            "book_ref"=>[
+               "table_alias"=>"t",
+               "subfields"=>[
+                  "book_ref",
+                  "book_date",
+                  "total_amount"
+               ],
+               "sssssss" => [],
+               "subfields_navigate_alias"=>"t0",
+               "subfields_table_alias"=>["t0","t0","t0"],
+               "subfields_key"=>"book_ref"
+            ],
+            "passenger_id"=>["table_alias"=>"t"],
+            "passenger_name"=>["table_alias"=>"t"],
+            "contact_data"=>["table_alias"=>"t"]
+         ],
+         "join"=>[[
+            "key"=>"book_ref",
+            "virtual"=>false,
+            "schema"=>"bookings",
+            "entity"=>"bookings",
+            "table_alias"=>"t0",
+            "parent_table_alias"=>"t",
+            "entityKey"=>"book_ref",
+            "array_mode"=>false
+         ]
+         ],
+         "sample"=>null,
+         "order"=>[],
+         "group"=>[],
+         "process"=>null,
+         "functions"=>[],
+         "format"=>"array",
+         "desc"=>"Загрузка таблицы \"Tickets\""
+      ];
+
+      $res = methodsBase::getTableDataPredicate($params);
+      $this->assertEquals("","");
+      //print_r($res);
+
+
+
    }
 
    public function test_getAllModelMetadata()
