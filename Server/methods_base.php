@@ -482,13 +482,18 @@ class methodsBase
 
 
                 if (isset($field_description["subfields"])) {
-                    $j_field_list = "";
+                    $j_field_list_array = array();
+    
+    
                     foreach ($field_description["subfields"] as $m => $j_field) {
-                        if ($j_field_list) {
-                            $j_field_list .= "||' '|| ";
-                        }
-                        $j_field_list .= "COALESCE(" . $field_description["subfields_table_alias"][$m] . "." . id_quote($j_field) . "::text,'')";
+                        $j_field_list_array[] = "COALESCE(" . $field_description["subfields_table_alias"][$m] . "." . id_quote($j_field) . "::text,'')";
                     }
+
+                    if(isset($field_description["format"]))
+                        $j_field_list = 'format(\''.pg_escape_string($field_description["format"]).'\', '.implode(", ", $j_field_list_array).')';
+                    else
+                        $j_field_list = implode("||' '|| ", $j_field_list_array);
+
                     if (isset($field_description["virtual"]))
                         $field_list .= "(row_to_json(row($j_field_list, " . $field_description["subfields_navigate_alias"] . "." . id_quote($field_description["subfields_key"]) . "::text))::text) collate \"C\" as " . id_quote($field_name);
                     else
