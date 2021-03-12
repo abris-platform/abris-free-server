@@ -507,6 +507,8 @@ class methodsBase
                         $field_list .= id_quote($field_description["table_alias"]) . "." . id_quote($field_name) . " is not null as " . id_quote($field_name);
                     else
                         $field_list .= id_quote($field_description["table_alias"]) . "." . id_quote($field_name);
+                    if (isset($field_description['type']))
+                            $field_list = '::' . id_quote($field_description['type']);
                     $field_array[] = $field_name;
                 }
             }
