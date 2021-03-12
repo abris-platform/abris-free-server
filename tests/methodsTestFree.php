@@ -33,31 +33,6 @@ final class methodsTest extends TestCase
     )); 
   }
 
-  public function test_authenticate(){
-   global $_STORAGE;
-   $_STORAGE['PHPSESSID'] = "";
-   $params =  [
-     "usename" => "postgres", 
-     "passwd" => "123456" 
-   ] ;
-
-   $res = methodsBase::authenticate($params);
-   $this->assertEquals($res,[
-     0 => [
-         "usename"=> "postgres"
-     ],
-   ]); 
-
-   $params =  [
-     "usename" => "", 
-     "passwd" => "" 
-   ] ;
-
-   $res = methodsBase::authenticate($params);
-   $this->assertEquals($res,null); 
-
- } 
-
   public function test_killPID(){
    $params = [
          "pid"=>"13008",
@@ -2226,7 +2201,7 @@ public function test_getTableData()
          "format"=>"array",
          "desc"=>"Загрузка таблицы \"Tickets\""
       ];
-/* temporarly remove failed test
+// temporarly remove failed test
       $res = methodsBase::getTableDataPredicate($params);
       $this->assertEquals($res["data"][0],  ['0005432000991',
       '{"f1":"F313DD 2017-07-03 01:37:00+00 30900.00","f2":"F313DD"}',
@@ -2241,8 +2216,8 @@ public function test_getTableData()
       '6615 976589',
       'MAKSIM ZHUKOV',
       '{"email": "m-zhukov061972@postgrespro.ru", "phone": "+70149562185"}']);
-*/
-      $this->assertEquals("","");
+
+     // $this->assertEquals("","");
    }
 
    public function test_getAllModelMetadata()
@@ -2258,6 +2233,31 @@ public function test_getTableData()
       $res = methodsBase::getTableDefaultValues($params);
       $this->assertEquals([],$res);
    }
+
+   public function test_authenticate(){
+      global $_STORAGE;
+      $_STORAGE['PHPSESSID'] = "";
+      $params =  [
+        "usename" => "postgres", 
+        "passwd" => "123456" 
+      ] ;
+   
+      $res = methodsBase::authenticate($params);
+      $this->assertEquals($res,[
+        0 => [
+            "usename"=> "postgres"
+        ],
+      ]); 
+   
+      $params =  [
+        "usename" => "", 
+        "passwd" => "" 
+      ] ;
+   
+      $res = methodsBase::authenticate($params);
+      $this->assertEquals($res,null);  
+   
+    } 
       
 
 }
