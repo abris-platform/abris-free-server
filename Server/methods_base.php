@@ -502,11 +502,15 @@ class methodsBase
 
                     $replace_rules[$field_name] = $j_field_list;
                 } else {
+                    if(isset($field_description["table_alias"]))
+                        $field_table_alias = $field_description["table_alias"];
+                    else
+                    $field_table_alias = 't';
 
                     if (isset($field_description["only_filled"]))
-                        $field_list .= id_quote($field_description["table_alias"]) . "." . id_quote($field_name) . " is not null as " . id_quote($field_name);
+                        $field_list .= id_quote($field_table_alias) . "." . id_quote($field_name) . " is not null as " . id_quote($field_name);
                     else
-                        $field_list .= id_quote($field_description["table_alias"]) . "." . id_quote($field_name);
+                        $field_list .= id_quote($field_table_alias) . "." . id_quote($field_name);
                     if (isset($field_description['type']))
                             $field_list .= '::' . id_quote($field_description['type']);
                     $field_array[] = $field_name;
