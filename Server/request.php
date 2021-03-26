@@ -41,7 +41,7 @@ function cors() {
         exit(0);
     }
 
-    if ($_SERVER['HTTPS']) {
+    if (isset($_SERVER['HTTPS'])) {
         ini_set('session.cookie_samesite', 'None');
         ini_set('session.cookie_secure', 'On');
     }
@@ -83,6 +83,7 @@ function request() {
     if (!isset($_POST['method'])) {
         $current_dir_path = dirname(__FILE__);
         $main_server_path = str_replace('/abris-free-server/Server', '', $current_dir_path);
+        $main_server_path = str_replace('\abris-free-server\Server', '', $current_dir_path);
 
         if ((stripos($current_dir_path, 'abris-free-server') !== false) && (file_exists("$main_server_path/get_methods.php"))) {
             include_once "$main_server_path/methods.php";
@@ -90,7 +91,7 @@ function request() {
         } elseif (file_exists("$current_dir_path/get_methods.php")) {
             include "$current_dir_path/get_methods.php";
         }
-
+        throw new Exception("$current_dir_path/get_methods.php");
         return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'error' => 'method', 'usename' => $usename, 'pids' => $pid_count));
     } else {
         if (!isset($_POST['params'])) {
