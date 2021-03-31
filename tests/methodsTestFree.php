@@ -1552,7 +1552,8 @@ public function test_getTableData()
                                       "op" => "C", 
                                       "value" => "As vo", 
                                       "search_in_key" => false, 
-                                      "table_alias" => "t" 
+                                      "table_alias" => "t",
+                                      "m_order" => "t"
                                    ] 
                                 ] 
                     ] 
