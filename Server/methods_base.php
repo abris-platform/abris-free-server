@@ -298,7 +298,10 @@ class methodsBase
                 return $field . " <= '" . pg_escape_string($value) . "'";
             case "C":
                 if ($value) {
-                    $value_parts = explode(' ', $value);
+                    if($operand["m_order"])
+                        $value_parts = explode(' ', $value);
+                    else
+                        $value_parts = array(0 => $value);
                     $where_arr = array();
 
                     if ($field != "t.\"\"") {
