@@ -12,7 +12,8 @@ if (file_exists(dirname(__FILE__) . '/tcpdf/tcpdf.php'))
 if (file_exists(dirname(__FILE__) . '/xlsxwriter.class.php'))
     include_once(dirname(__FILE__) . '/xlsxwriter.class.php');
 
-require_once "db.php";
+// require_once "db.php";
+require_once "db_caller.php";
 require_once "sql_view_projection.php";
 
 if (file_exists(dirname(__FILE__) . '/plugins.php'))
@@ -24,7 +25,7 @@ function relation($schema, $table) {
     global $dbUnrollViews;
     $rel = id_quote($schema) . "." . id_quote($table);
     if (in_array($rel, $dbUnrollViews ?: array())) {
-        $r = sql("select pg_get_viewdef(to_regclass('$rel'));");
+        $r = DBCaller::sql("select pg_get_viewdef(to_regclass('$rel'));");
         return "(" . trim($r[0]["pg_get_viewdef"], ';') . ")";
     } else
         return $rel;
@@ -58,12 +59,14 @@ class methodsBase
                 $_STORAGE['login'] = $params['usename'];
                 $_STORAGE['password'] = $params['passwd'];
 
-                $usenameDB = sql("SELECT '$params[usename]' as usename", false, false, 'object', '', false); //run a request to verify authentication
+                $options = DBCaller::GetDefaultOptions();
+                $options->SetEncryptPassword(false);
+                $usenameDB = DBCaller::sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
 
                 $privateKey = GenerateRandomString();
-                if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))){
+                if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
                     setcookie('private_key', null, -1);
-                    setcookie('private_key', $privateKey);    
+                    setcookie('private_key', $privateKey);
                 }
 
                 $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $privateKey);
@@ -72,7 +75,7 @@ class methodsBase
                 if ($_STORAGE['login'] <> '' and $_STORAGE['password'] <> '') {
                     global $adminSchema, $ipAddr;
                     if ($_STORAGE['enable_admin'] == 't')
-                        sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');", true);
+                        DBCaller::sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
                 }
 
                 unset_auth_session();
@@ -81,13 +84,17 @@ class methodsBase
             $slogin = methodsBase::getShortEnvKRB5currentUser();
 
             checkSchemaAdmin();
-            $usenameDB = sql("SELECT ' $slogin ' as usename", false, false, 'object', '', false); //run a request to verify authentication
+
+            $options = DBCaller::GetDefaultOptions();
+            $options->SetEncryptPassword(false);
+            $usenameDB = DBCaller::sql("SELECT ' $slogin ' as usename", $options); //run a request to verify authentication
+
             return $usenameDB;
         }
     }
 
     public static function getAllEntities($params) {
-        return sql('SELECT * FROM ' . relation($params["schemaName"], $params["entityName"]) . ' t');
+        return DBCaller::sql('SELECT * FROM ' . relation($params["schemaName"], $params["entityName"]) . ' t');
     }
 
     public static function getCurrentUser() {
@@ -179,7 +186,7 @@ class methodsBase
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
-        $data_result_statement = sql($statement);
+        $data_result_statement = DBCaller::sql($statement);
         $count_data = count($data_result_statement);
 
         if (($count_data < $params["limit"]) || ($params["limit"] == 1)) {
@@ -223,7 +230,7 @@ class methodsBase
         if (isset($operand["type"]))
             $field .= '::' . id_quote($operand["type"]);
 
-        if(isset($operand["value"]))
+        if (isset($operand["value"]))
             $value = $operand["value"];
         else
             $value = "";
@@ -415,12 +422,11 @@ class methodsBase
             }
 
             if (isset($o["desc"])) {
-                if ($o["desc"])
-                {
+                if ($o["desc"]) {
                     $orderfields .= " DESC";
                     $orderfields_no_aliases .= " DESC";
                 }
-                    
+
             }
         }
         if ($orderfields && $params["primaryKey"]) {
@@ -486,14 +492,14 @@ class methodsBase
 
                 if (isset($field_description["subfields"])) {
                     $j_field_list_array = array();
-    
-    
+
+
                     foreach ($field_description["subfields"] as $m => $j_field) {
                         $j_field_list_array[] = "COALESCE(" . $field_description["subfields_table_alias"][$m] . "." . id_quote($j_field) . "::text,'')";
                     }
 
-                    if(isset($field_description["format"]))
-                        $j_field_list = 'format(\''.pg_escape_string($field_description["format"]).'\', '.implode(", ", $j_field_list_array).')';
+                    if (isset($field_description["format"]))
+                        $j_field_list = 'format(\'' . pg_escape_string($field_description["format"]) . '\', ' . implode(", ", $j_field_list_array) . ')';
                     else
                         $j_field_list = implode("||' '|| ", $j_field_list_array);
 
@@ -505,17 +511,17 @@ class methodsBase
 
                     $replace_rules[$field_name] = $j_field_list;
                 } else {
-                    if(isset($field_description["table_alias"]))
+                    if (isset($field_description["table_alias"]))
                         $field_table_alias = $field_description["table_alias"];
                     else
-                    $field_table_alias = 't';
+                        $field_table_alias = 't';
 
                     if (isset($field_description["only_filled"]))
                         $field_list .= id_quote($field_table_alias) . "." . id_quote($field_name) . " is not null as " . id_quote($field_name);
                     else
                         $field_list .= id_quote($field_table_alias) . "." . id_quote($field_name);
                     if (isset($field_description['type']))
-                            $field_list .= '::' . id_quote($field_description['type']);
+                        $field_list .= '::' . id_quote($field_description['type']);
                     $field_array[] = $field_name;
                 }
             }
@@ -612,10 +618,10 @@ class methodsBase
                     FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' . id_quote($params["primaryKey"]) .
                     '  from (' . $statement . ') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
 
-                $rowNumberRes = sql($pageNumberStatement);
+                $rowNumberRes = DBCaller::sql($pageNumberStatement);
                 $params["offset"] = 0;
-                if(isset($rowNumberRes[0]["row_number"]))
-                $params["offset"] = $rowNumberRes[0]["row_number"];
+                if (isset($rowNumberRes[0]["row_number"]))
+                    $params["offset"] = $rowNumberRes[0]["row_number"];
 
             }
         }
@@ -633,7 +639,10 @@ class methodsBase
             "sql" => $statement
         );
 
-        $data_result_statement = sql($statement, false, false, (isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object', $desc);
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetFormat((isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object');
+        $options->SetQueryDescription($desc);
+        $data_result_statement = DBCaller::sql($statement, $options);
         $count_data = count($data_result_statement);
 
         if (($count_data < $params["limit"]) || ($params["limit"] == 1)) {
@@ -649,14 +658,17 @@ class methodsBase
             $fst_operand = $params['predicate']['operands'][0];
             if ($fst_operand['operand']['op'] == "FTS") {
                 $ts_query = json_decode($fst_operand['operand']['value'], true);
-                $ts_n = sql('select plainto_tsquery(\'' . pg_escape_string($ts_query["language"]) .
+                $ts_n = DBCaller::sql('select plainto_tsquery(\'' . pg_escape_string($ts_query["language"]) .
                     '\', \'' . pg_escape_string($ts_query["ft_query"]) . '\')');
                 $data_result['ft_keywords'] = $ts_n[0]['plainto_tsquery'];
             }
         }
 
         if (sizeof($params["aggregate"])) {
-            $data_aggregates = sql($sql_aggregates, false, false, 'object', $desc . " (aggregate)");
+            $options = DBCaller::GetDefaultOptions();
+            $options->SetQueryDescription("$desc (aggregate)");
+            $data_aggregates = DBCaller::sql($sql_aggregates, $options);
+
             foreach ($params["aggregate"] as $aggrIndex => $aggregateDescription) {
                 $data_result[$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'][][$aggregateDescription["func"]] = $data_aggregates[0][$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'];
             }
@@ -704,11 +716,11 @@ class methodsBase
                 $value_arr .= "'" . pg_escape_string($v) . "'";;
             }
 
-            $res = sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . id_quote($params["key"]) . ' IN (' . $value_arr . ') ' .
+            $res = DBCaller::sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . id_quote($params["key"]) . ' IN (' . $value_arr . ') ' .
                 ($order_by_key ? (' order by t.' . id_quote($params["key"])) : ''));
             return $res;
         }
-        return sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . id_quote($params["key"]) . ' = \'' . pg_escape_string($params["value"]) . '\'');
+        return DBCaller::sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . id_quote($params["key"]) . ' = \'' . pg_escape_string($params["value"]) . '\'');
     }
 
     public static function deleteEntitiesByKey($params) {
@@ -742,9 +754,9 @@ class methodsBase
 
             foreach ($key_arr as $j => $key) {
                 if (isset($params["types"]))
-                    if(isset($params["types"][$key]))
+                    if (isset($params["types"][$key]))
                         if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
-                $sql_where .= id_quote($key). " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
+                $sql_where .= id_quote($key) . " = '" . pg_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
                 if ($key != end($key_arr))
                     $sql_where .= " AND ";
 
@@ -755,7 +767,11 @@ class methodsBase
 
         }
 
-        sql($sql, null, true, 'object');
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetPreprocessData(null);
+        $options->SetLogDb(true);
+        DBCaller::sql($sql, $options);
+
         $return_data["sql"] = $sql;
         return $return_data;
     }
@@ -773,9 +789,9 @@ class methodsBase
                     $type_conversion = '';
                     $type_conversion = "'" . pg_escape_string($value) . "'";
                     if (isset($params["types"])) {
-                        if(isset($params["types"][$field]))
+                        if (isset($params["types"][$field]))
                             if ($params["types"][$field]) {
-                                $type_conversion .= '::' .$params["types"][$field];
+                                $type_conversion .= '::' . $params["types"][$field];
                             }
                     }
 
@@ -798,7 +814,11 @@ class methodsBase
                 ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
         }
 
-        $ins_ret = sql($sql, null, true, 'object', $desc . " (files)");
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetPreprocessData(null);
+        $options->SetLogDb(true);
+        $options->SetQueryDescription("$desc (files)");
+        $ins_ret = DBCaller::sql($sql, $options);
         $key = $ins_ret[0][$params["key"]];
 
         return $ins_ret;
@@ -845,7 +865,7 @@ class methodsBase
 
                 if (isset($value) && trim($value) !== '') {
                     $type_conversion = '';
-                    if(isset($params["types"]))
+                    if (isset($params["types"]))
                         if ($params["types"][$field])
                             $type_conversion = '::' . $params["types"][$field];
 
@@ -877,14 +897,18 @@ class methodsBase
 
         }
 
-        sql($sql, null, true, 'object');
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetPreprocessData(null);
+        $options->SetLogDb(true);
+        DBCaller::sql($sql, $options);
+
         $return_data["sql"] = $sql;
         return $return_data;
     }
 
     public static function getPIDs($params) {
         global $_STORAGE;
-        $r = sql('SELECT * FROM pg_stat_activity where datname = current_database()');
+        $r = DBCaller::sql('SELECT * FROM pg_stat_activity where datname = current_database()');
         $pid_map = array();
         foreach ($r as $i => $v) {
             $pid_map[$v['pid']] = 1;
@@ -899,13 +923,13 @@ class methodsBase
 
     public static function killPID($params) {
         global $_STORAGE;
-        $r = sql('select pg_terminate_backend(' . pg_escape_string($params['pid']) . ')');
+        $r = DBCaller::sql('select pg_terminate_backend(' . pg_escape_string($params['pid']) . ')');
         unset($_STORAGE['pids'][$params['pid']]);
         return $r;
     }
 
     public static function getExtensionsVersion($params) {
-        $r = sql("SELECT * FROM pg_available_extensions pe where pe.name in ('pg_abris')");
+        $r = DBCaller::sql("SELECT * FROM pg_available_extensions pe where pe.name in ('pg_abris')");
         return $r;
     }
 
@@ -944,7 +968,7 @@ class methodsBase
         $buttons = "";
         $pages = "";
 
-        $proj_arr = sql("SELECT * FROM $metaSchema.view_projection_entity");
+        $proj_arr = DBCaller::sql("SELECT * FROM $metaSchema.view_projection_entity");
         if (@count($proj_arr) == 0) {
             //throw new Exception("Metadata: no projections");
         }
@@ -962,7 +986,7 @@ class methodsBase
 
         $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons);
 
-        $options = sql("SELECT * FROM $metaSchema.options");
+        $options = DBCaller::sql("SELECT * FROM $metaSchema.options");
 
         return array('projections' => $metadata, 'pages' => $pages, 'options' => $options);
     }
@@ -975,7 +999,11 @@ class methodsBase
     private static function sql_count_estimate($params, $statement, $count) {
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $count_explain = 'explain (format json) ' . $statement;
-        $json_explain = sql($count_explain, false, false, 'object', $desc . " (explain)");
+
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetQueryDescription("$desc (explain)");
+        $json_explain = DBCaller::sql($count_explain, $options);
+
         $obj_json = json_decode($json_explain[0]["QUERY PLAN"]);
         $plan_rows = $obj_json[0]->{"Plan"}->{"Plan Rows"};
         $total_cost = $obj_json[0]->{"Plan"}->{"Total Cost"};
@@ -983,20 +1011,22 @@ class methodsBase
 
         $threshold_plan_rows = 10000;
 
-        if (isset($params["max_cost"])){
+        if (isset($params["max_cost"])) {
             if ($total_cost > $params["max_cost"]) {
                 return $plan_rows;
             }
         }
 
-        $arr_count = sql($count, false, false, 'object', $desc . " (count)");
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetQueryDescription("$desc (count)");
+        $arr_count = DBCaller::sql($count, $options);
         $plan_rows = $arr_count[0]["count"];
         return $plan_rows;
     }
 
 
     public static function getUserDescription() {
-        $res = sql('SELECT rolname AS user,  description AS comment
+        $res = DBCaller::sql('SELECT rolname AS user,  description AS comment
         FROM pg_roles r
         JOIN pg_shdescription c ON c.objoid = r.oid 
         WHERE r.rolname = \'' . methodsBase::getCurrentUser() . '\'');

@@ -14,6 +14,7 @@ if (file_exists(dirname(__FILE__) . '/configs/config.php'))
     include dirname(__FILE__) . '/configs/config.php';
 
 
+
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
 }
@@ -132,6 +133,7 @@ function custom_pg_connect($encrypt_password, $default_connection) {
 
 function sql($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true, $default_connection = false) {
     global $adminSchema, $adminLogTable, $dbDefaultLanguage, $flag_astra, $_STORAGE;
+
 
     if ($flag_astra) {
         $_STORAGE['login'] = methodsBase::getShortEnvKRB5currentUser();
