@@ -298,7 +298,7 @@ class methodsBase
                 return $field . " <= '" . pg_escape_string($value) . "'";
             case "C":
                 if ($value) {
-                    if($operand["m_order"])
+                    if(isset($operand["m_order"]))
                         $value_parts = explode(' ', $value);
                     else
                         $value_parts = array(0 => $value);
@@ -332,7 +332,7 @@ class methodsBase
 
                                 $where .= implode(' and ', $where_arr);
                             }
-                            if ($operand["m_order"]) {
+                            if (isset($operand["m_order"])) {
                                 if (isset($result["m_order"]))
                                     $result["m_order"] .= ", ";
                                 else
