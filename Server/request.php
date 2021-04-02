@@ -12,18 +12,13 @@
 	ini_set('display_startup_errors', 1);
 */
 
-if (file_exists(dirname(__FILE__) . '/methods.php'))
-    require_once dirname(__FILE__) . '/methods.php';
-else
-    require_once dirname(__FILE__) . '/methods_base.php';
+require_once dirname(__FILE__) . '/methods_base.php';
+if (file_exists('methods.php'))
+    require_once 'methods.php';
 
-///////////////////////////////////////////////////////////////////////
-global $flag_astra;
-$_STORAGE = new WebStorage(!$flag_astra);
-///////////////////////////////////////////////////////////////////////
+$_STORAGE = new WebStorage();
 
 function cors() {
-
     if (isset($_SERVER['HTTP_ORIGIN'])) {
         header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
         header('Access-Control-Allow-Credentials: true');
@@ -60,7 +55,7 @@ function normalizeKey($key) {
 
 function request() {
     cors();
-    global $dbname, $dbDefaultLanguage, $flag_astra, $_STORAGE;
+    global $dbname, $dbDefaultLanguage, $_STORAGE;
 
     $usename = '';
     $pid_count = '';
@@ -68,14 +63,14 @@ function request() {
     if (!file_exists(dirname(__FILE__) . '/configs/config.php'))
         return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'fatal' => true, 'error' => 'No configuration file', 'usename' => null, 'pids' => null));
 
-    if (!$flag_astra) {
+    if (!$_STORAGE->IsSession()) {
         $usename = strval($_STORAGE['login']);
         $dbname = isset($_STORAGE['dbname']) ? $_STORAGE['dbname'] : $dbname;
 
         if (!isset($_STORAGE['lang']))
             $_STORAGE['lang'] = $dbDefaultLanguage;
     } else {
-        $usename = methods::getShortEnvKRB5currentUser();
+        $usename = call_user_func((class_exists('methods') ? 'methods::' : 'methodsBase::') . 'getAnotherUsername');
     }
 
     $pid_count = isset($_STORAGE['pids']) ? count($_STORAGE['pids']) : 0;
@@ -83,7 +78,6 @@ function request() {
     if (!isset($_POST['method'])) {
         $current_dir_path = dirname(__FILE__);
         $main_server_path = str_replace('/abris-free-server/Server', '', $current_dir_path);
-        $main_server_path = str_replace('\abris-free-server\Server', '', $current_dir_path);
 
         if ((stripos($current_dir_path, 'abris-free-server') !== false) && (file_exists("$main_server_path/get_methods.php"))) {
             include_once "$main_server_path/methods.php";
@@ -91,7 +85,7 @@ function request() {
         } elseif (file_exists("$current_dir_path/get_methods.php")) {
             include "$current_dir_path/get_methods.php";
         }
-        throw new Exception("$current_dir_path/get_methods.php");
+
         return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'error' => 'method', 'usename' => $usename, 'pids' => $pid_count));
     } else {
         if (!isset($_POST['params'])) {

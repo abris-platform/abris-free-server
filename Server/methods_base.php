@@ -6,13 +6,12 @@
  * @license (c) TRO MOO AIO, Commercial Product
  * @date Sat Sep 17 2016 09:45:15
  */
-//require_once dirname(__FILE__).'/vendor/autoload.php';
+
 if (file_exists(dirname(__FILE__) . '/tcpdf/tcpdf.php'))
     include_once(dirname(__FILE__) . '/tcpdf/tcpdf.php');
 if (file_exists(dirname(__FILE__) . '/xlsxwriter.class.php'))
     include_once(dirname(__FILE__) . '/xlsxwriter.class.php');
 
-// require_once "db.php";
 require_once "db_caller.php";
 require_once "sql_view_projection.php";
 
@@ -33,75 +32,100 @@ function relation($schema, $table) {
 
 class methodsBase
 {
+    private static function sql_count_estimate($params, $statement, $count) {
+        $desc = isset($params['desc']) ? $params['desc'] : '';
+        $count_explain = 'explain (format json) ' . $statement;
+
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetQueryDescription("$desc (explain)");
+        $json_explain = DBCaller::sql($count_explain, $options);
+
+        $obj_json = json_decode($json_explain[0]["QUERY PLAN"]);
+        $plan_rows = $obj_json[0]->{"Plan"}->{"Plan Rows"};
+        $total_cost = $obj_json[0]->{"Plan"}->{"Total Cost"};
+
+
+        $threshold_plan_rows = 10000;
+
+        if (isset($params["max_cost"])) {
+            if ($total_cost > $params["max_cost"]) {
+                return $plan_rows;
+            }
+        }
+
+        $options = DBCaller::GetDefaultOptions();
+        $options->SetQueryDescription("$desc (count)");
+        $arr_count = DBCaller::sql($count, $options);
+        $plan_rows = $arr_count[0]["count"];
+        return $plan_rows;
+    }
+
+    private static function mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons) {
+        $metadata = array();
+
+        foreach ($proj_arr as $i => $p) {
+            $metadata[$p['projection_name']] = $p;
+            $metadata[$p['projection_name']]['properties'] = array();
+            $metadata[$p['projection_name']]['relations'] = array();
+            $metadata[$p['projection_name']]['buttons'] = array();
+        }
+
+
+        foreach ($prop_arr as $i => $prop) {
+            $p = $metadata[$prop['projection_name']];
+            $metadata[$prop['projection_name']]['properties'][$prop['column_name']] = $prop;
+        }
+
+        foreach ($rel_arr as $i => $r) {
+            if ($r['related_projection_name']) {
+                $metadata[$r['projection_name']]['relations'][$r['projection_relation_name']] = $r;
+            }
+        }
+
+        return $metadata;
+    }
+
     protected static function postProcessing(&$data_result, &$params) {
         return $data_result;
     }
 
-    public static function setEnvKRB5currentUser() {
-        putenv("KRB5CCNAME=" . $_SERVER['KRB5CCNAME']);
-    }
-
-    public static function getEnvKRB5currentUser() {
-        return getenv('KRB5CCNAME');
-    }
-
-    public static function getShortEnvKRB5currentUser() {
-        global $nameALD;
-        methodsBase::setEnvKRB5currentUser();
-        return (!methodsBase::getEnvKRB5currentUser()) ? $_SERVER['PHP_AUTH_USER'] : str_replace("@$nameALD", '', $_SERVER['PHP_AUTH_USER']);
-    }
-
     public static function authenticate($params) {
-        global $flag_astra, $_STORAGE;
+        global $_STORAGE;
 
-        if (!$flag_astra) {
-            if ($params['usename'] <> '' and $params['passwd'] <> '') {
-                $_STORAGE['login'] = $params['usename'];
-                $_STORAGE['password'] = $params['passwd'];
-
-                $options = DBCaller::GetDefaultOptions();
-                $options->SetEncryptPassword(false);
-                $usenameDB = DBCaller::sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
-
-                $privateKey = GenerateRandomString();
-                if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
-                    setcookie('private_key', null, -1);
-                    setcookie('private_key', $privateKey);
-                }
-
-                $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $privateKey);
-                return $usenameDB;
-            } else {
-                if ($_STORAGE['login'] <> '' and $_STORAGE['password'] <> '') {
-                    global $adminSchema, $ipAddr;
-                    if ($_STORAGE['enable_admin'] == 't')
-                        DBCaller::sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
-                }
-
-                unset_auth_session();
-            }
-        } else {
-            $slogin = methodsBase::getShortEnvKRB5currentUser();
-
-            checkSchemaAdmin();
+        if ($params['usename'] <> '' and $params['passwd'] <> '') {
+            $_STORAGE['login'] = $params['usename'];
+            $_STORAGE['password'] = $params['passwd'];
 
             $options = DBCaller::GetDefaultOptions();
             $options->SetEncryptPassword(false);
-            $usenameDB = DBCaller::sql("SELECT ' $slogin ' as usename", $options); //run a request to verify authentication
+            $usenameDB = DBCaller::sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
 
+            $privateKey = GenerateRandomString();
+            if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
+                setcookie('private_key', null, -1);
+                setcookie('private_key', $privateKey);
+            }
+
+            $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $privateKey);
             return $usenameDB;
+        } else {
+            if ($_STORAGE['login'] <> '' and $_STORAGE['password'] <> '') {
+                global $adminSchema, $ipAddr;
+                if ($_STORAGE['enable_admin'] == 't')
+                    DBCaller::sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
+            }
+
+            unset_auth_session();
         }
     }
 
-    public static function getAllEntities($params) {
-        return DBCaller::sql('SELECT * FROM ' . relation($params["schemaName"], $params["entityName"]) . ' t');
+    public static function getAnotherUsername() {
+        global $_STORAGE;
+        return $_STORAGE['login'];
     }
 
     public static function getCurrentUser() {
-        global $domain, $user, $flag_astra, $_STORAGE;
-
-        if ($flag_astra)
-            return methodsBase::getShortEnvKRB5currentUser();
+        global $domain, $user, $_STORAGE;
 
         if (strval($_STORAGE['login']) <> '') {
             return $_STORAGE['login'];
@@ -115,18 +139,25 @@ class methodsBase
                 return 'guest';
     }
 
+    public static function getUserDescription() {
+        $res = DBCaller::sql('SELECT rolname AS user,  description AS comment
+        FROM pg_roles r
+        JOIN pg_shdescription c ON c.objoid = r.oid 
+        WHERE r.rolname = \'' . methodsBase::getCurrentUser() . '\'');
+        return $res[0];
+    }
 
     public static function isGuest() {
-        global $flag_astra, $_STORAGE;
-        if ($flag_astra)
-            return $_SERVER['PHP_AUTH_USER'];
+        global $_STORAGE;
 
         return isset($_STORAGE['login']);
     }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////
+    public static function getAllEntities($params) {
+        return DBCaller::sql('SELECT * FROM ' . relation($params["schemaName"], $params["entityName"]) . ' t');
+    }
 
     public static function getTableData($params) {
-
         if ($params["fields"]) {
             $field_list = "";
             foreach ($params["fields"] as $field_index => $field_name) {
@@ -197,7 +228,7 @@ class methodsBase
 
         return array("data" => $data_result_statement, "records" => $number_count);
     }
-    //---------------------------------------------------------------------------------------
+
     // If anything return to function - getTableDataPredicate 
     public static function quote($n) {
         return "'" . pg_escape_string($n) . "'";
@@ -380,7 +411,6 @@ class methodsBase
         return $string;
     }
 
-    //---------------------------------------------------------------------------------------
     public static function makeOrderAndDistinctString($order_object, $params) {
         $orderfields = '';
         $orderfields_no_aliases = '';
@@ -434,8 +464,6 @@ class methodsBase
         }
         return array('orderfields' => $orderfields, 'orderfields_no_aliases' => $orderfields_no_aliases, 'distinctfields' => $distinctfields);
     }
-
-    //---------------------------------------------------------------------------------------
 
     public static function getTableDataPredicate($params) {
         $desc = isset($params['desc']) ? $params['desc'] : '';
@@ -937,31 +965,6 @@ class methodsBase
         return [];
     }
 
-    private static function mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons) {
-        $metadata = array();
-
-        foreach ($proj_arr as $i => $p) {
-            $metadata[$p['projection_name']] = $p;
-            $metadata[$p['projection_name']]['properties'] = array();
-            $metadata[$p['projection_name']]['relations'] = array();
-            $metadata[$p['projection_name']]['buttons'] = array();
-        }
-
-
-        foreach ($prop_arr as $i => $prop) {
-            $p = $metadata[$prop['projection_name']];
-            $metadata[$prop['projection_name']]['properties'][$prop['column_name']] = $prop;
-        }
-
-        foreach ($rel_arr as $i => $r) {
-            if ($r['related_projection_name']) {
-                $metadata[$r['projection_name']]['relations'][$r['projection_relation_name']] = $r;
-            }
-        }
-
-        return $metadata;
-    }
-
     public static function getAllModelMetadata() {
         global $metaSchema;
         global $sql_view_projection;
@@ -991,45 +994,7 @@ class methodsBase
         return array('projections' => $metadata, 'pages' => $pages, 'options' => $options);
     }
 
-
     public static function test($params) {
         return $params;
-    }
-
-    private static function sql_count_estimate($params, $statement, $count) {
-        $desc = isset($params['desc']) ? $params['desc'] : '';
-        $count_explain = 'explain (format json) ' . $statement;
-
-        $options = DBCaller::GetDefaultOptions();
-        $options->SetQueryDescription("$desc (explain)");
-        $json_explain = DBCaller::sql($count_explain, $options);
-
-        $obj_json = json_decode($json_explain[0]["QUERY PLAN"]);
-        $plan_rows = $obj_json[0]->{"Plan"}->{"Plan Rows"};
-        $total_cost = $obj_json[0]->{"Plan"}->{"Total Cost"};
-
-
-        $threshold_plan_rows = 10000;
-
-        if (isset($params["max_cost"])) {
-            if ($total_cost > $params["max_cost"]) {
-                return $plan_rows;
-            }
-        }
-
-        $options = DBCaller::GetDefaultOptions();
-        $options->SetQueryDescription("$desc (count)");
-        $arr_count = DBCaller::sql($count, $options);
-        $plan_rows = $arr_count[0]["count"];
-        return $plan_rows;
-    }
-
-
-    public static function getUserDescription() {
-        $res = DBCaller::sql('SELECT rolname AS user,  description AS comment
-        FROM pg_roles r
-        JOIN pg_shdescription c ON c.objoid = r.oid 
-        WHERE r.rolname = \'' . methodsBase::getCurrentUser() . '\'');
-        return $res[0];
     }
 }

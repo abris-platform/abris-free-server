@@ -81,6 +81,10 @@ class WebStorage extends ArrayObject
 
         parent::exchangeArray(array());
     }
+
+    public function IsSession() {
+        return $this->_isSession;
+    }
 }
 
 
