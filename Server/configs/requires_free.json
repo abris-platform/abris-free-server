@@ -1,0 +1,7 @@
+{
+  "WebStorage": "web_storage.php",
+  "methodsBase": "methods_base.php",
+  "DBCaller": "db_caller.php",
+  "SQLBase": "db_base.php",
+  "SQLParamBase": "sql_param_base.php"
+}

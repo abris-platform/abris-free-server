@@ -7,17 +7,6 @@
  * @date Sat Sep 17 2016 09:45:15
  */
 
-if (file_exists(dirname(__FILE__) . '/tcpdf/tcpdf.php'))
-    include_once(dirname(__FILE__) . '/tcpdf/tcpdf.php');
-if (file_exists(dirname(__FILE__) . '/xlsxwriter.class.php'))
-    include_once(dirname(__FILE__) . '/xlsxwriter.class.php');
-
-require_once "db_caller.php";
-require_once "sql_view_projection.php";
-
-if (file_exists(dirname(__FILE__) . '/plugins.php'))
-    require_once "plugins.php";
-
 $data_result = array();
 
 function relation($schema, $table) {
@@ -152,7 +141,7 @@ class methodsBase
 
         return isset($_STORAGE['login']);
     }
-//////////////////////////////////////////////////////////////////////////////////////////////////
+
     public static function getAllEntities($params) {
         return DBCaller::sql('SELECT * FROM ' . relation($params["schemaName"], $params["entityName"]) . ' t');
     }
@@ -967,7 +956,6 @@ class methodsBase
 
     public static function getAllModelMetadata() {
         global $metaSchema;
-        global $sql_view_projection;
         $buttons = "";
         $pages = "";
 

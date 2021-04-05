@@ -12,9 +12,7 @@
 	ini_set('display_startup_errors', 1);
 */
 
-require_once dirname(__FILE__) . '/methods_base.php';
-if (file_exists('methods.php'))
-    require_once 'methods.php';
+require_once 'autoload.php';
 
 $_STORAGE = new WebStorage();
 
@@ -76,6 +74,7 @@ function request() {
     $pid_count = isset($_STORAGE['pids']) ? count($_STORAGE['pids']) : 0;
 
     if (!isset($_POST['method'])) {
+        // TODO get_methods переделать в статический класс и звать оттуда методы.
         $current_dir_path = dirname(__FILE__);
         $main_server_path = str_replace('/abris-free-server/Server', '', $current_dir_path);
 

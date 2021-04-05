@@ -1,11 +1,5 @@
 <?php
 
-$currentDir = dirname(__FILE__);
-
-require_once "$currentDir/db_base.php";
-if (file_exists("db.php"))
-    require_once "db.php";
-
 
 class DBCaller
 {

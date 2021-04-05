@@ -1,18 +1,5 @@
 <?php
 
-include_once 'config_default.php';
-include_once 'services_methods.php';
-include_once 'web_storage.php';
-
-if (file_exists(dirname(__FILE__) . '/configs/config.php'))
-    include dirname(__FILE__) . '/configs/config.php';
-
-$currentDir = dirname(__FILE__);
-require_once "$currentDir/sql_param_base.php";
-if (file_exists('sql_param.php'))
-    require_once 'sql_param.php';
-
-
 class SQLBase
 {
     protected static $dbconn;
