@@ -809,7 +809,7 @@ class methodsBase
             $fields = '';
             $values = '';
             foreach ($row as $field => $value) {
-                if ($value) {
+                if (!is_null($value)) {
                     $type_conversion = '';
                     $type_conversion = "'" . pg_escape_string($value) . "'";
                     if (isset($params["types"])) {
