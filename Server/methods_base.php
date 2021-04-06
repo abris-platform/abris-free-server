@@ -882,7 +882,8 @@ class methodsBase
 
         }
 
-        sql($sql, null, true, 'object');
+        if($set)
+            sql($sql, null, true, 'object');
         $return_data["sql"] = $sql;
         return $return_data;
     }
