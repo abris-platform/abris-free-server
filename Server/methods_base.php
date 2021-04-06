@@ -78,6 +78,16 @@ class methodsBase
         return $data_result;
     }
 
+    protected static function queryModifyEntities($query, $options = null, $query_description = '') {
+        if (is_null($options))
+            $options = DBCaller::GetDefaultOptions();
+
+        $options->SetPreprocessData(null);
+        $options->SetQueryDescription($query_description);
+
+        return DBCaller::sql($query, $options);
+    }
+
     public static function authenticate($params) {
         global $_STORAGE;
 
@@ -784,10 +794,7 @@ class methodsBase
 
         }
 
-        $options = DBCaller::GetDefaultOptions();
-        $options->SetPreprocessData(null);
-        $options->SetLogDb(true);
-        DBCaller::sql($sql, $options);
+        static::queryModifyEntities($sql);
 
         $return_data["sql"] = $sql;
         return $return_data;
@@ -831,11 +838,8 @@ class methodsBase
                 ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
         }
 
-        $options = DBCaller::GetDefaultOptions();
-        $options->SetPreprocessData(null);
-        $options->SetLogDb(true);
-        $options->SetQueryDescription("$desc (files)");
-        $ins_ret = DBCaller::sql($sql, $options);
+        $ins_ret = static::queryModifyEntities($sql, null, "$desc (files)");
+
         $key = $ins_ret[0][$params["key"]];
 
         return $ins_ret;
@@ -914,10 +918,7 @@ class methodsBase
 
         }
 
-        $options = DBCaller::GetDefaultOptions();
-        $options->SetPreprocessData(null);
-        $options->SetLogDb(true);
-        DBCaller::sql($sql, $options);
+        static::queryModifyEntities($sql);
 
         $return_data["sql"] = $sql;
         return $return_data;
