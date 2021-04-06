@@ -32,6 +32,9 @@ function relation($schema, $table) {
 
 class methodsBase
 {
+    protected static function preProcessing(&$params) {
+    }
+    
     protected static function postProcessing(&$data_result, &$params) {
         return $data_result;
     }
@@ -761,7 +764,7 @@ class methodsBase
     }
 
     public static function addEntities($params) {
-
+        static::preProcessing($params);
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $sql = '';
 
@@ -805,6 +808,8 @@ class methodsBase
     }
 
     public static function updateEntity($params) {
+        static::preProcessing($params);
+
         $sql = '';
 
         $sql = '';
