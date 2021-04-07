@@ -9,7 +9,7 @@ class SQLBase
 
     protected static function PrepareConnection($format) {
         if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
-            $response = sql_handler_test(self::$query, $format);
+            $response = self::sql_handler_test(self::$query, $format);
             if ($response != 'new_query_test')
                 return $response;
         }
@@ -197,10 +197,11 @@ class SQLBase
         $response = static::ProcessResult($result);
 
         pg_close(self::$dbconn);
+        static::WriteTestsResult($response);
         self::$dbconn = null;
         self::$query = '';
 
-        static::WriteTestsResult($response);
+
 
         return $response;
     }

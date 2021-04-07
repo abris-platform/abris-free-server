@@ -15,7 +15,7 @@ final class methodsTest extends TestCase
    
 
  public function test_getPIDS_simple(){
-    sql('select version()');
+    DBCaller::sql('select version()');
     global $_STORAGE;
     /*$res = methodsBase::getPIDS([]);
     $this->assertEquals($res, array(
@@ -322,7 +322,7 @@ public function test_updateEntity(){
    $flag_astra = true;   
    $_SERVER['PHP_AUTH_USER'] = "postgres";
    $res = methodsBase::isGuest();
-   $this->assertEquals($res,"postgres");
+   $this->assertEquals($res,true);
    $flag_astra = false;
 
 
@@ -620,7 +620,7 @@ $this->assertEquals($res,
                     "airport_name", 
                     "timezone" 
                  ], 
-"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  where (\"t\".\"timezone\" = 'Asia/Novokuznetsk')   LIMIT 10 OFFSET 0", 
+"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')   LIMIT 10 OFFSET 0", 
 "count(airport_code)" => [
                        [
                           "count" => "2" 
@@ -1479,7 +1479,7 @@ public function test_getTableData()
      $res = methodsBase::getTableDataPredicate($params);
 
      $this->assertEquals(
-      "SELECT  \"t\".\"flight_no\", \"t\".\"scheduled_departure\" FROM \"bookings\".\"flights\" as t  where (\"t\".\"scheduled_departure\" <= now() and \"t\".\"scheduled_departure\" > now() - 'P3Y6M4D'::interval)   LIMIT 10 OFFSET 0",
+      "SELECT  \"t\".\"flight_no\", \"t\".\"scheduled_departure\" FROM \"bookings\".\"flights\" as t  WHERE (\"t\".\"scheduled_departure\" <= now() and \"t\".\"scheduled_departure\" > now() - 'P3Y6M4D'::interval)   LIMIT 10 OFFSET 0",
       $res['sql']
     );
   
@@ -1586,7 +1586,7 @@ public function test_getTableData()
       
      
         $this->assertEquals(
-         'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone"::TEXT ilike \'%As%\'::TEXT and "t"."timezone"::TEXT ilike \'%vo%\'::TEXT)   LIMIT 10 OFFSET 0',  
+         'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::TEXT ilike \'%As%\'::TEXT and "t"."timezone"::TEXT ilike \'%vo%\'::TEXT)   LIMIT 10 OFFSET 0',  
          $res['sql']
        );
       
@@ -1655,7 +1655,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
             'data' => [
             ['0059AA','2017-07-19 11:47:00+00','6200.00'],
             ['003FA5','2017-08-10 17:19:00+00','6300.00'],
@@ -1672,7 +1672,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['book_ref', 'book_date', 'total_amount'],
-         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."total_amount" < \'6000\') AND ("t"."book_ref" IS NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" < \'6000\') AND ("t"."book_ref" IS NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
          'data' => [],
          'records' => [
             ['count' => 0]
@@ -1687,7 +1687,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['book_ref', 'book_date', 'total_amount'],
-         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
          'data' => [
          ['000068','2020-03-12 15:18:00+00','18100.00'],
          ['0002D8','2017-08-07 18:40:00+00','23600.00'],
@@ -1748,7 +1748,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['aircraft_code', 'model', 'range'],
-         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("testint"("t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint"("t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
          'data' => [
          ['CN1','Сессна 208 Караван','1200'],
          ['CR2','Бомбардье CRJ-200','2700'],
@@ -1765,7 +1765,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['aircraft_code', 'model', 'range'],
-         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("testint2"(\'bookings.aircrafts\', "t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint2"(\'bookings.aircrafts\', "t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
          'data' => [
          ['CN1','Сессна 208 Караван','1200'],
          ['CR2','Бомбардье CRJ-200','2700'],
@@ -1782,7 +1782,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['aircraft_code', 'model', 'range'],
-         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("t"."range" =  "testint3"())  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("t"."range" =  "testint3"())  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
          'data' => [
          ['CN1','Сессна 208 Караван','1200'],
          ],
@@ -1798,7 +1798,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['aircraft_code', 'model', 'range'],
-         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  where ("test4"("t"."range") =  \'1200\')  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("test4"("t"."range") =  \'1200\')  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
          'data' => [
          ['CN1','Сессна 208 Караван','1200'],
          ['CR2','Бомбардье CRJ-200','2700'],
@@ -1864,7 +1864,7 @@ public function test_getTableData()
        $this->assertEquals($res,[
              'offset' => 0,
              'fields' => ['airport_code','airport_name','timezone'],
-             'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is null or "t"."timezone"::text = \'\' or "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
+             'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null or "t"."timezone"::text = \'\' or "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
              'data' => [
              ['YKS','Якутск','Asia/Yakutsk'],
              ['MJZ','Мирный','Asia/Yakutsk'],
@@ -1931,7 +1931,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['book_ref', 'book_date', 'total_amount'],
-         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" is null)  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" is null)  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
          'data' => [],
          'records' => [
             ['count' => 0]
@@ -1944,7 +1944,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['book_ref', 'book_date', 'total_amount'],
-         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" is null or trim("t"."book_ref"::text) = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" is null or trim("t"."book_ref"::text) = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
          'data' => [],
          'records' => [
             ['count' => 0]
@@ -1958,7 +1958,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['book_ref', 'book_date', 'total_amount'],
-         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" is null or "t"."book_ref"::text = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" is null or "t"."book_ref"::text = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
          'data' => [],
          'records' => [
             ['count' => 0]
@@ -1972,7 +1972,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['book_ref', 'book_date', 'total_amount'],
-         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  where ("t"."book_ref" IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
          'data' => [],
          'records' => [
             ['count' => 0]
@@ -2034,7 +2034,7 @@ public function test_getTableData()
        $this->assertEquals($res,[
           'offset' => 0,
           'fields' => ['airport_code','airport_name','timezone'],
-          'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
+          'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
           'data' => [
              ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
              ['PKC', 'Елизово', 'Asia/Kamchatka'],
@@ -2060,7 +2060,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is null)   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)   LIMIT 3 OFFSET 0',
          'data' => [],
          'records' => [
           ['count' => 0]
@@ -2073,7 +2073,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is not null and "t"."timezone"::text <> \'\')   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and "t"."timezone"::text <> \'\')   LIMIT 3 OFFSET 0',
          'data' => [
             ['YKS', 'Якутск', 'Asia/Yakutsk'],
             ['MJZ', 'Мирный', 'Asia/Yakutsk'],
@@ -2091,7 +2091,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\')   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\')   LIMIT 3 OFFSET 0',
          'data' => [
             ['YKS', 'Якутск', 'Asia/Yakutsk'],
             ['MJZ', 'Мирный', 'Asia/Yakutsk'],
@@ -2110,7 +2110,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 3 OFFSET 0',
          'data' => [
             ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
             ['PKC', 'Елизово', 'Asia/Kamchatka'],
@@ -2127,7 +2127,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  where ("t"."timezone" <> \'Asia/Novokuznetsk\')   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')   LIMIT 3 OFFSET 0',
          'data' => [
             ['YKS', 'Якутск', 'Asia/Yakutsk'],
             ['MJZ', 'Мирный', 'Asia/Yakutsk'],

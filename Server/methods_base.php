@@ -61,7 +61,7 @@ class methodsBase
 
 
         foreach ($prop_arr as $i => $prop) {
-            $p = $metadata[$prop['projection_name']];
+            //$p = $metadata[$prop['projection_name']];
             $metadata[$prop['projection_name']]['properties'][$prop['column_name']] = $prop;
         }
 
@@ -110,8 +110,9 @@ class methodsBase
         } else {
             if ($_STORAGE['login'] <> '' and $_STORAGE['password'] <> '') {
                 global $adminSchema, $ipAddr;
-                if ($_STORAGE['enable_admin'] == 't')
-                    DBCaller::sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
+                if(isset($_STORAGE['enable_admin']))
+                    if ($_STORAGE['enable_admin'] == 't')
+                        DBCaller::sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
             }
 
             unset_auth_session();
@@ -205,8 +206,8 @@ class methodsBase
         }
 
         if ($where) {
-            $count = $count . ' where ' . $where;
-            $statement = $statement . ' where ' . $where;
+            $count = $count . ' WHERE ' . $where;
+            $statement = $statement . ' WHERE ' . $where;
         }
         $statement = $statement . ' ' . $orderfields;
 
@@ -335,10 +336,13 @@ class methodsBase
                 return $field . " <= '" . pg_escape_string($value) . "'";
             case "C":
                 if ($value) {
-                    if($operand["m_order"])
-                        $value_parts = explode(' ', $value);
+                    $value_parts = array();
+                    if(isset($operand["m_order"])){
+                        if($operand["m_order"])
+                            $value_parts = explode(' ', $value);
+                    }
                     else
-                        $value_parts = array(0 => $value);
+                            $value_parts = array(0 => $value);
                     $where_arr = array();
 
                     if ($field != "t.\"\"") {
@@ -617,9 +621,9 @@ class methodsBase
         }
 
         if ($predicate != '') {
-            $statement = $statement . ' where ' . $predicate;
-            $sql_aggregates = $sql_aggregates . ' where ' . $predicate;
-            $count = $count . ' where ' . $predicate;
+            $statement = $statement . ' WHERE ' . $predicate;
+            $sql_aggregates = $sql_aggregates . ' WHERE ' . $predicate;
+            $count = $count . ' WHERE ' . $predicate;
         } else
             $predicate = 'true';
 
@@ -643,7 +647,7 @@ class methodsBase
                 }
                 $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE ' . $equation . ' END as row_number
                     FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' . id_quote($params["primaryKey"]) .
-                    '  from (' . $statement . ') t ) k where k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
+                    '  from (' . $statement . ') t ) k WHERE k.' . $params["primaryKey"] . '=\'' . pg_escape_string($params["currentKey"]) . '\'';
 
                 $rowNumberRes = DBCaller::sql($pageNumberStatement);
                 $params["offset"] = 0;
@@ -809,7 +813,7 @@ class methodsBase
             $fields = '';
             $values = '';
             foreach ($row as $field => $value) {
-                if (!is_null($value)) {
+                if (!is_null($value) && $value!='') {
                     $type_conversion = '';
                     $type_conversion = "'" . pg_escape_string($value) . "'";
                     if (isset($params["types"])) {
@@ -926,7 +930,7 @@ class methodsBase
 
     public static function getPIDs($params) {
         global $_STORAGE;
-        $r = DBCaller::sql('SELECT * FROM pg_stat_activity where datname = current_database()');
+        $r = DBCaller::sql('SELECT * FROM pg_stat_activity WHERE datname = current_database()');
         $pid_map = array();
         foreach ($r as $i => $v) {
             $pid_map[$v['pid']] = 1;
@@ -947,7 +951,7 @@ class methodsBase
     }
 
     public static function getExtensionsVersion($params) {
-        $r = DBCaller::sql("SELECT * FROM pg_available_extensions pe where pe.name in ('pg_abris')");
+        $r = DBCaller::sql("SELECT * FROM pg_available_extensions pe WHERE pe.name in ('pg_abris')");
         return $r;
     }
 
