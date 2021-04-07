@@ -715,6 +715,7 @@ class methodsBase
     }
 
     public static function deleteEntitiesByKey($params) {
+        static::preProcessing($params, "deleteEntitiesByKey");
         $sql = '';
         $value_arr = array();
         $key_arr = array();
@@ -764,7 +765,7 @@ class methodsBase
     }
 
     public static function addEntities($params) {
-        static::preProcessing($params);
+        static::preProcessing($params, "addEntities");
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $sql = '';
 
@@ -808,7 +809,7 @@ class methodsBase
     }
 
     public static function updateEntity($params) {
-        static::preProcessing($params);
+        static::preProcessing($params, "updateEntity");
 
         $sql = '';
 
