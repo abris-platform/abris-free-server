@@ -12,15 +12,6 @@ class DBCaller
         return call_user_func("$className::sql", $query, $options);
     }
 
-    // TODO под удаление.
-    public static function sql_old($query, $do_not_preprocess = false, $logDb = false, $format = 'object', $query_description = '', $encrypt_pass = true, $default_connection = false) {
-        return sql(
-            $query, $do_not_preprocess, $logDb,
-            $format, $query_description, $encrypt_pass,
-            $default_connection
-        );
-    }
-
     public static function GetDefaultOptions() {
         $className = self::GetCurrentSQL();
         return call_user_func("$className::GetDefaultOptions");

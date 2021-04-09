@@ -38,8 +38,3 @@ test:
     name: 'abris-server-base-report'
     paths:
       - report
-  
-
-
-
-   

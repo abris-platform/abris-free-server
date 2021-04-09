@@ -144,8 +144,7 @@ class SQLBase
     }
 
     public static function GetDefaultOptions() {
-        $classNameOptions = class_exists('SQLParam') ? 'SQLParam' : 'SQLParamBase';
-        return (new $classNameOptions());
+        return new SQLParamBase();
     }
 
     public static function ExistsScheme($schemaName, $options = null) {
@@ -188,6 +187,7 @@ class SQLBase
         if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() == PHP_SESSION_NONE)) {
             // Reopen session after close.
             $_STORAGE->startSession();
+
         }
 
         unset($_STORAGE['pids'][$pid]);
@@ -197,11 +197,11 @@ class SQLBase
         $response = static::ProcessResult($result);
 
         pg_close(self::$dbconn);
+
         static::WriteTestsResult($response);
+
         self::$dbconn = null;
         self::$query = '';
-
-
 
         return $response;
     }

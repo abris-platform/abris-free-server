@@ -74,7 +74,7 @@ function request() {
     $pid_count = isset($_STORAGE['pids']) ? count($_STORAGE['pids']) : 0;
 
     if (!isset($_POST['method'])) {
-        // TODO get_methods переделать в статический класс и звать оттуда методы.
+        // TODO need rebuild file get_methods: from functions to static class.
         $current_dir_path = dirname(__FILE__);
         $main_server_path = str_replace('/abris-free-server/Server', '', $current_dir_path);
 

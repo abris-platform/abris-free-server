@@ -107,16 +107,10 @@ class methodsBase
 
             $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $privateKey);
             return $usenameDB;
-        } else {
-            if ($_STORAGE['login'] <> '' and $_STORAGE['password'] <> '') {
-                global $adminSchema, $ipAddr;
-                if(isset($_STORAGE['enable_admin']))
-                    if ($_STORAGE['enable_admin'] == 't')
-                        DBCaller::sql("SELECT $adminSchema.update_session('$_STORAGE[login]', '$ipAddr', '$_COOKIE[PHPSESSID]');");
-            }
-
-            unset_auth_session();
         }
+
+        unset_auth_session();
+        return null;
     }
 
     public static function getAnotherUsername() {
