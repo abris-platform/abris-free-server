@@ -32,7 +32,7 @@ function relation($schema, $table) {
 
 class methodsBase
 {
-    protected static function preProcessing(&$params, $method) {
+    protected static function preProcessing(&$params, $method, &$replaceDataWithSQL) {
     }
     
     protected static function postProcessing(&$data_result, &$params) {
