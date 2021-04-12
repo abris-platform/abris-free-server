@@ -765,7 +765,9 @@ class methodsBase
     }
 
     public static function addEntities($params) {
-        static::preProcessing($params, "addEntities");
+        $replaceDataWithSQL;
+        static::preProcessing($params, "addEntities", $replaceDataWithSQL);
+
         $desc = isset($params['desc']) ? $params['desc'] : '';
         $sql = '';
 
@@ -774,14 +776,17 @@ class methodsBase
             $values = '';
             foreach ($row as $field => $value) {
                 if ($value) {
-                    $type_conversion = '';
-                    $type_conversion = "'" . pg_escape_string($value) . "'";
+                    $sql_to_set = '';
+                    $sql_to_set = "'" . pg_escape_string($value) . "'";
                     if (isset($params["types"])) {
                         if(isset($params["types"][$field]))
                             if ($params["types"][$field]) {
-                                $type_conversion .= '::' .$params["types"][$field];
+                                $sql_to_set .= '::' .$params["types"][$field];
                             }
                     }
+                        
+                    if(isset($replaceDataWithSQL[$field]))
+                        $sql_to_set = $replaceDataWithSQL[$field];
 
                     if ($fields) {
                         $fields .= ', ' . id_quote($field);
@@ -790,16 +795,16 @@ class methodsBase
                     }
 
                     if ($values) {
-                        $values .= ", " . $type_conversion;
+                        $values .= ", " . $sql_to_set;
                     } else {
-                        $values = $type_conversion;
+                        $values = $sql_to_set;
                     }
                 }
             }
 
             $sql .= 'INSERT INTO ' . id_quote($params["schemaName"]) . '.' .
                 id_quote($params["entityName"]) . ' (' . $fields .
-                ') VALUES (' . $values . ') returning ' . id_quote($params["key"]) . ';';
+                ') SELECT ' . $values . ' returning ' . id_quote($params["key"]) . ';';
         }
 
         $ins_ret = sql($sql, null, true, 'object', $desc . " (files)");
@@ -809,7 +814,8 @@ class methodsBase
     }
 
     public static function updateEntity($params) {
-        static::preProcessing($params, "updateEntity");
+        $replaceDataWithSQL;
+        static::preProcessing($params, "updateEntity", $replaceDataWithSQL);
 
         $sql = '';
 
@@ -855,10 +861,16 @@ class methodsBase
                         if ($params["types"][$field])
                             $type_conversion = '::' . $params["types"][$field];
 
+                                                
+                    if(isset($replaceDataWithSQL[$field]))
+                        $sql_to_set = $replaceDataWithSQL[$field];
+                    else
+                        $sql_to_set = "'" . pg_escape_string($value) . "'". $type_conversion;
+
                     if ($set) {
-                        $set .= ', ' . id_quote($field) . " = '" . pg_escape_string($value) . "'" . $type_conversion;
+                        $set .= ', ' . id_quote($field) . " = $sql_to_set";
                     } else {
-                        $set = id_quote($field) . " = '" . pg_escape_string($value) . "'" . $type_conversion;
+                        $set = id_quote($field) . " = $sql_to_set";
                     }
                 } else {
                     if ($set) {
