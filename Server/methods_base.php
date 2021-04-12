@@ -715,7 +715,8 @@ class methodsBase
     }
 
     public static function deleteEntitiesByKey($params) {
-        static::preProcessing($params, "deleteEntitiesByKey");
+        $replaceDataWithSQL;
+        static::preProcessing($params, "deleteEntitiesByKey", $replaceDataWithSQL);
         $sql = '';
         $value_arr = array();
         $key_arr = array();
