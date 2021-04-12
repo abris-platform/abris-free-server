@@ -55,6 +55,15 @@ final class methodsTest extends TestCase
  public function test_addEntities(){
 
    $params = [
+      "entityName" => "bookings", 
+      "schemaName" => "bookings", 
+      'key' => 'book_ref',
+      'value' => ['44444', '123456'],
+   ];
+    
+   $res = methodsBase::deleteEntitiesByKey($params);
+
+   $params = [
       'entityName' => 'bookings',
       'schemaName' => 'bookings',
       'fields' => [
@@ -106,7 +115,7 @@ final class methodsTest extends TestCase
    "fields" => [
      0 => [
       "text_types_key" => "", 
-      "meta_plain" => "test1", 
+      "meta_plain" => "test12", 
       "meta_text" => "test2", 
       "detail_plain" => "test3", 
       "detail_text" => "<p>test4</p>" 
@@ -117,14 +126,8 @@ final class methodsTest extends TestCase
    'types' => NULL,
 ];
 
-$res = methodsBase::addEntities($params);   //    для теста ответ bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137 !!!!!
-$this->assertEquals($res, [
-   0 => [
-      "text_types_key" => 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137' ,
-   ],
- ]); 
-
-
+   $res = methodsBase::addEntities($params);   
+   $this->assertNotNull($res[0]["text_types_key"]); 
  }
 
 public function test_updateEntity(){
