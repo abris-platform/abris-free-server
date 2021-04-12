@@ -11,8 +11,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 ?>
 <?php
-require "db.php";
+require "db_caller.php";
+global $host, $dbname, $port, $dbuser, $dbpass;
+
 $dbconn = pg_connect("host=$host dbname=$dbname port=$port user=$dbuser password=$dbpass") or die('Could not connect: ' . pg_last_error());
 if ($dbconn) echo "Database Ok";
-
-?>

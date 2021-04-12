@@ -53,3 +53,29 @@ function GetClientIP() {
         $ipaddress = 'UNKNOWN';
     return $ipaddress;
 }
+
+function id_quote($identifier) {
+    return '"' . str_replace('"', '""', $identifier) . '"';
+}
+
+function preprocess_data($data) {
+    $data = trim($data);
+
+    if ($data == 'true')
+        return 't';
+    if ($data == 'false')
+        return 'f';
+
+    return $data;
+}
+
+function unset_auth_session() {
+    global $_STORAGE;
+
+    if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__')))
+        $_STORAGE->killStorage();
+    unset($_STORAGE);
+
+    if (isset($_COOKIE['private_key']))
+        setcookie('private_key', null, -1);
+}
