@@ -77,6 +77,7 @@ function request() {
         // TODO need rebuild file get_methods: from functions to static class.
         $current_dir_path = dirname(__FILE__);
         $main_server_path = str_replace('/abris-free-server/Server', '', $current_dir_path);
+        $main_server_path = str_replace('\\abris-free-server\\Server', '', $current_dir_path);
 
         if ((stripos($current_dir_path, 'abris-free-server') !== false) && (file_exists("$main_server_path/get_methods.php"))) {
             include_once "$main_server_path/methods.php";

@@ -35,6 +35,7 @@ spl_autoload_register(function ($nameClass) {
     }
     else {
         $debugPath = str_replace('/abris-free-server/Server', '', $configDir);
+        $debugPath = str_replace('\\abris-free-server\\Server', '', $configDir);
         if (file_exists("$debugPath/requires.json"))
             $requiresList = getConfigContent("$debugPath/requires.json", $requiresList);
     }
