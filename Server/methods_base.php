@@ -105,8 +105,22 @@ class methodsBase
 
             $privateKey = GenerateRandomString();
             if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
-                setcookie('private_key', null, -1);
-                setcookie('private_key', $privateKey);
+                $isHTTPS = isset($_SERVER['HTTPS']);
+                $cookieNameAuth = 'private_key';
+                setcookie($cookieNameAuth, null, -1);
+
+                if (PHP_VERSION_ID < 70300) {
+                    $path = $isHTTPS ? '/; SameSite=None' : '';
+                    setcookie($cookieNameAuth, $privateKey, 0, $path, '', $isHTTPS);
+                } else {
+                    $options = array();
+                    if ($isHTTPS) {
+                        $options['SameSite'] = 'None';
+                        $options['Secure'] = true;
+                    }
+
+                    setcookie($cookieNameAuth, $privateKey, $options);
+                }
             }
 
             $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $privateKey);
