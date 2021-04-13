@@ -36,7 +36,6 @@ function cors() {
 
     if (isset($_SERVER['HTTPS'])) {
         ini_set('session.cookie_samesite', 'None');
-        ini_set('session.cookie_secure', 'On');
     }
 
 }

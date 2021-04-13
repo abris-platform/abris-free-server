@@ -22,7 +22,7 @@ class WebStorage extends ArrayObject
         $sStatus = session_status();
 
         if ($sStatus == PHP_SESSION_NONE) {
-            session_start();
+            session_start(['cookie_secure' => isset($_SERVER['HTTPS'])]);
 
             if (!$fromConstruct)
                 parent::exchangeArray($_SESSION);
