@@ -474,8 +474,17 @@ class methodsBase
 
             }
         }
-        if ($orderfields && $params["primaryKey"]) {
-            $orderfields .= ', ' . $params["primaryKey"];
+        if ($params["primaryKey"]) {
+            if($orderfields)
+                $orderfields .= ', ' . $params["primaryKey"];
+            else
+                $orderfields =  'ORDER BY '.$params["primaryKey"];
+
+            if($orderfields_no_aliases)
+                $orderfields_no_aliases .= ', ' . $params["primaryKey"];
+            else
+                $orderfields_no_aliases =  'ORDER BY '.$params["primaryKey"];
+
         }
         return array('orderfields' => $orderfields, 'orderfields_no_aliases' => $orderfields_no_aliases, 'distinctfields' => $distinctfields);
     }
