@@ -1,11 +1,6 @@
 <?php
 
 require_once 'services_methods.php';
-include_once 'config_default.php';
-
-if (file_exists(dirname(__FILE__) . '/configs/config.php'))
-    require_once dirname(__FILE__) . '/configs/config.php';
-
 
 function getConfigContent($filePath, $mainRequiresList = array()) {
     $addList = json_decode(file_get_contents($filePath), true);

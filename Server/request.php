@@ -16,6 +16,12 @@ require_once 'autoload.php';
 
 $_STORAGE = new WebStorage();
 
+function init_config_free() {
+    $config = new ConfigBase();
+    $config->init();
+    $GLOBALS['_CONFIG'] = $config;
+}
+
 function cors() {
     if (isset($_SERVER['HTTP_ORIGIN'])) {
         header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
@@ -53,20 +59,17 @@ function normalizeKey($key) {
 
 function request() {
     cors();
-    global $dbname, $dbDefaultLanguage, $_STORAGE;
+    global $_STORAGE, $_CONFIG;
 
     $usename = '';
     $pid_count = '';
 
-    if (!file_exists(dirname(__FILE__) . '/configs/config.php'))
-        return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'fatal' => true, 'error' => 'No configuration file', 'usename' => null, 'pids' => null));
-
     if (!$_STORAGE->IsSession()) {
         $usename = strval($_STORAGE['login']);
-        $dbname = isset($_STORAGE['dbname']) ? $_STORAGE['dbname'] : $dbname;
+        $_CONFIG->dbname = isset($_STORAGE['dbname']) ? $_STORAGE['dbname'] : $_CONFIG->dbname;
 
         if (!isset($_STORAGE['lang']))
-            $_STORAGE['lang'] = $dbDefaultLanguage;
+            $_STORAGE['lang'] = $_CONFIG->dbDefaultLanguage;
     } else {
         $usename = call_user_func((class_exists('methods') ? 'methods::' : 'methodsBase::') . 'getAnotherUsername');
     }
@@ -109,6 +112,17 @@ function request() {
 }
 
 try {
+    try {
+        init_config_free();
+    } catch (Exception $e) {
+        // TODO на новый тип исключения (его пока нет).
+        return json_encode(
+            array(
+                'jsonrpc' => '2.0', 'result' => null,
+                'fatal' => true, 'error' => 'No configuration file',
+                'usename' => null, 'pids' => null
+            ));
+    }
     echo request();
 } catch (Exception $e) {
     global $data_result;
