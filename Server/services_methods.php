@@ -54,10 +54,6 @@ function GetClientIP() {
     return $ipaddress;
 }
 
-function id_quote($identifier) {
-    return '"' . str_replace('"', '""', $identifier) . '"';
-}
-
 function preprocess_data($data) {
     $data = trim($data);
 

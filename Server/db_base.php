@@ -7,6 +7,85 @@ class SQLBase
     protected static $query;
     protected static $options;
 
+
+    protected static function db_connect($data){
+        global $db_mysql;
+        if($db_mysql)
+            $connect = @mysqli_connect($data['host'], $data['user'], $data['password'], $data['dbname']);
+        else
+            $connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$data[user] password=$data[password]");
+        return $connect;
+    }
+
+    protected static function db_get_pid(){
+        global $db_mysql;
+        if(!$db_mysql)
+            $pid = pg_get_pid(self::$dbconn);
+        else
+            $pid = "";
+        return $pid;
+    }
+
+    protected static function db_last_error(){
+        global $db_mysql;
+        if(!$db_mysql)
+            return pg_last_error(self::$dbconn);
+        else
+            return mysqli_error(self::$dbconn);
+    }
+
+    protected static function db_fetch_array($result, $format){
+        global $db_mysql;
+        if(!$db_mysql)
+            return pg_fetch_array($result, NULL, $format);
+        else
+            return mysqli_fetch_array($result, $format);
+    }
+
+    protected static function db_free_result($result){
+        global $db_mysql;
+        if(!$db_mysql)
+            return pg_free_result($result);
+        else
+            return mysqli_free_result($result);
+    }
+
+    protected static function db_query($query){
+        global $db_mysql;
+        if(!$db_mysql)
+            return pg_query(self::$dbconn, $query);
+        else
+            return mysqli_query(self::$dbconn, $query);
+    }
+
+    protected static function db_close(){
+        global $db_mysql;
+        if(!$db_mysql)
+            return pg_close(self::$dbconn);
+        else
+            return mysqli_close(self::$dbconn);
+    }
+
+
+    public static function db_escape_string($value){
+        global $db_mysql;
+        $options = static::GetDefaultOptions();
+       
+        if(!$db_mysql)
+            return pg_escape_string($value);
+        else{
+            self::$dbconn = static::custom_pg_connect($options->GetEncryptPassword(), $options->GetDefaultConnection());
+            $res =  mysqli_real_escape_string(self::$dbconn, $value);
+            self::db_close();
+            self::$dbconn = null;
+            return $res;
+        }
+
+    }
+
+
+
+
     protected static function PrepareConnection($format) {
         if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
             $response = self::sql_handler_test(self::$query, $format);
@@ -41,7 +120,7 @@ class SQLBase
 
             foreach ($variants_login as $login) {
                 $usename = $login;
-                $dbconnect = @pg_connect("host=$host dbname=$dbname port=$port user=$login password=$password");
+                $dbconnect = self::db_connect(array('host'=>$host, 'dbname' => $dbname, 'port'=>$port, 'user'=>$login, 'password'=>$password));
                 if ($dbconnect) {
                     $_STORAGE['full_usename'] = $login;
                     return $dbconnect;
@@ -52,7 +131,7 @@ class SQLBase
         }
         else {
             $usename = $dbuser;
-            $dbconnect = @pg_connect("host=$host dbname=$dbname port=$port user=$dbuser password=$dbpass");
+            $dbconnect = self::db_connect(array('host'=>$host, 'dbname'=>$dbname, 'port'=>$port,'user'=>$dbuser, 'password'=>$dbpass));
             if ($dbconnect)
                 return $dbconnect;
         }
@@ -64,6 +143,8 @@ class SQLBase
 
     protected static function BeforeQuery($pid, $query_description) {
         global $_STORAGE, $dbDefaultLanguage;
+        global $db_mysql;
+        if($db_mysql) return;
 
         if (!isset($_STORAGE['pids']))
             $_STORAGE['pids'] = array();
@@ -75,12 +156,12 @@ class SQLBase
 
         $result = self::QueryExec('SET bytea_output = "escape"; SET intervalstyle = \'iso_8601\';');
         if (!$result)
-            throw new Exception(pg_last_error());
+            throw new Exception(self::db_last_error());
 
         $lang = isset($_STORAGE['language']) ? $_STORAGE['language'] : $dbDefaultLanguage;
         $result = self::QueryExec("set abris.language = '$lang'");
         if (!$result)
-            throw new Exception(pg_last_error());
+            throw new Exception(self::db_last_error());
     }
 
     protected static function AfterQuery($result) {
@@ -88,26 +169,26 @@ class SQLBase
 
         if (!$result) {
             // If an error has occurred from the side of the database, then try to push this into the query logging table (log_query).
-            $lastError = pg_last_error();
+            $lastError = self::db_last_error();
             throw new Exception($lastError);
         }
     }
 
     protected static function QueryExec($query) {
-        return pg_query(self::$dbconn, $query);
+        return self::db_query($query);
     }
 
     protected static function ProcessResult(&$result) {
         $response = array();
 
-        while ($line = pg_fetch_array($result, null, self::$options->GetFormat())) {
+        while ($line = self::db_fetch_array($result, self::$options->GetFormat())) {
             if (!self::$options->GetPreprocessData())
                 $response[] = array_map('preprocess_data', $line);
             else
                 $response[] = $line;
         }
 
-        pg_free_result($result);
+        self::db_free_result($result);
         return $response;
     }
 
@@ -173,7 +254,7 @@ class SQLBase
             throw new Exception("'$format' is unknown format!");
 
         self::$dbconn = static::custom_pg_connect($options->GetEncryptPassword(), $options->GetDefaultConnection());
-        $pid = pg_get_pid(self::$dbconn);
+        $pid = self::db_get_pid(self::$dbconn);
 
         static::BeforeQuery($pid, $options->GetQueryDescription());
 
@@ -193,11 +274,8 @@ class SQLBase
         unset($_STORAGE['pids'][$pid]);
 
         static::AfterQuery($result);
-
         $response = static::ProcessResult($result);
-
-        pg_close(self::$dbconn);
-
+        self::db_close();
         static::WriteTestsResult($response);
 
         self::$dbconn = null;

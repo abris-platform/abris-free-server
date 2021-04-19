@@ -16,4 +16,9 @@ class DBCaller
         $className = self::GetCurrentSQL();
         return call_user_func("$className::GetDefaultOptions");
     }
+
+    public static function db_escape_string($value){
+        $className = self::GetCurrentSQL();
+        return call_user_func("$className::db_escape_string", $value);
+    }
 }
