@@ -663,7 +663,9 @@ class methodsBase
             else
                 $orderfields = 'ORDER BY ' . $pred_res["m_order"];
         }
-        $statement = $statement . "  " . $orderfields;
+
+        if(!(isset($params["aggregate"]) && count($params["aggregate"]) && isset($params["group"])))
+            $statement = $statement . "  " . $orderfields;
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
             if ($params["currentKey"] && ($params["limit"] != 0 and $params["limit"] != -1)) {

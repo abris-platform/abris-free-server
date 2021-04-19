@@ -623,7 +623,7 @@ $this->assertEquals($res,
                     "airport_name", 
                     "timezone" 
                  ], 
-"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')   LIMIT 10 OFFSET 0", 
+"sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')  ORDER BY airport_code LIMIT 10 OFFSET 0", 
 "count(airport_code)" => [
                        [
                           "count" => "2" 
@@ -722,7 +722,7 @@ $this->assertEquals($res,
    3 => "timezone"
 ],
 
-"sql" => "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t    LIMIT 1 OFFSET 0",
+"sql" => "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t  LIMIT 1 OFFSET 0",
 "count(airport_name)" => [
    0 => [
       "count" => 104
@@ -1482,7 +1482,7 @@ public function test_getTableData()
      $res = methodsBase::getTableDataPredicate($params);
 
      $this->assertEquals(
-      "SELECT  \"t\".\"flight_no\", \"t\".\"scheduled_departure\" FROM \"bookings\".\"flights\" as t  WHERE (\"t\".\"scheduled_departure\" <= now() and \"t\".\"scheduled_departure\" > now() - 'P3Y6M4D'::interval)   LIMIT 10 OFFSET 0",
+      "SELECT  \"t\".\"flight_no\", \"t\".\"scheduled_departure\" FROM \"bookings\".\"flights\" as t  WHERE (\"t\".\"scheduled_departure\" <= now() and \"t\".\"scheduled_departure\" > now() - 'P3Y6M4D'::interval)  ORDER BY flight_id LIMIT 10 OFFSET 0",
       $res['sql']
     );
   
@@ -1533,7 +1533,7 @@ public function test_getTableData()
       ];       
       $res = methodsBase::getTableDataPredicate($params);
 
-      $this->assertEquals('[{"airport_code":"NAL","timezone":"Europe\/Moscow"},{"airport_code":"NBC","timezone":"Europe\/Moscow"},{"airport_code":"NFG","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NJC","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NNM","timezone":"Europe\/Moscow"},{"airport_code":"NOJ","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NOZ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"NSK","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"NUX","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NYA","timezone":"Asia\/Yekaterinburg"},{"airport_code":"NYM","timezone":"Asia\/Yekaterinburg"},{"airport_code":"ABA","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"BAX","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"CEK","timezone":"Asia\/Yekaterinburg"},{"airport_code":"CNN","timezone":"Asia\/Yakutsk"}]',
+      $this->assertEquals('[{"airport_code":"ABA","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"BAX","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"CEK","timezone":"Asia\/Yekaterinburg"},{"airport_code":"CNN","timezone":"Asia\/Yakutsk"},{"airport_code":"DYR","timezone":"Asia\/Anadyr"},{"airport_code":"EYK","timezone":"Asia\/Yekaterinburg"},{"airport_code":"GDX","timezone":"Asia\/Magadan"},{"airport_code":"HMA","timezone":"Asia\/Yekaterinburg"},{"airport_code":"KEJ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"KGD","timezone":"Europe\/Kaliningrad"},{"airport_code":"KGP","timezone":"Asia\/Yekaterinburg"},{"airport_code":"KJA","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"KRO","timezone":"Asia\/Yekaterinburg"},{"airport_code":"KYZ","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"KZN","timezone":"Europe\/Moscow"}]',
       json_encode($res['data']));
       }
       public function test_getTableDataPredicate_space_search(){
@@ -1589,7 +1589,7 @@ public function test_getTableData()
       
      
         $this->assertEquals(
-         'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::TEXT ilike \'%As%\'::TEXT and "t"."timezone"::TEXT ilike \'%vo%\'::TEXT)   LIMIT 10 OFFSET 0',  
+         'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::TEXT ilike \'%As%\'::TEXT and "t"."timezone"::TEXT ilike \'%vo%\'::TEXT)  ORDER BY airport_code LIMIT 10 OFFSET 0',  
          $res['sql']
        );
       
@@ -1867,15 +1867,15 @@ public function test_getTableData()
        $this->assertEquals($res,[
              'offset' => 0,
              'fields' => ['airport_code','airport_name','timezone'],
-             'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null or "t"."timezone"::text = \'\' or "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
+             'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null or "t"."timezone"::text = \'\' or "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
              'data' => [
-             ['YKS','Якутск','Asia/Yakutsk'],
-             ['MJZ','Мирный','Asia/Yakutsk'],
-             ['KEJ','Кемерово','Asia/Novokuznetsk'],
-             ['PYJ','Полярный','Asia/Yakutsk'],
-             ['NOZ','Спиченково','Asia/Novokuznetsk'],
              ['BQS','Игнатьево','Asia/Yakutsk'],
              ['CNN','Чульман','Asia/Yakutsk'],
+             ['KEJ','Кемерово','Asia/Novokuznetsk'],
+             ['MJZ','Мирный','Asia/Yakutsk'],
+             ['NOZ','Спиченково','Asia/Novokuznetsk'],
+             ['PYJ','Полярный','Asia/Yakutsk'],
+             ['YKS','Якутск','Asia/Yakutsk'],
              ],
              'records' => [
                 ['count' => 7]
@@ -2037,18 +2037,18 @@ public function test_getTableData()
        $this->assertEquals($res,[
           'offset' => 0,
           'fields' => ['airport_code','airport_name','timezone'],
-          'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 10 OFFSET 0',
+          'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
           'data' => [
-             ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
-             ['PKC', 'Елизово', 'Asia/Kamchatka'],
-             ['UUS', 'Хомутово', 'Asia/Sakhalin'],
-             ['VVO','Владивосток','Asia/Vladivostok'],
-             ['LED','Пулково','Europe/Moscow'],
-             ['KGD','Храброво','Europe/Kaliningrad'],
+             ['AAQ', 'Витязево', 'Europe/Moscow'],
+             ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
+             ['AER', 'Сочи', 'Europe/Moscow'],
+             ['ARH','Талаги','Europe/Moscow'],
+             ['ASF','Астрахань','Europe/Samara'],
+             ['BAX','Барнаул','Asia/Krasnoyarsk'],
+             ['BTK','Братск','Asia/Irkutsk'],
+             ['BZK','Брянск','Europe/Moscow'],
+             ['CEE','Череповец','Europe/Moscow'],
              ['CEK','Челябинск','Asia/Yekaterinburg'],
-             ['MQF','Магнитогорск','Asia/Yekaterinburg'],
-             ['PEE','Пермь','Asia/Yekaterinburg'],
-             ['SGC','Сургут','Asia/Yekaterinburg'],
           ],
           'records' => [
            ['count' => 97]
@@ -2063,7 +2063,7 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)  ORDER BY airport_code LIMIT 3 OFFSET 0',
          'data' => [],
          'records' => [
           ['count' => 0]
@@ -2076,11 +2076,11 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and "t"."timezone"::text <> \'\')   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
          'data' => [
-            ['YKS', 'Якутск', 'Asia/Yakutsk'],
-            ['MJZ', 'Мирный', 'Asia/Yakutsk'],
-            ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
+            ['AAQ', 'Витязево', 'Europe/Moscow'],
+            ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
+            ['AER', 'Сочи', 'Europe/Moscow'],
          ],
          'records' => [
           ['count' => 104]
@@ -2094,11 +2094,11 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\')   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is not null and trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
          'data' => [
-            ['YKS', 'Якутск', 'Asia/Yakutsk'],
-            ['MJZ', 'Мирный', 'Asia/Yakutsk'],
-            ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
+            ['AAQ', 'Витязево', 'Europe/Moscow'],
+            ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
+            ['AER', 'Сочи', 'Europe/Moscow'],
          ],
          'records' => [
           ['count' => 104]
@@ -2113,11 +2113,11 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0',
          'data' => [
-            ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
-            ['PKC', 'Елизово', 'Asia/Kamchatka'],
-            ['UUS', 'Хомутово', 'Asia/Sakhalin'],
+            ['AAQ', 'Витязево', 'Europe/Moscow'],
+            ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
+            ['AER', 'Сочи', 'Europe/Moscow'],
          ],
          'records' => [
           ['count' => 97]
@@ -2130,11 +2130,11 @@ public function test_getTableData()
       $this->assertEquals($res,[
          'offset' => 0,
          'fields' => ['airport_code','airport_name','timezone'],
-         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')   LIMIT 3 OFFSET 0',
+         'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
          'data' => [
-            ['YKS', 'Якутск', 'Asia/Yakutsk'],
-            ['MJZ', 'Мирный', 'Asia/Yakutsk'],
-            ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
+            ['AAQ', 'Витязево', 'Europe/Moscow'],
+            ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
+            ['AER', 'Сочи', 'Europe/Moscow'],
          ],
          'records' => [
           ['count' => 102]
