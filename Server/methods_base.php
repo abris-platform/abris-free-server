@@ -260,7 +260,12 @@ class methodsBase
                 $type_desc = '::' . $fields[$field]['type'];
 
 
-        if (!isset($operand["search_in_key"]) && isset($replace_rules[$field])) {
+
+        $search_in_key = false;
+        if(isset($operand["search_in_key"]))
+            $search_in_key = $operand["search_in_key"];
+
+        if (!$search_in_key && isset($replace_rules[$field])) {
             $field = $replace_rules[$field];
         } else {
             if (isset($operand["table_alias"])) {
