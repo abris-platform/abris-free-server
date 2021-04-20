@@ -976,29 +976,29 @@ class methodsBase
     }
 
     public static function getAllModelMetadata() {
-        global $metaSchema;
+        global $_CONFIG;
         $buttons = "";
         $pages = "";
 
-        $proj_arr = DBCaller::sql("SELECT * FROM $metaSchema.view_projection_entity");
+        $proj_arr = DBCaller::sql("SELECT * FROM $_CONFIG->metaSchema.view_projection_entity");
         if (@count($proj_arr) == 0) {
             //throw new Exception("Metadata: no projections");
         }
 
         $prop_arr = methodsBase::getAllEntities(array(
-            "schemaName" => $metaSchema,
+            "schemaName" => $_CONFIG->metaSchema,
             "entityName" => "view_projection_property"
         ));
 
         $rel_arr = methodsBase::getAllEntities(array(
-            "schemaName" => $metaSchema,
+            "schemaName" => $_CONFIG->metaSchema,
             "entityName" => "view_projection_relation"
         ));
 
 
         $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons);
 
-        $options = DBCaller::sql("SELECT * FROM $metaSchema.options");
+        $options = DBCaller::sql("SELECT * FROM $_CONFIG->metaSchema.options");
 
         return array('projections' => $metadata, 'pages' => $pages, 'options' => $options);
     }

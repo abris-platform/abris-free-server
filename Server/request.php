@@ -15,7 +15,8 @@
 require_once 'autoload.php';
 
 
-class RequestBase {
+class RequestBase
+{
     public static function initStorage() {
         $storage = new WebStorage();
         $GLOBALS['_STORAGE'] = $storage;
@@ -25,6 +26,14 @@ class RequestBase {
         $config = new ConfigBase();
         $config->init();
         $GLOBALS['_CONFIG'] = $config;
+    }
+
+    protected static function getNameClassMethods() {
+        return 'methodsBase';
+    }
+
+    protected static function callSpecialMethods() {
+        // TODO in full version (connect get_methods.php)
     }
 
     public static function cors() {
@@ -71,49 +80,32 @@ class RequestBase {
 
         if (!$_STORAGE->IsSession()) {
             $usename = strval($_STORAGE['login']);
-            $_CONFIG->dbname = isset($_STORAGE['dbname']) ? $_STORAGE['dbname'] : $_CONFIG->dbname;
+            $_CONFIG->dbname = $_STORAGE['dbname'] ?? $_CONFIG->dbname;
 
             if (!isset($_STORAGE['lang']))
                 $_STORAGE['lang'] = $_CONFIG->dbDefaultLanguage;
         } else {
-            $usename = call_user_func((class_exists('methods') ? 'methods::' : 'methodsBase::') . 'getAnotherUsername');
+            $usename = call_user_func(static::getNameClassMethods() . '::' . 'getAnotherUsername');
         }
 
         $pid_count = isset($_STORAGE['pids']) ? count($_STORAGE['pids']) : 0;
 
         if (!isset($_POST['method'])) {
-            // TODO need rebuild file get_methods: from functions to static class.
-            $current_dir_path = dirname(__FILE__);
-            $main_server_path = str_replace('/abris-free-server/Server', '', $current_dir_path);
-
-            if ((stripos($current_dir_path, 'abris-free-server') !== false) && (file_exists("$main_server_path/get_methods.php"))) {
-                include_once "$main_server_path/methods.php";
-                include_once "$main_server_path/get_methods.php";
-            } elseif (file_exists("$current_dir_path/get_methods.php")) {
-                include "$current_dir_path/get_methods.php";
-            }
-
+            static::callSpecialMethods();
             return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'error' => 'method', 'usename' => $usename, 'pids' => $pid_count));
-        } else {
-            if (!isset($_POST['params'])) {
-                return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'error' => 'params', 'usename' => $usename, 'pids' => $pid_count));
-            } else {
-                $method = $_POST['method'];
-                $params = json_decode($_POST['params'], true);
-
-                ob_start();
-                $result = call_user_func_array((class_exists('methods') ? 'methods::' : 'methodsBase::') . $method, $params);
-                ob_end_clean();
-
-                $usename = strval($_STORAGE['login']);
-
-                try {
-                    return json_encode(array('jsonrpc' => '2.0', 'result' => $result, 'error' => null, 'usename' => $usename, 'pids' => $pid_count));
-                } catch (Exception $e) {
-                    return json_encode(array('jsonrpc' => "2.0", 'result' => null, 'error' => $e->getMessage(), 'usename' => $usename, 'pids' => $pid_count));
-                }
-            }
         }
+
+        if (!isset($_POST['params'])) {
+            return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'error' => 'params', 'usename' => $usename, 'pids' => $pid_count));
+        }
+
+        $params = json_decode($_POST['params'], true);
+
+        ob_start();
+        $result = call_user_func_array(static::getNameClassMethods() . '::' . $_POST['method'], $params);
+        ob_end_clean();
+
+        return json_encode(array('jsonrpc' => '2.0', 'result' => $result, 'error' => null, 'usename' => strval($_STORAGE['login']), 'pids' => $pid_count));
     }
 }
 
@@ -122,7 +114,6 @@ try {
     try {
         RequestBase::initConfigFree();
     } catch (Exception $e) {
-        // TODO на новый тип исключения (его пока нет).
         return json_encode(
             array(
                 'jsonrpc' => '2.0', 'result' => null,
@@ -139,5 +130,5 @@ try {
     $usename = strval($_STORAGE['login']);
     $pid_count = isset($_STORAGE['pids']) ? count($_STORAGE['pids']) : 0;
 
-    echo json_encode(array('jsonrpc' => "2.0", 'result' => $data_result, 'error' => $e->getMessage(), 'usename' => $usename, 'pids' => $pid_count));
+    echo json_encode(array('jsonrpc' => '2.0', 'result' => $data_result, 'error' => $e->getMessage(), 'usename' => $usename, 'pids' => $pid_count));
 }
