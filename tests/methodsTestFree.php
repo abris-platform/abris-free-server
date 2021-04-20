@@ -2261,7 +2261,5 @@ public function test_getTableData()
       $res = methodsBase::authenticate($params);
       $this->assertEquals($res,null);  
    
-    } 
-      
-
+    }
 }
