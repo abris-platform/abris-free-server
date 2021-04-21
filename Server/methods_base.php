@@ -10,16 +10,6 @@
 $data_result = array();
 
 
-function relation($schema, $table) {
-    global $dbUnrollViews;
-    $rel = Convert::id_quote($schema) . "." . Convert::id_quote($table);
-    if (in_array($rel, $dbUnrollViews ?: array())) {
-        $r = DBCaller::sql("select pg_get_viewdef(to_regclass('$rel'));");
-        return "(" . trim($r[0]["pg_get_viewdef"], ';') . ")";
-    } else
-        return $rel;
-}
-
 class methodsBase
 {
     protected static function preProcessing(&$params, $method, &$replaceDataWithSQL) {
@@ -153,7 +143,7 @@ class methodsBase
     }
 
     public static function getAllEntities($params) {
-        return DBCaller::sql('SELECT * FROM ' . relation($params["schemaName"], $params["entityName"]) . ' t');
+        return DBCaller::sql('SELECT * FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' t');
     }
 
     public static function getTableData($params) {
@@ -176,12 +166,12 @@ class methodsBase
         if (isset($params["distinct"])) {
             if (is_array($params["distinct"])) {
             } else {
-                $statement = "SELECT DISTINCT $field_list FROM " . relation($params["schemaName"], $params["entityName"]) . ' t';
-                $count = "SELECT count(DISTINCT $field_list) FROM " . relation($params["schemaName"], $params["entityName"]) . ' t';
+                $statement = "SELECT DISTINCT $field_list FROM " . Convert::relation($params["schemaName"], $params["entityName"]) . ' t';
+                $count = "SELECT count(DISTINCT $field_list) FROM " . Convert::relation($params["schemaName"], $params["entityName"]) . ' t';
             }
         } else {
-            $statement = "SELECT $field_list FROM " . relation($params["schemaName"], $params["entityName"]) . ' t';
-            $count = "SELECT count(*) FROM " . relation($params["schemaName"], $params["entityName"]) . ' t';
+            $statement = "SELECT $field_list FROM " . Convert::relation($params["schemaName"], $params["entityName"]) . ' t';
+            $count = "SELECT count(*) FROM " . Convert::relation($params["schemaName"], $params["entityName"]) . ' t';
         }
 
         $where = "";
@@ -290,7 +280,7 @@ class methodsBase
                 if (empty($value)) {
                     return $field . " is null";
                 }
-                return $field . " = '" . DBCaller::db_escape_string($value) . "'" . $type_desc;
+                return $field . " = " . Convert::type(DBCaller::db_escape_string($value), $type_desc);
             case "NEQ":
                 if (is_array($value)) {
                     if (count($value) > 0) {
@@ -580,9 +570,9 @@ class methodsBase
 
             if (isset($j["distinct"])) {
                 $order_distinct = self::makeOrderAndDistinctString($j["distinct"], $params);
-                $join .= " left join (select distinct on (" . $order_distinct['distinctfields'] . ") * from " . relation($j["schema"], $j["entity"]) . " t " . $order_distinct['orderfields'] . ")as " . Convert::id_quote($j["table_alias"]) . " on " . Convert::id_quote($j["parent_table_alias"]) . "." . Convert::id_quote($j["key"]) . " = " . Convert::id_quote($j["table_alias"]) . "." . Convert::id_quote($j["entityKey"]);
+                $join .= " left join (select distinct on (" . $order_distinct['distinctfields'] . ") * from " . Convert::relation($j["schema"], $j["entity"]) . " t " . $order_distinct['orderfields'] . ")as " . Convert::id_quote($j["table_alias"]) . " on " . Convert::id_quote($j["parent_table_alias"]) . "." . Convert::id_quote($j["key"]) . " = " . Convert::id_quote($j["table_alias"]) . "." . Convert::id_quote($j["entityKey"]);
             } else
-                $join .= " left join " . relation($j["schema"], $j["entity"]) . " as " . Convert::id_quote($j["table_alias"]) . " on " . Convert::id_quote($j["parent_table_alias"]) . "." . Convert::id_quote($j["key"]) . " = " . Convert::id_quote($j["table_alias"]) . "." . Convert::id_quote($j["entityKey"]);
+                $join .= " left join " . Convert::relation($j["schema"], $j["entity"]) . " as " . Convert::id_quote($j["table_alias"]) . " on " . Convert::id_quote($j["parent_table_alias"]) . "." . Convert::id_quote($j["key"]) . " = " . Convert::id_quote($j["table_alias"]) . "." . Convert::id_quote($j["entityKey"]);
         }
 
 
@@ -595,14 +585,14 @@ class methodsBase
         $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params, $pred_res);
 
         if ($distinctfields)
-            $count = 'SELECT count(distinct ' . $distinctfields . ') FROM (SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(distinct ' . $distinctfields . ') FROM (SELECT ' . $field_list . ' FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
         else
-            $count = 'SELECT count(*) FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(*) FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if ($distinctfields) {
             $distinctfields = 'distinct on (' . $distinctfields . ')';
         }
-        $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+        $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         $sql_aggregates = "";
         foreach ($params["aggregate"] as $aggregateDescription) {
@@ -612,7 +602,7 @@ class methodsBase
                 $sql_aggregates = $sql_aggregates . $aggregateDescription["func"] . '(t.' . $aggregateDescription["field"] . ') as "' . $aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')", ';
             }
         }
-        $sql_aggregates = 'SELECT ' . $sql_aggregates . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+        $sql_aggregates = 'SELECT ' . $sql_aggregates . ' FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if (isset($params["sample"])) {
             $ratio = intval($params["sample"]);
@@ -733,8 +723,8 @@ class methodsBase
                 if ($field_list) {
                     $field_list .= ", ";
                 }
-                $field_list .= "row_to_json(row($j_field_list, t." . Convert::id_quote($j["key"]) . "::text,  ARRAY(select row_to_json(row($j_field_list, t$k." . Convert::id_quote($j["entityKey"]) . "::text)) from " . relation($j["schema"], $j["entity"]) . " as t$k limit 10))) as " . Convert::id_quote($j["key"]);
-                $join .= " left join " . relation($j["schema"], $j["entity"]) . " as t$k on t." . Convert::id_quote($j["key"]) . " = t$k." . Convert::id_quote($j["entityKey"]);
+                $field_list .= "row_to_json(row($j_field_list, t." . Convert::id_quote($j["key"]) . "::text,  ARRAY(select row_to_json(row($j_field_list, t$k." . Convert::id_quote($j["entityKey"]) . "::text)) from " . Convert::relation($j["schema"], $j["entity"]) . " as t$k limit 10))) as " . Convert::id_quote($j["key"]);
+                $join .= " left join " . Convert::relation($j["schema"], $j["entity"]) . " as t$k on t." . Convert::id_quote($j["key"]) . " = t$k." . Convert::id_quote($j["entityKey"]);
             }
 
         if (is_array($params["value"])) {
@@ -746,11 +736,11 @@ class methodsBase
                 $value_arr .= "'" . DBCaller::db_escape_string($v) . "'";;
             }
 
-            $res = DBCaller::sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . Convert::id_quote($params["key"]) . ' IN (' . $value_arr . ') ' .
+            $res = DBCaller::sql('SELECT ' . $field_list . ' FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . Convert::id_quote($params["key"]) . ' IN (' . $value_arr . ') ' .
                 ($order_by_key ? (' order by t.' . Convert::id_quote($params["key"])) : ''));
             return $res;
         }
-        return DBCaller::sql('SELECT ' . $field_list . ' FROM ' . relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . Convert::id_quote($params["key"]) . ' = \'' . DBCaller::db_escape_string($params["value"]) . '\'');
+        return DBCaller::sql('SELECT ' . $field_list . ' FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join . ' WHERE t.' . Convert::id_quote($params["key"]) . ' = \'' . DBCaller::db_escape_string($params["value"]) . '\'');
     }
 
     public static function deleteEntitiesByKey($params) {
@@ -804,6 +794,7 @@ class methodsBase
         $return_data["sql"] = $sql;
         return $return_data;
     }
+
 
     public static function addEntities($params) {
         $replaceDataWithSQL;
@@ -925,9 +916,12 @@ class methodsBase
             };
 
             foreach ($key_arr as $j => $key) {
+                $type_conversion = '';
                 if (isset($params["types"]))
-                    if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
-                $sql_where .= Convert::id_quote($key) . $type_conversion . " = '" . DBCaller::db_escape_string($value_arr[$j][$i]) . "'" . $type_conversion;
+                    if ($params["types"][$key]) {
+                        $type_conversion = $params["types"][$key];
+                    }
+                $sql_where .= Convert::typeField($key,$type_conversion) ." = " . Convert::type(DBCaller::db_escape_string($value_arr[$j][$i]),$type_conversion);
                 if ($key != end($key_arr))
                     $sql_where .= " AND ";
 
