@@ -24,7 +24,7 @@ class SQLParamBase
     }
 
     public function SetFormat($value = 'object') {
-        $this->format = $value === 'object' ? PGSQL_ASSOC : PGSQL_NUM;
+        $this->format = $value;
     }
 
     public function SetEncryptPassword($value = true) {

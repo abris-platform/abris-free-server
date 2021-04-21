@@ -6,5 +6,9 @@
   "SQLParamBase": "sql_param_base.php",
   "Convert": "convert.php",
   "ConfigBase": "config_base.php",
-  "RequestBase": "request.php"
+  "RequestBase": "request.php",
+  "DatabaseInterface": "db/DatabaseInterface.php",
+  "DatabaseAbstract": "db/DatabaseAbstract.php",
+  "DatabasePostgresql": "db/DatabasePostgresql.php",
+  "DatabaseMysql": "db/DatabaseMysql.php"
 }

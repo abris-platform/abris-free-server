@@ -25,12 +25,12 @@ spl_autoload_register(function ($nameClass) {
 
     $requiresList = getConfigContent("$configDir/requires_free.json");
 
-    if (file_exists("$configDir/requires.json")) {
+    if (file_exists("$configDir/requires1.json")) {
         $requiresList = getConfigContent("$configDir/requires.json", $requiresList);
     }
     else {
         $debugPath = str_replace('/abris-free-server/Server', '', $configDir);
-        if (file_exists("$debugPath/requires.json"))
+        if (file_exists("$debugPath/requires1.json"))
             $requiresList = getConfigContent("$debugPath/requires.json", $requiresList);
     }
 

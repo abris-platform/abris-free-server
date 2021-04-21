@@ -6,5 +6,7 @@
   "dbDefaultPass": "123456",
   "dbDefaultLanguage": "ru",
   "metaSchema": "meta",
-  "cryptMethod": "AES-256-CBC"
+  "cryptMethod": "AES-256-CBC",
+  "databaseType": "pgsql",
+  "$anotherPrefLog": ""
 }

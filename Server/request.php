@@ -22,6 +22,28 @@ class RequestBase
         $GLOBALS['_STORAGE'] = $storage;
     }
 
+    public static function initDatabase() {
+        if (!isset($GLOBALS['_STORAGE']) && !isset($GLOBALS['_CONFIG']))
+            return;
+
+        $database = null;
+
+        switch ($GLOBALS['_CONFIG']->databaseType) {
+            case 'pgsql':
+                $database = new DatabasePostgresql();
+                break;
+            case 'mysql':
+                $database = new DatabaseMysql();
+                break;
+            case 'sqlite':
+                break;
+            default:
+                $database = new DatabasePostgresql();
+        }
+
+        $GLOBALS['_STORAGE']['database'] = $database;
+    }
+
     public static function initConfigFree() {
         $config = new ConfigBase();
         $config->init();
@@ -113,6 +135,7 @@ try {
     }
 
     RequestBase::initStorage();
+    RequestBase::initDatabase();
 
     echo RequestBase::request();
 } catch (Exception $e) {
