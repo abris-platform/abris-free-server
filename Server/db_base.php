@@ -70,8 +70,9 @@ class SQLBase
         else
             $_STORAGE['pids'][$pid] = array('query' => self::$query, 'desc' => $query_description, 'timestamp' => date('Y-m-d H:i:s', time()));
 
-        if (self::$options->IsLogFile())
-            file_put_contents('sql.log', date('Y-m-d H:i:s', time()) . '\t' . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'cli') . '\t' . $pid . '\t' . self::$query . '\n', FILE_APPEND);
+        if (method_exists(self::$options, 'IsLogFile'))
+            if (self::$options->IsLogFile())
+                file_put_contents('sql.log', date('Y-m-d H:i:s', time()) . '\t' . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'cli') . '\t' . $pid . '\t' . self::$query . '\n', FILE_APPEND);
 
         $result = self::QueryExec('SET bytea_output = "escape"; SET intervalstyle = \'iso_8601\';');
         if (!$result)
@@ -173,6 +174,7 @@ class SQLBase
             throw new Exception("'$format' is unknown format!");
 
         self::$dbconn = static::custom_pg_connect($options->GetEncryptPassword(), $options->GetDefaultConnection());
+        self::$options = $options;
         $pid = pg_get_pid(self::$dbconn);
 
         static::BeforeQuery($pid, $options->GetQueryDescription());
