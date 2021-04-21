@@ -61,16 +61,6 @@ class RequestBase
 
     }
 
-    public static function normalizeKey($key) {
-        $key = strtolower($key);
-        $key = str_replace(array('-', '_'), ' ', $key);
-        $key = preg_replace('#^http #', '', $key);
-        $key = ucwords($key);
-        $key = str_replace(' ', '-', $key);
-
-        return $key;
-    }
-
     public static function request() {
         static::cors();
         global $_STORAGE, $_CONFIG;
