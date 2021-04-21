@@ -96,9 +96,10 @@ class SQLBase
     }
 
     protected static function custom_pg_connect($encrypt_password, $default_connection) {
-        global $_STORAGE, $host, $dbname, $port, $dbuser, $dbpass, $anotherPrefLog;
+        global $_STORAGE, $_CONFIG;
+        $anotherPrefLog = ''; // TODO move param to config-free.json
         $usename = '';
-        $dbname = isset($_STORAGE['dbname']) ? $_STORAGE['dbname'] : $dbname;
+        $dbname = $_STORAGE['dbname'] ?? $_CONFIG->dbname;
 
         if ((isset($_STORAGE['login']) || isset($_STORAGE['full_usename'])) && isset($_STORAGE['password']) && !$default_connection) {
             $privateKey = '';
@@ -111,7 +112,7 @@ class SQLBase
                 throw new Exception('Invalid password detected! Password can be changed!');
             }
 
-            $session_usename = isset($_STORAGE['full_usename']) ? $_STORAGE['full_usename'] : $_STORAGE['login'];
+            $session_usename = $_STORAGE['full_usename'] ?? $_STORAGE['login'];
             $variants_login = array(
                 $session_usename,
                 "$anotherPrefLog@$session_usename",
@@ -120,7 +121,7 @@ class SQLBase
 
             foreach ($variants_login as $login) {
                 $usename = $login;
-                $dbconnect = self::db_connect(array('host'=>$host, 'dbname' => $dbname, 'port'=>$port, 'user'=>$login, 'password'=>$password));
+                $dbconnect = self::db_connect(array('host'=>$_CONFIG->host, 'dbname' => $_CONFIG->dbname, 'port'=>$_CONFIG->port, 'user'=>$login, 'password'=>$password));
                 if ($dbconnect) {
                     $_STORAGE['full_usename'] = $login;
                     return $dbconnect;
@@ -130,8 +131,8 @@ class SQLBase
             $usename = $session_usename;
         }
         else {
-            $usename = $dbuser;
-            $dbconnect = self::db_connect(array('host'=>$host, 'dbname'=>$dbname, 'port'=>$port,'user'=>$dbuser, 'password'=>$dbpass));
+            $usename = $_CONFIG->dbDefaultUser;
+            $dbconnect = self::db_connect(array('host'=>$_CONFIG->host, 'dbname'=>$_CONFIG->dbname, 'port'=>$_CONFIG->port,'user'=>$usename, 'password'=>$_CONFIG->dbDefaultPass));
             if ($dbconnect)
                 return $dbconnect;
         }
@@ -142,7 +143,7 @@ class SQLBase
     }
 
     protected static function BeforeQuery($pid, $query_description) {
-        global $_STORAGE, $dbDefaultLanguage;
+        global $_STORAGE, $_CONFIG;
         global $db_mysql;
         if($db_mysql) return;
 
@@ -152,13 +153,13 @@ class SQLBase
             $_STORAGE['pids'][$pid] = array('query' => self::$query, 'desc' => $query_description, 'timestamp' => date('Y-m-d H:i:s', time()));
 
         if (self::$options->IsLogFile())
-            file_put_contents('sql.log', date('Y-m-d H:i:s', time()) . '\t' . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'cli') . '\t' . $pid . '\t' . self::$query . '\n', FILE_APPEND);
+            file_put_contents('sql.log', date('Y-m-d H:i:s', time()) . '\t' . ($_SERVER['REMOTE_ADDR'] ?? 'cli') . '\t' . $pid . '\t' . self::$query . '\n', FILE_APPEND);
 
         $result = self::QueryExec('SET bytea_output = "escape"; SET intervalstyle = \'iso_8601\';');
         if (!$result)
             throw new Exception(self::db_last_error());
 
-        $lang = isset($_STORAGE['language']) ? $_STORAGE['language'] : $dbDefaultLanguage;
+        $lang = $_STORAGE['language'] ?? $_CONFIG->dbDefaultLanguage;
         $result = self::QueryExec("set abris.language = '$lang'");
         if (!$result)
             throw new Exception(self::db_last_error());

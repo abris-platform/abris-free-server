@@ -24,13 +24,12 @@ final class methodsTest extends TestCase
      ),
     ));*/
 
-    $_STORAGE['pids'] = ["test"=>"123456"];
-    $res = methodsBase::getPIDS([]);
-    $this->assertEquals($res, array(
-      'pids' => 
-     array (
-     ),
-    )); 
+     $_STORAGE['pids'] = ["test" => "123456"];
+     $res = methodsBase::getPIDS([]);
+     $this->assertEquals($res, array(
+         'pids' =>
+             array('test' => '123456'),
+     ));
   }
 
   public function test_killPID(){
@@ -2261,7 +2260,5 @@ public function test_getTableData()
       $res = methodsBase::authenticate($params);
       $this->assertEquals($res,null);  
    
-    } 
-      
-
+    }
 }

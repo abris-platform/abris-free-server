@@ -4,5 +4,7 @@
   "DBCaller": "db_caller.php",
   "SQLBase": "db_base.php",
   "SQLParamBase": "sql_param_base.php",
-  "Convert": "convert.php"
+  "Convert": "convert.php",
+  "ConfigBase": "config_base.php",
+  "RequestBase": "request.php"
 }
