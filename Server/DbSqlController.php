@@ -116,7 +116,9 @@ class DbSqlController {
 
         }
 
-        unset($_STORAGE['pids'][$pid]);
+        $unstor = $_STORAGE['pids'];
+        unset($unstor[$pid]);
+        $_STORAGE['pids'] = $unstor;
 
         $sqlObject->AfterQuery($result);
         $response = $sqlObject->ProcessResult($result, $format);

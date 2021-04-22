@@ -42,12 +42,15 @@ class SQLBase
 
         if (!isset($_STORAGE['pids']))
             $_STORAGE['pids'] = array();
-        else
-            $_STORAGE['pids'][$pid] = array(
+        else {
+            $tmpPids = $_STORAGE['pids'];
+            $tmpPids[$pid] = array(
                 'query' => $this->query,
                 'desc' => $this->GetOptions()->GetQueryDescription(),
                 'timestamp' => date('Y-m-d H:i:s', time())
             );
+            $_STORAGE['pids'] = $tmpPids;
+        }
 
         if ($this->options->IsLogFile())
             file_put_contents("$_CONFIG->databaseType.log", date('Y-m-d H:i:s', time()) . '\t' . ($_SERVER['REMOTE_ADDR'] ?? 'cli') . '\t' . $pid . '\t' . $this->query . '\n', FILE_APPEND);
@@ -58,7 +61,8 @@ class SQLBase
         if (!$result) {
             // If an error has occurred from the side of the database, then try to push this into the query logging table (log_query).
             $lastError = $this->database->db_last_error();
-            throw new Exception($lastError);
+            if($lastError)
+                throw new Exception($lastError);
         }
     }
 

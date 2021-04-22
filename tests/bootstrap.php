@@ -5,3 +5,5 @@
       require_once "Server/autoload.php";
 
     RequestBase::initConfigFree();
+    RequestBase::initStorage();
+    RequestBase::initDatabase();

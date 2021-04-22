@@ -12,6 +12,7 @@ class DatabasePostgresql extends DatabaseAbstract
     }
 
     public function db_get_pid() {
+        $this->db_connect();
         return pg_get_pid($this->connect);
     }
 
@@ -28,14 +29,12 @@ class DatabasePostgresql extends DatabaseAbstract
     }
 
     public function db_query($query) {
-        $result = @pg_query($this->connect, $query);
-        if (!$result)
-            throw new Exception($this->db_last_error());
-        return $result;
+        return pg_query($this->connect, $query);
     }
 
     public function db_close() {
-        return pg_close($this->connect);
+        if(pg_close($this->connect))
+            $this->connect = null;
     }
 
     public function db_escape_string($value) {
@@ -53,11 +52,11 @@ class DatabasePostgresql extends DatabaseAbstract
     }
 
     public function set_bytea_output($style = 'escape') {
-        return $this->db_query('SET bytea_output = "' . $style . '";');
+        pg_query($this->connect, 'SET bytea_output = "' . $style . '";');
     }
 
     public function set_interval_style($style = 'iso_8601') {
-        return $this->db_query("SET intervalstyle = '$style';");
+        pg_query($this->connect, "SET intervalstyle = '$style';");
     }
 
 

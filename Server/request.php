@@ -53,7 +53,7 @@ class RequestBase
                 $database = new DatabasePostgresql($arr_conf);
         }
 
-        $GLOBALS['_STORAGE']['database'] = $database;
+        $_STORAGE['database'] = $database;
     }
 
     public static function initConfigFree() {
