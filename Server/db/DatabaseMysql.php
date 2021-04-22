@@ -2,8 +2,12 @@
 
 class DatabaseMysql extends DatabaseAbstract
 {
-    public function db_connect($data) {
-        $this->connect = @mysqli_connect($data['host'], $data['user'], $data['password'], $data['dbname']);
+    public function db_connect($data = null) {
+        if(!boolval($this->connect)){
+            if(is_null($data))
+                $data = $this->config;
+            $this->connect = @mysqli_connect($data['host'], $data['user'], $data['password'], $data['dbname']);
+        }
         return $this->connect;
     }
 
@@ -35,7 +39,7 @@ class DatabaseMysql extends DatabaseAbstract
     }
 
     public function db_escape_string($value) {
-        return mysqli_real_escape_string($this->connect, $value);
+        return mysqli_real_escape_string($this->db_connect(), $value);
     }
 
     public function db_type_compare($format) {

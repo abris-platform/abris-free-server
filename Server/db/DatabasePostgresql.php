@@ -2,8 +2,12 @@
 
 class DatabasePostgresql extends DatabaseAbstract
 {
-    public function db_connect($data) {
-        $this->connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$data[user] password=$data[password]");
+    public function db_connect($data = null) {
+        if(!boolval($this->connect)) {
+            if(is_null($data))
+                $data = $this->config;
+            $this->connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$data[user] password=$data[password]");
+        }
         return $this->connect;
     }
 
@@ -35,6 +39,7 @@ class DatabasePostgresql extends DatabaseAbstract
     }
 
     public function db_escape_string($value) {
+        $this->db_connect();
         return pg_escape_string($value);
     }
 

@@ -15,6 +15,10 @@ class DbSqlController {
         return self::GetObjectDatabase()->db_escape_string($value);
     }
 
+    public static function IdQuote($identifier) {
+        return self::GetObjectDatabase()->id_quote($identifier);
+    }
+
     public static function Connect($encrypt_password, $default_connection) {
         global $_STORAGE, $_CONFIG;
         $usename = '';
@@ -128,5 +132,17 @@ class DbSqlController {
 
     public static function QueryExec($query) {
         return self::GetObjectDatabase()->db_query($query);
+    }
+
+    public static function relation($schemaName, $entityName) {
+        return self::IdQuote($schemaName).".".self::IdQuote($entityName);
+    }
+
+    public static function type($value, $type) {
+        return self::GetObjectDatabase()->type($value, $type);
+    }
+
+    public static function typeField($field, $type) {
+        return self::GetObjectDatabase()->type_field($field, $type);
     }
 }

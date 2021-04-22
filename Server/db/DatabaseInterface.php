@@ -2,7 +2,7 @@
 
 interface DatabaseInterface
 {
-    public function db_connect($data);
+    public function db_connect($data = null);
 
     public function db_get_pid();
 

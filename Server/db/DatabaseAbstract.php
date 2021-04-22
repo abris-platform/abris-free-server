@@ -2,6 +2,11 @@
 
 abstract class DatabaseAbstract implements DatabaseInterface, DataConvertInterface {
     protected $connect;
+    protected $config;
+
+    public function __construct($config){
+        $this->config = $config;
+    }
 
     public function set_bytea_output($style = 'escape') {
         return '';
@@ -11,7 +16,4 @@ abstract class DatabaseAbstract implements DatabaseInterface, DataConvertInterfa
         return '';
     }
 
-    protected function is_connected() {
-        return boolval($this->connect);
-    }
 }

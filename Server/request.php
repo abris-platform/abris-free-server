@@ -26,19 +26,31 @@ class RequestBase
         if (!isset($GLOBALS['_STORAGE']) && !isset($GLOBALS['_CONFIG']))
             return;
 
+        global $_STORAGE,$_CONFIG;
         $database = null;
+        if(!isset($_STORAGE['login']))
+            $_STORAGE['login'] = $_CONFIG->dbDefaultUser;
+
+        if(!isset($_STORAGE['password']))
+            $_STORAGE['password'] = $_CONFIG->dbDefaultPass;
+
+        $arr_conf =  array(
+            'host' => $_CONFIG->host, 'dbname' => $_CONFIG->dbname,
+            'port' => $_CONFIG->port, 'user' => $_STORAGE['login'],
+            'password' => $_STORAGE['password']
+        );
 
         switch ($GLOBALS['_CONFIG']->databaseType) {
             case 'pgsql':
-                $database = new DatabasePostgresql();
+                $database = new DatabasePostgresql($arr_conf);
                 break;
             case 'mysql':
-                $database = new DatabaseMysql();
+                $database = new DatabaseMysql($arr_conf);
                 break;
             case 'sqlite':
                 break;
             default:
-                $database = new DatabasePostgresql();
+                $database = new DatabasePostgresql($arr_conf);
         }
 
         $GLOBALS['_STORAGE']['database'] = $database;
