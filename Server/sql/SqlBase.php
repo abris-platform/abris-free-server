@@ -7,13 +7,14 @@ class SQLBase
     protected $options;
     protected $database;
 
-    public function __construct($options = null) {
+    public function __construct($query, $options = null) {
         global $_STORAGE;
 
         if (is_null($options))
             $options = static::GetDefaultOptions();
 
         $this->options = $options;
+        $this->query = $query;
 
         if (isset($_STORAGE['database']))
             $this->database = $_STORAGE['database'];
@@ -61,10 +62,10 @@ class SQLBase
         }
     }
 
-    public function ProcessResult($result) {
+    public function ProcessResult($result, $format) {
         $response = array();
 
-        while ($line = $this->database->db_fetch_array($result, $this->options->GetFormat())) {
+        while ($line = $this->database->db_fetch_array($result, $format)) {
             if (!$this->options->GetPreprocessData())
                 $response[] = array_map('preprocess_data', $line);
             else

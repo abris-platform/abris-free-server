@@ -24,10 +24,8 @@ class DbSqlController {
         $usename = '';
         $dbname = $_STORAGE['dbname'] ?? $_CONFIG->dbname;
 
-        if ((isset($_STORAGE['login']) || isset($_STORAGE['full_usename'])) && isset($_STORAGE['password']) && !$default_connection) {
-            $privateKey = '';
-            if (isset($_COOKIE['private_key']))
-                $privateKey = $_COOKIE['private_key'];
+        if (isset($_COOKIE['private_key']) && !$default_connection) {
+            $privateKey = $_COOKIE['private_key'];
 
             $password = $encrypt_password ? DecryptStr($_STORAGE['password'], $privateKey) : $_STORAGE['password'];
             if (!$password) {
@@ -77,16 +75,15 @@ class DbSqlController {
         throw new Exception("Unable to connect by user $usename to system.");
     }
 
-    protected static function GetObjectSql($options) {
-        return new SQLBase($options);
+    protected static function GetObjectSql($query, $options) {
+        return new SQLBase($query, $options);
     }
 
     public static function Sql($query, $options = null) {
         global $_STORAGE;
-        $logs = array();
-        $databaseObject = self::GetObjectDatabase();
-        $sqlObject = static::GetObjectSql($options);
 
+        $databaseObject = self::GetObjectDatabase();
+        $sqlObject = static::GetObjectSql($query, $options);
 
         $prepareResponse = $sqlObject->PrepareConnection();
         if (!is_null($prepareResponse))
@@ -122,7 +119,7 @@ class DbSqlController {
         unset($_STORAGE['pids'][$pid]);
 
         $sqlObject->AfterQuery($result);
-        $response = $sqlObject->ProcessResult($result);
+        $response = $sqlObject->ProcessResult($result, $format);
 
         $databaseObject->db_close();
         $sqlObject->WriteTestsResult($response);

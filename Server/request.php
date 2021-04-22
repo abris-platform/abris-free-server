@@ -129,6 +129,8 @@ class RequestBase
         $result = call_user_func_array(static::getNameClassMethods() . '::' . $_POST['method'], $params);
         ob_end_clean();
 
+        $_STORAGE['login'] = $_STORAGE['login'] == 'guest'? '' : $_STORAGE['login'];
+
         return json_encode(array('jsonrpc' => '2.0', 'result' => $result, 'error' => null, 'usename' => strval($_STORAGE['login']), 'pids' => $pid_count));
     }
 }
