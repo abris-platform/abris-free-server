@@ -73,35 +73,41 @@ class DbSqlController {
         throw new Exception("Unable to connect by user $usename to system.");
     }
 
+    protected static function GetObjectSql($options) {
+        return new SQLBase($options);
+    }
+
     public static function Sql($query, $options = null) {
         global $_STORAGE;
         $logs = array();
         $databaseObject = self::GetObjectDatabase();
+        $sqlObject = static::GetObjectSql($options);
 
-        if (is_null($options))
-            $options = SQLBase::GetDefaultOptions();
 
-        $prepareResponse = SQLBase::PrepareConnection($options->GetFormat());
+        $prepareResponse = $sqlObject->PrepareConnection();
         if (!is_null($prepareResponse))
             return $prepareResponse;
 
-        $format = $databaseObject->get_format($options->GetFormat());
+        $format = $databaseObject->get_format($sqlObject->GetOptions()->GetFormat());
         $databaseObject->db_type_compare($format);
 
-        $dbconn = self::Connect($options->GetEncryptPassword(), $options->GetDefaultConnection());
-        $pid = $databaseObject->db_get_pid($dbconn);
+        self::Connect(
+            $sqlObject->GetOptions()->GetEncryptPassword(),
+            $sqlObject->GetOptions()->GetDefaultConnection()
+        );
+        $pid = $databaseObject->db_get_pid();
 
         $databaseObject->set_bytea_output();
         $databaseObject->set_interval_style();
 
-        SQLBase::BeforeQuery($pid, $options->GetQueryDescription());
+        $sqlObject->BeforeQuery($pid);
 
         if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__')) {
             // Close session because next query into database can be very long and other queries not execute.
             $_STORAGE->pauseSession();
         }
 
-        $result = SQLBase::QueryExec($query);
+        $result = self::QueryExec($query);
 
         if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() == PHP_SESSION_NONE)) {
             // Reopen session after close.
@@ -111,15 +117,11 @@ class DbSqlController {
 
         unset($_STORAGE['pids'][$pid]);
 
-        static::AfterQuery($result);
-        $response = static::ProcessResult($result);
-        self::db_close();
-        static::WriteTestsResult($response);
+        $sqlObject->AfterQuery($result);
+        $response = $sqlObject->ProcessResult($result);
 
-        self::$dbconn = null;
-        self::$query = '';
-
-        (SQLBase::GetDatabase())->
+        $databaseObject->db_close();
+        $sqlObject->WriteTestsResult($response);
 
         return $response;
     }

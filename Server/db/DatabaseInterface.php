@@ -19,10 +19,4 @@ interface DatabaseInterface
     public function db_escape_string($value);
 
     public function db_type_compare($format);
-
-    public function get_format($format);
-
-    public function set_bytea_output($style = 'escape');
-
-    public function  set_interval_style($style = 'iso_8601');
 }

@@ -2,66 +2,85 @@
 
 class SQLBase
 {
-    protected static $logs;
-    protected static $query;
-    protected static $options;
+    protected $logs;
+    protected $query;
+    protected $options;
+    protected $database;
 
-    public static function PrepareConnection($format) {
+    public function __construct($options = null) {
+        global $_STORAGE;
+
+        if (is_null($options))
+            $options = static::GetDefaultOptions();
+
+        $this->options = $options;
+
+        if (isset($_STORAGE['database']))
+            $this->database = $_STORAGE['database'];
+        else
+            throw new Exception('Database object not found!');
+    }
+
+    public function GetOptions() {
+        return $this->options;
+    }
+
+    public function PrepareConnection() {
+        $format = $this->options->GetFormat();
+
         if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
-            $response = self::sql_handler_test(self::$query, $format);
+            $response = $this->sql_handler_test($this->query, $format);
             if ($response != 'new_query_test')
                 return $response;
         }
         return null;
     }
 
-    public static function BeforeQuery($pid, $query_description) {
+    public function BeforeQuery($pid) {
         global $_STORAGE, $_CONFIG;
 
         if (!isset($_STORAGE['pids']))
             $_STORAGE['pids'] = array();
         else
             $_STORAGE['pids'][$pid] = array(
-                'query' => self::$query,
-                'desc' => $query_description,
+                'query' => $this->query,
+                'desc' => $this->GetOptions()->GetQueryDescription(),
                 'timestamp' => date('Y-m-d H:i:s', time())
             );
 
-        if (self::$options->IsLogFile())
-            file_put_contents('sql.log', date('Y-m-d H:i:s', time()) . '\t' . ($_SERVER['REMOTE_ADDR'] ?? 'cli') . '\t' . $pid . '\t' . self::$query . '\n', FILE_APPEND);
+        if ($this->options->IsLogFile())
+            file_put_contents("$_CONFIG->databaseType.log", date('Y-m-d H:i:s', time()) . '\t' . ($_SERVER['REMOTE_ADDR'] ?? 'cli') . '\t' . $pid . '\t' . $this->query . '\n', FILE_APPEND);
 
     }
 
-    public static function AfterQuery($result) {
-        global $_STORAGE;
-
+    public function AfterQuery($result) {
         if (!$result) {
             // If an error has occurred from the side of the database, then try to push this into the query logging table (log_query).
-            $lastError = self::db_last_error();
+            $lastError = $this->database->db_last_error();
             throw new Exception($lastError);
         }
     }
 
-    public static function ProcessResult(&$result) {
+    public function ProcessResult($result) {
         $response = array();
 
-        while ($line = self::db_fetch_array($result, self::$options->GetFormat())) {
-            if (!self::$options->GetPreprocessData())
+        while ($line = $this->database->db_fetch_array($result, $this->options->GetFormat())) {
+            if (!$this->options->GetPreprocessData())
                 $response[] = array_map('preprocess_data', $line);
             else
                 $response[] = $line;
         }
 
-        self::db_free_result($result);
+        $this->database->db_free_result($result);
         return $response;
     }
 
-    public static function WriteTestsResult($response) {
+    public function WriteTestsResult($response) {
         if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
             $fp = fopen('test_query_response_json.txt', 'a+');
             $json = [
-                'query' => str_replace(array("\r\n", "\r", "\n"), ' ', self::$query),
-                'format' => self::$options->GetFormat(),
+                'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $this->query),
+                'format' => $this->options->GetFormat(),
                 'response' => $response,
 
             ];
@@ -70,7 +89,7 @@ class SQLBase
         }
     }
 
-    public static function sql_handler_test($query, $format) {
+    public function sql_handler_test($query, $format) {
         global $_STORAGE;
 
         if (!isset($_STORAGE['pids']))
@@ -92,13 +111,10 @@ class SQLBase
         return new SQLParamBase();
     }
 
-    public static function ExistsScheme($schemaName, $options = null) {
-        return DBCaller::sql(
+    public function ExistsScheme($schemaName, $options = null) {
+        return DbSqlController::sql(
             "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$schemaName');",
             $options
         )[0]['exists'];
-    }
-
-    public static function sql($query, $options = null) {
     }
 }

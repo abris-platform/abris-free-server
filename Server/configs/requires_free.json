@@ -4,10 +4,10 @@
   "DBCaller": "db_caller.php",
   "SQLBase": "db_base.php",
   "SQLParamBase": "sql_param_base.php",
-  "Convert": "convert.php",
   "ConfigBase": "config_base.php",
   "RequestBase": "request.php",
   "DatabaseInterface": "db/DatabaseInterface.php",
+  "DataConvertInterface": "db/DataConvertInterface.php",
   "DatabaseAbstract": "db/DatabaseAbstract.php",
   "DatabasePostgresql": "db/DatabasePostgresql.php",
   "DatabaseMysql": "db/DatabaseMysql.php"

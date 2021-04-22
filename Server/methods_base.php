@@ -83,6 +83,10 @@ class methodsBase
         return DBCaller::sql($query, $options);
     }
 
+    protected static function GetDefaultOptions() {
+        return SQLBase::GetDefaultOptions();
+    }
+
     public static function authenticate($params) {
         global $_STORAGE;
 
@@ -90,9 +94,9 @@ class methodsBase
             $_STORAGE['login'] = $params['usename'];
             $_STORAGE['password'] = $params['passwd'];
 
-            $options = DBCaller::GetDefaultOptions();
+            $options = SQLBase::GetDefaultOptions();
             $options->SetEncryptPassword(false);
-            $usenameDB = DBCaller::sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
+            $usenameDB = DbSqlController::sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
 
             $privateKey = GenerateRandomString();
             if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
@@ -129,7 +133,7 @@ class methodsBase
     }
 
     public static function getUserDescription() {
-        $res = DBCaller::sql('SELECT rolname AS user,  description AS comment
+        $res = DbSqlController::sql('SELECT rolname AS user,  description AS comment
         FROM pg_roles r
         JOIN pg_shdescription c ON c.objoid = r.oid 
         WHERE r.rolname = \'' . methodsBase::getCurrentUser() . '\'');
@@ -143,7 +147,7 @@ class methodsBase
     }
 
     public static function getAllEntities($params) {
-        return DBCaller::sql('SELECT * FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' t');
+        return DbSqlController::sql('SELECT * FROM ' . Convert::relation($params["schemaName"], $params["entityName"]) . ' t');
     }
 
     public static function getTableData($params) {
