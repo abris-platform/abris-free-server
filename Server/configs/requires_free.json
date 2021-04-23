@@ -1,5 +1,5 @@
 {
-  "WebStorage": "web_storage.php",
+  "WebStorage": "WebStorage.php",
   "methodsBase": "methods_base.php",
   "SQLBase": "sql/SqlBase.php",
   "SQLParamBase": "sql/SqlParamBase.php",
