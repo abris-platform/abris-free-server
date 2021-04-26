@@ -10,8 +10,10 @@ class WebStorage implements ArrayAccess
         if (is_null($isSession))
             $isSession = true;
 
-        if ($isSession)
+        if ($isSession) {
             $this->_isSession = $this->CheckAndStartSession();
+            $this->startSession();
+        }
     }
 
     private function CheckAndStartSession() {
@@ -23,7 +25,7 @@ class WebStorage implements ArrayAccess
                 return true;
             case PHP_SESSION_NONE:
                 session_start();
-                $this->CheckAndStartSession();
+                return $this->CheckAndStartSession();
         }
 
         return false;
