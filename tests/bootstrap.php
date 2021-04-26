@@ -4,6 +4,6 @@
       mkdir('Server/files');
       require_once "Server/autoload.php";
 
-    RequestBase::initConfigFree();
-    RequestBase::initStorage();
-    RequestBase::initDatabase();
+    ApplicationInitBase::initConfigFree();
+    ApplicationInitBase::initStorage();
+    ApplicationInitBase::initDatabase();
