@@ -3,7 +3,7 @@
   "methodsBase": "methods_base.php",
   "SQLBase": "sql/SqlBase.php",
   "SQLParamBase": "sql/SqlParamBase.php",
-  "ConfigBase": "config_base.php",
+  "ConfigBase": "ConfigBase.php",
   "ApplicationInitBase": "ApplicationInitBase.php",
   "DatabaseInterface": "db/DatabaseInterface.php",
   "DataConvertInterface": "db/DataConvertInterface.php",

@@ -20,7 +20,6 @@ class WebStorage implements ArrayAccess
         switch (session_status()) {
             case PHP_SESSION_DISABLED:
                 return false;
-                break;
             case PHP_SESSION_ACTIVE:
                 return true;
             case PHP_SESSION_NONE:
