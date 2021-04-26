@@ -4,7 +4,7 @@
   "SQLBase": "sql/SqlBase.php",
   "SQLParamBase": "sql/SqlParamBase.php",
   "ConfigBase": "config_base.php",
-  "RequestBase": "request.php",
+  "ApplicationInitBase": "ApplicationInitBase.php",
   "DatabaseInterface": "db/DatabaseInterface.php",
   "DataConvertInterface": "db/DataConvertInterface.php",
   "DatabaseAbstract": "db/DatabaseAbstract.php",

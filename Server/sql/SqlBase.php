@@ -2,7 +2,6 @@
 
 class SQLBase
 {
-    protected $logs;
     protected $query;
     protected $options;
     protected $database;

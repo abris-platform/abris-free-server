@@ -2,13 +2,18 @@
 
 class ConfigBase {
     protected $storageParams;
+    private $configFilename = '';
 
-    public function __construct__() {
+    public function __construct() {
         $this->storageParams = array();
+        $this->configFilename = 'config_free.json';
     }
 
-    public function init() {
-        $configPath = __DIR__ .'/configs/config_free.json';
+    public function init($filename = null) {
+        if (is_null($filename))
+            $filename = $this->configFilename;
+
+        $configPath = __DIR__ ."/configs/$filename";
         $this->storageParams = $this->getConfigContentFile($configPath);
     }
 
