@@ -4,9 +4,6 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 require_once dirname(__FILE__)."/../Server/db/DatabasePostgresql.php";
 
-global $_STORAGE;
-$objectDataBase = $_STORAGE['database'];
-
 class TestDataBase extends TestCase
 {
     public function test_db_onnect(){
@@ -37,7 +34,7 @@ class TestDataBase extends TestCase
     public function test_db_last_error(){
         global $_STORAGE;
         $res = $_STORAGE['database']->db_last_error();
-        $this->assertNotNull($res,"");
+        $this->assertEquals($res,"");
     }
 
     public function test_set(){
@@ -66,6 +63,5 @@ class TestDataBase extends TestCase
         $res = $_STORAGE['database']->db_close();
         $this->assertNull($res);
     }
-
 
 }
