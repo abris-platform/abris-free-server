@@ -2261,4 +2261,9 @@ public function test_getTableData()
       $this->assertEquals($res,null);  
    
     }
+
+    public function test_GetClientIP(){
+        $res = GetClientIP();
+        $this->assertEquals($res, "UNKNOWN");
+    }
 }

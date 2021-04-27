@@ -5,15 +5,18 @@
             <directory suffix=".php">Server/sql</directory>
             <directory suffix=".php">Server/db</directory>
             <file>Server/methods_base.php</file>
+            <file>Server/autoload.php</file>
+            <file>Server/DbSqlController.php</file>
             <file>Server/services_methods.php</file>
-            <file>Server/config_base.php</file>
-            <file>Server/web_storage.php</file>
+            <file>Server/WebStorage.php</file>
         </whitelist>
     </filter>
     <testsuites>
         <testsuite name="Base">
-            <file>tests/TestDataBase.php</file>
             <file>tests/methodsTestFree.php</file>
+            <file>tests/TestSQL.php</file>
+            <file>tests/TestWebStorage.php</file>
+            <file>tests/TestDataBase.php</file>
             <file>pluginDocumentTest.php</file>
         </testsuite>
     </testsuites>
