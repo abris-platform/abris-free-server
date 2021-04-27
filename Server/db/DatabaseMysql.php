@@ -4,9 +4,14 @@ class DatabaseMysql extends DatabaseAbstract
 {
     public function db_connect($data = null) {
         if(!boolval($this->connect)){
-            if(is_null($data))
+            global $_STORAGE;
+
+            if (is_null($data))
                 $data = $this->config;
-            $this->connect = @mysqli_connect($data['host'], $data['user'], $data['password'], $data['dbname']);
+
+            $password = isset($_STORAGE['private_key']) ? DecryptStr($_STORAGE['password'], $_STORAGE['private_key']) : $data['password'];
+
+            $this->connect = @mysqli_connect($data['host'], $data['user'], $password, $data['dbname']);
         }
         return $this->connect;
     }

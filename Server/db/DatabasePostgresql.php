@@ -3,10 +3,15 @@
 class DatabasePostgresql extends DatabaseAbstract
 {
     public function db_connect($data = null) {
-        if(!boolval($this->connect)) {
-            if(is_null($data))
+        if (!boolval($this->connect)) {
+            global $_STORAGE;
+
+            if (is_null($data))
                 $data = $this->config;
-            $this->connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$data[user] password=$data[password]");
+
+            $password = isset($_STORAGE['private_key']) ? DecryptStr($_STORAGE['password'], $_STORAGE['private_key']) : $data['password'];
+
+            $this->connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$data[user] password=$password");
         }
         return $this->connect;
     }
@@ -33,7 +38,7 @@ class DatabasePostgresql extends DatabaseAbstract
     }
 
     public function db_close() {
-        if(pg_close($this->connect))
+        if (pg_close($this->connect))
             $this->connect = null;
     }
 

@@ -5,6 +5,11 @@ class ApplicationInitBase
 {
     public static function initStorage() {
         $storage = new WebStorage();
+
+        if (isset($_COOKIE['private_key']))
+            if ($_COOKIE['private_key'] !== '')
+                $storage['private_key'] = $_COOKIE['private_key'];
+
         $GLOBALS['_STORAGE'] = $storage;
     }
 
@@ -53,7 +58,6 @@ class ApplicationInitBase
     }
 
     protected static function callSpecialMethods() {
-        // TODO in full version (connect get_methods.php)
     }
 
     public static function cors() {
@@ -110,11 +114,6 @@ class ApplicationInitBase
         }
 
         $params = json_decode($_POST['params'], true);
-
-
-        if ($_POST['method'] == 'get_current_language') {
-            $a = 1;
-        }
 
         ob_start();
         $result = call_user_func_array(static::getNameClassMethods() . '::' . $_POST['method'], $params);
