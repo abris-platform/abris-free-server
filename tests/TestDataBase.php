@@ -6,7 +6,7 @@ require_once dirname(__FILE__)."/../Server/db/DatabasePostgresql.php";
 
 class TestDataBase extends TestCase
 {
-    public function test_db_onnect(){
+    public function test_db_сonnect(){
         global $_STORAGE;
         $res = $_STORAGE['database']->db_connect();
         $this->assertNotNull($res);
