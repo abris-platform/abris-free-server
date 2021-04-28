@@ -1,0 +1,12 @@
+{
+  "host": "abris.site",
+  "port": "15432",
+  "dbname": "demo",
+  "dbDefaultUser": "postgres",
+  "dbDefaultPass": "123456",
+  "dbDefaultLanguage": "ru",
+  "metaSchema": "meta",
+  "cryptMethod": "AES-256-CBC",
+  "databaseType": "pgsql",
+  "$anotherPrefLog": ""
+}

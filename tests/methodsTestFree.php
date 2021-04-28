@@ -3,34 +3,33 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 require_once dirname(__FILE__)."/../Server/methods_base.php";
-require_once dirname(__FILE__)."/../tests/config.php";
+require_once dirname(__FILE__)."/../tests/config_free.json";
 
 $ipAddr = "";
 $dbRecoveryFunction = 'password_recovery';
 $dbChangeFunction = '';
 
 
-final class methodsTest extends TestCase
+class methodsTest extends TestCase
 {
    
 
  public function test_getPIDS_simple(){
-    DBCaller::sql('select version()');
+    DbSqlController::sql('select version()');
     global $_STORAGE;
     /*$res = methodsBase::getPIDS([]);
     $this->assertEquals($res, array(
       'pids' => 
      array (
      ),
-    ));*/
+    ));
 
-    $_STORAGE['pids'] = ["test"=>"123456"];
-    $res = methodsBase::getPIDS([]);
-    $this->assertEquals($res, array(
-      'pids' => 
-     array (
-     ),
-    )); 
+     $_STORAGE['pids'] = ["test" => "123456"];
+     $res = methodsBase::getPIDS([]);
+     $this->assertEquals($res, array(
+         'pids' =>
+             array('test' => '123456'),
+     ));*/
   }
 
   public function test_killPID(){
@@ -2261,7 +2260,10 @@ public function test_getTableData()
       $res = methodsBase::authenticate($params);
       $this->assertEquals($res,null);  
    
-    } 
-      
+    }
 
+    public function test_GetClientIP(){
+        $res = GetClientIP();
+        $this->assertEquals($res, "UNKNOWN");
+    }
 }

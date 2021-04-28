@@ -12,24 +12,24 @@ function GenerateRandomString($length = 32) {
 }
 
 function EncryptStr($data, $key) {
-    global $cryptMethod;
+    global $_CONFIG;
 
-    $ivlen = openssl_cipher_iv_length($cryptMethod);
+    $ivlen = openssl_cipher_iv_length($_CONFIG->cryptMethod);
     $iv = openssl_random_pseudo_bytes($ivlen);
-    $ciphertextRaw = openssl_encrypt($data, $cryptMethod, $key, $options = OPENSSL_RAW_DATA, $iv);
+    $ciphertextRaw = openssl_encrypt($data, $_CONFIG->cryptMethod, $key, $options = OPENSSL_RAW_DATA, $iv);
     $hmac = hash_hmac('sha256', $ciphertextRaw, $key, $as_binary = true);
     return base64_encode($iv . $hmac . $ciphertextRaw);
 }
 
 function DecryptStr($data, $key) {
-    global $cryptMethod;
+    global $_CONFIG;
 
     $c = base64_decode($data);
-    $ivlen = openssl_cipher_iv_length($cryptMethod);
+    $ivlen = openssl_cipher_iv_length($_CONFIG->cryptMethod);
     $iv = substr($c, 0, $ivlen);
     $hmac = substr($c, $ivlen, $sha2len = 32);
     $ciphertextRaw = substr($c, $ivlen + $sha2len);
-    $plainText = openssl_decrypt($ciphertextRaw, $cryptMethod, $key, $options = OPENSSL_RAW_DATA, $iv);
+    $plainText = openssl_decrypt($ciphertextRaw, $_CONFIG->cryptMethod, $key, $options = OPENSSL_RAW_DATA, $iv);
     $calcmac = hash_hmac('sha256', $ciphertextRaw, $key, $as_binary = true);
 
     return hash_equals($hmac, $calcmac) ? $plainText : false;
@@ -52,10 +52,6 @@ function GetClientIP() {
     else
         $ipaddress = 'UNKNOWN';
     return $ipaddress;
-}
-
-function id_quote($identifier) {
-    return '"' . str_replace('"', '""', $identifier) . '"';
 }
 
 function preprocess_data($data) {
