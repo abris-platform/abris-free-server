@@ -26,9 +26,9 @@ class TestDataBaseMySQL extends TestCase{
         $res2 = $database->db_free_result($res);
         $this->assertNull($res2);
 
-        //try {
-        //    $res =$database->db_query('select1 version();');
-        //} catch (Exception $e) {return;}
+        try {
+            $res =$database->db_query('select1 version();');
+        } catch (Exception $e) {return;}
     }
 
     public function test_db_format_sql(){
@@ -47,10 +47,9 @@ class TestDataBaseMySQL extends TestCase{
         $this->assertEquals($res,"");
         $database->set_bytea_output();
         $database->set_interval_style();
-
-        //try {
-        //    $res = $database->db_type_compare(5);
-        //} catch (Exception $e) {}
+        try {
+           $res = $database->db_type_compare(5);
+        } catch (Exception $e) {}
 
         $res = $database->db_close();
         $this->assertEquals($res,true);

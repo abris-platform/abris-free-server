@@ -12,6 +12,9 @@ class DatabaseMysql extends DatabaseAbstract
             $password = isset($_STORAGE['private_key']) ? DecryptStr($_STORAGE['password'], $_STORAGE['private_key']) : $data['password'];
 
             $this->connect = @mysqli_connect($data['host'], $data['user'], $password, $data['dbname']);
+            if(!$this->connect)
+                throw new Exception("Connect failed: %s\n", mysqli_connect_error());
+
         }
         return $this->connect;
     }
