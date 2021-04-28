@@ -20,9 +20,10 @@ test:
   image: php:7.3-cli
   before_script:
     - apt-get update
-    - apt-get -y install wget libpq-dev libmagickwand-dev libzip-dev php*-mysql
+    - apt-get -y install wget libpq-dev libmagickwand-dev libzip-dev
     - pecl install imagick
     - pecl install xdebug
+    - docker-php-ext-install mysql
     - docker-php-ext-install pgsql
     - docker-php-ext-install zip
     - docker-php-ext-enable imagick
