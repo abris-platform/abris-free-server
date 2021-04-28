@@ -9,8 +9,8 @@ $arr_conf = array(
     'host' => 'abris.site',
     'dbname' => 'bookings',
     'port' => '3306',
-    'user' => 'testuser',
-    'password' => '159357qwerty'
+    'user' => 'pia',
+    'password' => '15698zzz'
 );
 
 $database = new DatabaseMysql($arr_conf);
