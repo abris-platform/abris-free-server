@@ -67,7 +67,7 @@ class DatabaseMysql extends DatabaseAbstract
     }
 
     public function type_field($field, $type) {
-        if (!$type) return "\"$field\"";
-        return "CONVERT('$field','$type')";
+        if (!$type) return "`$field`";
+        return "CONVERT(`$field`,'$type')";
     }
 }
