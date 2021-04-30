@@ -1,12 +1,12 @@
 {
   "host": "localhost",
   "port": "5432",
-  "dbname": "demo_main",
+  "dbname": "demo",
   "dbDefaultUser": "guest",
   "dbDefaultPass": "123456",
   "dbDefaultLanguage": "ru",
   "metaSchema": "meta",
   "cryptMethod": "AES-256-CBC",
   "databaseType": "pgsql",
-  "$anotherPrefLog": ""
+  "anotherPrefLog": ""
 }
