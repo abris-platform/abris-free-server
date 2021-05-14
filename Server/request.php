@@ -17,14 +17,16 @@ require_once 'autoload.php';
 
 try {
     try {
+        ApplicationInitBase::checkNeedInstallFree();
         ApplicationInitBase::initConfigFree();
     } catch (Exception $e) {
-        return json_encode(
+        echo json_encode(
             array(
                 'jsonrpc' => '2.0', 'result' => null,
-                'fatal' => true, 'error' => 'No configuration file - config-free.json',
+                'fatal' => true, 'error' => $e->getMessage(),
                 'usename' => null, 'pids' => null
             ));
+        die;
     }
 
     ApplicationInitBase::initStorage();

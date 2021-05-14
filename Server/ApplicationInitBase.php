@@ -53,6 +53,11 @@ class ApplicationInitBase
         $GLOBALS['_CONFIG'] = $config;
     }
 
+    public static function checkNeedInstallFree() {
+        if (file_exists(__DIR__ .'/install_abris'))
+            throw new Exception('Need install Abris-Core');
+    }
+
     protected static function getNameClassMethods() {
         return 'methodsBase';
     }

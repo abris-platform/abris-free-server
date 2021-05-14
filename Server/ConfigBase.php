@@ -2,6 +2,7 @@
 
 class ConfigBase {
     protected $storageParams;
+    protected $configFullPath = '';
     private $configFilename = '';
 
     public function __construct() {
@@ -13,15 +14,18 @@ class ConfigBase {
         if (is_null($filename))
             $filename = $this->configFilename;
 
-        $configPath = __DIR__ ."/configs/$filename";
-        $this->storageParams = $this->getConfigContentFile($configPath);
+        $this->configFullPath = __DIR__ ."/configs/$filename";
+        $this->storageParams = $this->getConfigContentFile();
     }
 
-    protected function getConfigContentFile($path) {
+    protected function getConfigContentFile($path = null) {
+        if (is_null($path))
+            $path = $this->configFullPath;
+
         if (file_exists($path))
             return json_decode(file_get_contents($path), true);
         else
-            throw new Exception("$path not loaded - file doesn't exist!");
+            throw new Exception("$path not loaded - core config doesn't exist!");
     }
 
     public function __get($name) {
@@ -33,6 +37,15 @@ class ConfigBase {
 
     public function __set($name, $value = null) {
         $this->storageParams[$name] = $value;
+
+        $this->SaveCurrentConfig();
+    }
+
+    protected function SaveCurrentConfig() {
+        file_put_contents(
+            $this->configFullPath,
+            json_encode($this->storageParams, JSON_PRETTY_PRINT)
+        );
     }
 
     public function __isset($name) {
