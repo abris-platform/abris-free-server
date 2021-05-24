@@ -81,6 +81,7 @@ class SQLBase
 
     public function WriteTestsResult($response) {
         if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
+            if($this->query == 'select version()') return;
             $fp = fopen('test_query_response_json.txt', 'a+');
             $json = [
                 'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $this->query),
@@ -98,6 +99,8 @@ class SQLBase
 
         if (!isset($_STORAGE['pids']))
             $_STORAGE['pids'] = array();
+
+        if($query == 'select version()') return 'new_query_test';
 
         $query = str_replace(array("\r\n", "\r", "\n"), ' ', $query);
         $query_test_array = file('test_query_response_json.txt', FILE_IGNORE_NEW_LINES);

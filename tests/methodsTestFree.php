@@ -15,7 +15,9 @@ class methodsTest extends TestCase
    
 
  public function test_getPIDS_simple(){
-    DbSqlController::sql('select version()');
+    $res = DbSqlController::sql('select version()');
+    $this->assertNotNull($res[0]['version']);
+
     global $_STORAGE;
     /*$res = methodsBase::getPIDS([]);
     $this->assertEquals($res, array(
