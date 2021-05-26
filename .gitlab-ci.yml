@@ -10,6 +10,7 @@ build:
     - sed -i "s/COMMIT/$CI_COMMIT_SHA/g" Server/version.json
     - sed -i "s/DATE/$COMMIT_TIME/g" Server/version.json
     - sed -i "s/Debug/Test/g" Server/version.json
+    - touch Server/install_abris
   artifacts:
     name: 'abris-server-base'
     paths:
