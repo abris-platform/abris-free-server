@@ -52,6 +52,10 @@ class DatabaseMysql extends DatabaseAbstract
         return mysqli_real_escape_string($this->db_connect(), $value);
     }
 
+    public function db_escape_bytea($value) {
+        return $value;
+    }
+
     public function db_type_compare($format) {
         if ($format != MYSQLI_ASSOC && $format != MYSQLI_NUM)
             throw new Exception("'$format' is unknown format!");

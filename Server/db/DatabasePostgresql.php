@@ -47,6 +47,10 @@ class DatabasePostgresql extends DatabaseAbstract
         return pg_escape_string($value);
     }
 
+    public function db_escape_bytea($value) {
+        return pg_escape_bytea($value);
+    }
+
     public function db_type_compare($format) {
         if ($format != PGSQL_ASSOC && $format != PGSQL_NUM)
             throw new Exception("'$format' is unknown format!");
@@ -63,7 +67,6 @@ class DatabasePostgresql extends DatabaseAbstract
     public function set_interval_style($style = 'iso_8601') {
         pg_query($this->connect, "SET intervalstyle = '$style';");
     }
-
 
     public function id_quote($identifier) {
         return '"' . str_replace('"', '""', $identifier) . '"';

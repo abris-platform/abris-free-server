@@ -18,5 +18,7 @@ interface DatabaseInterface
 
     public function db_escape_string($value);
 
+    public function db_escape_bytea($value);
+
     public function db_type_compare($format);
 }

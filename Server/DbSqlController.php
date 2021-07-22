@@ -15,6 +15,10 @@ class DbSqlController {
         return self::GetObjectDatabase()->db_escape_string($value);
     }
 
+    public static function EscapeBytea($value) {
+        return self::GetObjectDatabase()->db_escape_bytea($value);
+    }
+
     public static function IdQuote($identifier) {
         return self::GetObjectDatabase()->id_quote($identifier);
     }
