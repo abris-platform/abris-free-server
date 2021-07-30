@@ -1,4 +1,4 @@
-<phpunit colors="true" bootstrap="tests/bootstrap.php">
+<phpunit colors="true" bootstrap="tests/bootstrap.php" processIsolation = "true">
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <file>Server/DbSqlController.php</file>
@@ -19,6 +19,7 @@
             <file>tests/TestSQL.php</file>
             <file>tests/TestDataBase.php</file>
             <file>tests/TestServer.php</file>
+            <file>tests/TestApplicationInitBase.php</file>
             <file>tests/TestDataBaseMySQL.php</file>
             <file>pluginDocumentTest.php</file>
         </testsuite>

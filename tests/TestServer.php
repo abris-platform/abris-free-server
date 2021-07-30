@@ -8,14 +8,13 @@ require_once dirname(__FILE__) . "/../Server/db/DatabasePostgresql.php";
 
 class TestServer extends TestCase
 {
-    public function test_ApplicationInitBase(){
+    /*public function test_ApplicationInitBase() {
         global $GLOBALS;
         ApplicationInitBase::initStorage();
         ApplicationInitBase::initDatabase();
-        $res  = ApplicationInitBase::initConfigFree();
+        $res = ApplicationInitBase::initConfigFree();
         $this->assertNull($res);
-
-    }
+    }*/
 
     public function test_webstoragr(){
         global $GLOBALS;
@@ -25,7 +24,5 @@ class TestServer extends TestCase
         $res = $GLOBALS['_STORAGE']->pauseSession();
         $this->assertNull($res);
     }
-
-
 
 }

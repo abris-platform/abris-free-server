@@ -2,7 +2,7 @@
 
 class WebStorage implements ArrayAccess
 {
-    private $_isSession = true;
+    private $_isSession = false;
     private $_data = array();
     protected $_defaultValue = null;
 

@@ -15,8 +15,8 @@ $arr_conf = array(
 
 $database = new DatabaseMysql($arr_conf);
 
-class TestDataBaseMySQL extends TestCase{
-    public function test_db_connect_sql(){
+class TestDataBaseMySQL extends TestCase {
+    public function test_db_connect_sql() {
         global $database;
 
         $database->db_connect();
@@ -27,8 +27,10 @@ class TestDataBaseMySQL extends TestCase{
         $this->assertNull($res2);
 
         try {
-            $res =$database->db_query('select1 version();');
-        } catch (Exception $e) {return;}
+            $res = $database->db_query('select1 version();');
+        } catch (Exception $e) {
+            return;
+        }
     }
 
     public function test_db_format_sql(){
