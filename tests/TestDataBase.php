@@ -21,24 +21,25 @@ class TestDataBase extends TestCase
     public function test_db_query(){
         global $_STORAGE;
         $query = 'select version()';
+        $_STORAGE['database']->db_connect();
         $res = $_STORAGE['database']->db_query($query);
         $this->assertNotNull($res);
         $res2 = $_STORAGE['database']->db_fetch_array($res, 1);
         $this->assertNotNull($res2['version']);
         $res2 = $_STORAGE['database']->db_free_result($res);
         $this->assertNotNull($res2);
-
-
     }
 
     public function test_db_last_error(){
         global $_STORAGE;
+        $_STORAGE['database']->db_connect();
         $res = $_STORAGE['database']->db_last_error();
         $this->assertEquals($res,"");
     }
 
     public function test_set(){
         global $_STORAGE;
+        $_STORAGE['database']->db_connect();
         $res = $_STORAGE['database']->set_bytea_output();
         $this->assertNull($res);
         $res = $_STORAGE['database']->set_interval_style();
@@ -60,6 +61,7 @@ class TestDataBase extends TestCase
 
     public function test_db_close(){
         global $_STORAGE;
+        $_STORAGE['database']->db_connect();
         $res = $_STORAGE['database']->db_close();
         $this->assertNull($res);
     }
