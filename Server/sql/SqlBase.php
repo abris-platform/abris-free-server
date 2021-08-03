@@ -114,14 +114,22 @@ class SQLBase
         return 'new_query_test';
     }
 
-    public static function GetDefaultOptions() {
-        return new SQLParamBase();
-    }
-
     public function ExistsScheme($schemaName, $options = null) {
+        // TODO move to database class.
         return DbSqlController::sql(
             "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$schemaName');",
             $options
         )[0]['exists'];
+    }
+
+    public static function GetDefaultOptions() {
+        return new SQLParamBase();
+    }
+
+    public function ParseCountEstimateAnswer($answer_json) {
+        return array(
+            'plan_rows' => $this->database->get_plan_row_explain($answer_json),
+            'total_cost' => $this->database->get_total_cost_explain($answer_json)
+        );
     }
 }

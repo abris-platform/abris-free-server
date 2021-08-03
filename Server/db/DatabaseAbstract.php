@@ -16,4 +16,19 @@ abstract class DatabaseAbstract implements DatabaseInterface, DataConvertInterfa
         return '';
     }
 
+    public function db_query($query) {
+        $this->db_connect();
+    }
+
+    public function get_explain_query() {
+        return '';
+    }
+
+    public function get_plan_row_explain($answer) {
+        return 0;
+    }
+
+    public function get_total_cost_explain($answer) {
+        return 0;
+    }
 }

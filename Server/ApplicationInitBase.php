@@ -19,7 +19,7 @@ class ApplicationInitBase
 
         global $_STORAGE, $_CONFIG;
         $database = null;
-        if (!isset($_STORAGE['login']))
+        if (!isset($_STORAGE['login']) || empty($_STORAGE['login']))
             $_STORAGE['login'] = $_CONFIG->dbDefaultUser;
 
         if (!isset($_STORAGE['password']))

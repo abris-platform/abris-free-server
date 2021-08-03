@@ -20,17 +20,14 @@ class methodsBase
     }
 
     private static function sql_count_estimate($params, $statement, $count) {
-        $desc = isset($params['desc']) ? $params['desc'] : '';
-        $count_explain = 'explain (format json) ' . $statement;
+        $desc = $params['desc'] ?? '';
 
         $options = static::GetDefaultOptions();
         $options->SetQueryDescription("$desc (explain)");
-        $json_explain = DbSqlController::sql($count_explain, $options);
+        $explain = DbSqlController::SqlCountEstimate($statement, $options);
 
-        $obj_json = json_decode($json_explain[0]["QUERY PLAN"]);
-        $plan_rows = $obj_json[0]->{"Plan"}->{"Plan Rows"};
-        $total_cost = $obj_json[0]->{"Plan"}->{"Total Cost"};
-
+        $plan_rows = $explain['plan_rows'];
+        $total_cost = $explain['total_cost'];
 
         $threshold_plan_rows = 10000;
 
@@ -39,7 +36,6 @@ class methodsBase
                 return $plan_rows;
             }
         }
-
 
         $options = static::GetDefaultOptions();
         $options->SetQueryDescription("$desc (count)");
@@ -147,10 +143,9 @@ class methodsBase
     }
 
     public static function getUserDescription() {
-        $res = DbSqlController::sql('SELECT rolname AS user,  description AS comment
-        FROM pg_roles r
-        JOIN pg_shdescription c ON c.objoid = r.oid 
-        WHERE r.rolname = \'' . methodsBase::getCurrentUser() . '\'');
+        $res = DbSqlController::GetUserDescription(
+            methodsBase::getCurrentUser()
+        );
         return $res[0];
     }
 
@@ -189,7 +184,7 @@ class methodsBase
             }
         } else {
             $statement = "SELECT $field_list FROM " . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t';
-            $count = "SELECT count(*) FROM " . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t';
+            $count = "SELECT count(*) as count FROM " . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t';
         }
 
         $where = "";
@@ -619,7 +614,7 @@ class methodsBase
         if ($distinctfields)
             $count = 'SELECT count(distinct ' . $distinctfields . ') FROM (SELECT ' . $field_list . ' FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
         else
-            $count = 'SELECT count(*) FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(*) AS count FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if ($distinctfields) {
             $distinctfields = 'distinct on (' . $distinctfields . ')';

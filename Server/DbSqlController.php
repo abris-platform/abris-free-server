@@ -117,7 +117,6 @@ class DbSqlController {
         if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() == PHP_SESSION_NONE)) {
             // Reopen session after close.
             $_STORAGE->startSession();
-
         }
 
         $unstor = $_STORAGE['pids'];
@@ -131,6 +130,20 @@ class DbSqlController {
         $sqlObject->WriteTestsResult($response);
 
         return $response;
+    }
+
+    public static function SqlCountEstimate($query, $options = null) {
+        $sqlObject = static::GetObjectSql($query, $options);
+        $result =
+            self::Sql(
+                self::GetObjectDatabase()->get_explain_query() . " $query",
+                $options
+            );
+
+        if (!$result)
+            return array();
+
+        return $sqlObject->ParseCountEstimateAnswer($result[0]);
     }
 
     public static function QueryExec($query) {
@@ -147,5 +160,11 @@ class DbSqlController {
 
     public static function typeField($field, $type) {
         return self::GetObjectDatabase()->type_field($field, $type);
+    }
+
+    public static function GetUserDescription($username) {
+        return self::Sql(
+            self::GetObjectDatabase()->db_query_user_description($username)
+        );
     }
 }

@@ -34,6 +34,7 @@ class DatabasePostgresql extends DatabaseAbstract
     }
 
     public function db_query($query) {
+        $this->db_connect();
         return pg_query($this->connect, $query);
     }
 
@@ -54,6 +55,13 @@ class DatabasePostgresql extends DatabaseAbstract
     public function db_type_compare($format) {
         if ($format != PGSQL_ASSOC && $format != PGSQL_NUM)
             throw new Exception("'$format' is unknown format!");
+    }
+
+    public function db_query_user_description($username) {
+        return "SELECT rolname AS user,description AS comment
+                    FROM pg_roles r
+                    JOIN pg_shdescription c ON c.objoid = r.oid 
+                WHERE r.rolname = '$username';";
     }
 
     public function get_format($format) {
@@ -80,5 +88,19 @@ class DatabasePostgresql extends DatabaseAbstract
     public function type_field($field, $type) {
         if (!$type) return "\"$field\"";
         return "\"$field\"::$type";
+    }
+
+    public function get_explain_query() {
+        return 'EXPLAIN (format json)';
+    }
+
+    public function get_plan_row_explain($answer) {
+        $arr_explain = json_decode($answer['QUERY PLAN'], true)[0];
+        return $arr_explain['Plan']['Plan Rows'];
+    }
+
+    public function get_total_cost_explain($answer) {
+        $arr_explain = json_decode($answer['QUERY PLAN'], true)[0];
+        return $arr_explain['Plan']['Total Cost'];
     }
 }
