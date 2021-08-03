@@ -15,7 +15,7 @@
     </filter>
     <testsuites>
         <testsuite name="Base">
-            <file>tests/methodsTestFree.php</file>
+            <!--<file>tests/methodsTestFree.php</file>-->
             <file>tests/TestSQL.php</file>
             <file>tests/TestDataBase.php</file>
             <file>tests/TestServer.php</file>
