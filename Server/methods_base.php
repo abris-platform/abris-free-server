@@ -661,12 +661,11 @@ class methodsBase
             if ($params["currentKey"] && ($params["limit"] != 0 and $params["limit"] != -1)) {
                 $equation = '(trunc((k.row_number-1)/' . $params["limit"] . ')*' . $params["limit"] . ')';
                 if (isset($params["middleRow"])) {
-                    if ($params["middleRow"]) $equation = 'trunc(k.row_number-(' . $params["limit"] . '/2)-1)';
+                    if ($params["middleRow"]) $equation = 'greatest(trunc(k.row_number - (' . $params["limit"] . ' / 2) - 1), 0)';
                 }
                 $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE ' . $equation . ' END as row_number
                     FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' . DbSqlController::IdQuote($params["primaryKey"]) .
                     '  from (' . $statement . ') t ) k WHERE k.' . $params["primaryKey"] . '=\'' . DbSqlController::EscapeString($params["currentKey"]) . '\'';
-
                 $rowNumberRes = DbSqlController::sql($pageNumberStatement);
                 $params["offset"] = 0;
                 if (isset($rowNumberRes[0]["row_number"]))
