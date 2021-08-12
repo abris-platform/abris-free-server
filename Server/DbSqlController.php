@@ -28,8 +28,9 @@ class DbSqlController {
         $usename = '';
         $dbname = $_STORAGE['dbname'] ?? $_CONFIG->dbname;
 
-        if (isset($_COOKIE['private_key']) && !$default_connection) {
-            $privateKey = $_COOKIE['private_key'];
+        if ((isset($_COOKIE['private_key']) || isset($_STORAGE['private_key']))
+                && !$default_connection) {
+            $privateKey = $_COOKIE['private_key'] ?? $_STORAGE['private_key'];
 
             $password = $encrypt_password ? DecryptStr($_STORAGE['password'], $privateKey) : $_STORAGE['password'];
             if (!$password) {

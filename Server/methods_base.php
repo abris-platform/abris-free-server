@@ -83,6 +83,14 @@ class methodsBase
         return SQLBase::GetDefaultOptions();
     }
 
+    protected static function SetCookie($name, $value = '', $expires = 0, $path = '', $domain = '', $secure = false) {
+        global $_STORAGE;
+        if (php_sapi_name() == 'cli')
+            $_STORAGE[$name] = $value;
+        else
+            setcookie($name, $value, $expires, $path, $domain, $secure);
+    }
+
     public static function authenticate($params) {
         global $_STORAGE;
 
@@ -98,11 +106,11 @@ class methodsBase
             if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
                 $isHTTPS = isset($_SERVER['HTTPS']);
                 $cookieNameAuth = 'private_key';
-                setcookie($cookieNameAuth, null, -1);
+                static::SetCookie($cookieNameAuth, null, -1);
 
                 if (PHP_VERSION_ID < 70300) {
                     $path = $isHTTPS ? '/; SameSite=None' : '';
-                    setcookie($cookieNameAuth, $privateKey, 0, $path, '', $isHTTPS);
+                    static::SetCookie($cookieNameAuth, $privateKey, 0, $path, '', $isHTTPS);
                 } else {
                     $options = array();
                     if ($isHTTPS) {
@@ -110,7 +118,7 @@ class methodsBase
                         $options['Secure'] = true;
                     }
 
-                    setcookie($cookieNameAuth, $privateKey, $options);
+                    static::SetCookie($cookieNameAuth, $privateKey, $options);
                 }
             }
 
