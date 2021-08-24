@@ -47,8 +47,6 @@ test:
     - mkdir report
     - export XDEBUG_MODE=coverage
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
-  tags:
-    - shell
   artifacts:
     name: 'abris-server-base-report'
     paths:
