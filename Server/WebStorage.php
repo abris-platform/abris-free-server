@@ -16,18 +16,34 @@ class WebStorage implements ArrayAccess
         }
     }
 
-    private function CheckAndStartSession() {
-        switch (session_status()) {
-            case PHP_SESSION_DISABLED:
-                return false;
+    protected function session_status() {
+        if (!defined('PHPUNIT_COMPOSER_INSTALL') &&
+                !defined('__PHPUNIT_PHAR__'))
+            return session_status();
+
+        if (isset($this['SESSION_DISABLED']))
+            return PHP_SESSION_DISABLED;
+        if (isset($this['SESSION_NONE']))
+            return PHP_SESSION_NONE;
+        if (isset($this['WITHOUT_SESSION']))
+            return false;
+
+        return PHP_SESSION_ACTIVE;
+    }
+
+    protected function CheckAndStartSession($failed = false) {
+        switch ($this->session_status()) {
             case PHP_SESSION_ACTIVE:
                 return true;
             case PHP_SESSION_NONE:
-                session_start();
-                return $this->CheckAndStartSession();
-        }
+                if ($failed)
+                    throw new Exception('Failed start session!');
 
-        return false;
+                session_start();
+                return $this->CheckAndStartSession(true);
+            default:
+                return false;
+        }
     }
 
     public function startSession() {
@@ -57,6 +73,7 @@ class WebStorage implements ArrayAccess
         }
 
         $this->_data = null;
+        return true;
     }
 
     public function setDefault($default) {

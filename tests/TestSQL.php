@@ -10,7 +10,6 @@ class TestSQL extends TestCase
 {
     protected function connectDB() {
         global $_STORAGE, $_CONFIG;
-
         $_STORAGE['database']->db_connect(
             array(
                 'host' => $_CONFIG->host, 'dbname' => $_CONFIG->dbname,

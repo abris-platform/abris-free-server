@@ -1,6 +1,6 @@
 {
-  "host": "abris.site",
-  "port": "15432",
+  "host": "localhost",
+  "port": "44441",
   "dbname": "demo",
   "dbDefaultUser": "postgres",
   "dbDefaultPass": "123456",
