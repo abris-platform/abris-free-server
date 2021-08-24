@@ -1,5 +1,6 @@
 stages:
   - Building
+  - DemoDatabase
   - Testing
 
 build:
@@ -16,17 +17,16 @@ build:
     paths:
       - Server
 
-# start_database:
-#  stage: Testing
-#  script:
-#    - docker-compose -f tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
-#    - docker-compose -f tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
-#    - sleep 65s # wait for deploy database from dumps
+start_database:
+  stage: DemoDatabase
+  script:
+    - docker-compose -f tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
+    - docker-compose -f tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
+    - sleep 65s # wait for deploy database from dumps
 
 test:
   stage: Testing
-  image: # php:7.4-cli
-    dockerfile: tests/Docker/free-server-tests.Dockerfile
+  image: php:7.4-cli
   before_script:
     - apt-get update
     - apt-get -y install wget libpq-dev libmagickwand-dev libzip-dev php*-mysql

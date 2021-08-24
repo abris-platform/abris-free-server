@@ -1,5 +1,5 @@
 {
-  "host": "localhost",
+  "host": "abris.site",
   "port": "44441",
   "dbname": "demo",
   "dbDefaultUser": "postgres",
