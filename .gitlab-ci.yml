@@ -1,5 +1,6 @@
 stages:
   - Building
+  - TestingDatabases
   - Testing
 
 build:
@@ -17,7 +18,7 @@ build:
       - Server
 
 start_database:
-  stage: Testing
+  stage: TestingDatabases
   script:
     - docker-compose -f ./tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
     - docker-compose -f ./tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
@@ -46,7 +47,7 @@ test:
     - mkdir report
     - export XDEBUG_MODE=coverage
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
-  needs: ["start_database"]
+  needs: ["TestingDatabases"]
   artifacts:
     name: 'abris-server-base-report'
     paths:
