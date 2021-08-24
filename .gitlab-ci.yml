@@ -1,6 +1,5 @@
 stages:
   - Building
-  - StartDatabase
   - Testing
 
 build:
@@ -23,12 +22,11 @@ start_database:
     - docker-compose -f tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
     - docker-compose -f tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
     - sleep 65s # wait for deploy database from dumps
-  tags:
-    - shell
 
 test:
   stage: Testing
-  image: php:7.4-cli
+  image: # php:7.4-cli
+    dockerfile: tests/Docker/free-server-tests.Dockerfile
   before_script:
     - apt-get update
     - apt-get -y install wget libpq-dev libmagickwand-dev libzip-dev php*-mysql
@@ -47,6 +45,8 @@ test:
     - mkdir report
     - export XDEBUG_MODE=coverage
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
+  tags:
+    - shell
   artifacts:
     name: 'abris-server-base-report'
     paths:
