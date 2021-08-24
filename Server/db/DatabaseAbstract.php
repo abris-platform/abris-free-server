@@ -31,4 +31,16 @@ abstract class DatabaseAbstract implements DatabaseInterface, DataConvertInterfa
     public function get_total_cost_explain($answer) {
         return 0;
     }
+
+    public function concat($array, $delimiter = "' '") {
+        $res = array();
+
+        foreach ($array as $value) {
+            $res[] = $value;
+            $res[] = $delimiter;
+        }
+        unset($res[count($res) - 1]);
+
+        return 'CONCAT('. implode(', ', $res) .')';
+    }
 }

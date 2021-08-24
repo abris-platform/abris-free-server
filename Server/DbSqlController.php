@@ -11,6 +11,10 @@ class DbSqlController {
         throw new Exception('Object database not found.');
     }
 
+    protected static function GetObjectSql($query, $options) {
+        return new SQLBase($query, $options);
+    }
+
     public static function EscapeString($value) {
         return self::GetObjectDatabase()->db_escape_string($value);
     }
@@ -78,10 +82,6 @@ class DbSqlController {
         // If returns not worked in previous stages, then connect not worked at all
         unset_auth_session();
         throw new Exception("Unable to connect by user $usename to system.");
-    }
-
-    protected static function GetObjectSql($query, $options) {
-        return new SQLBase($query, $options);
     }
 
     public static function Sql($query, $options = null) {
@@ -152,7 +152,7 @@ class DbSqlController {
     }
 
     public static function relation($schemaName, $entityName) {
-        return self::IdQuote($schemaName).".".self::IdQuote($entityName);
+        return self::IdQuote($schemaName). '.' .self::IdQuote($entityName);
     }
 
     public static function type($value, $type) {
@@ -167,5 +167,37 @@ class DbSqlController {
         return self::Sql(
             self::GetObjectDatabase()->db_query_user_description($username)
         );
+    }
+
+    public static function NumericTruncate($numeric, $count = 0, $alias = false) {
+        return self::GetObjectDatabase()->numeric_trunc($numeric, $count, $alias);
+    }
+
+    public static function ReturningPKey($pkey_column) {
+        return self::GetObjectDatabase()->return_pkey_value($pkey_column);
+    }
+
+    public static function InsertValues($str_values) {
+        return self::GetObjectDatabase()->wrap_insert_values($str_values);
+    }
+
+    public static function Like() {
+        return self::GetObjectDatabase()->operator_like();
+    }
+
+    public static function Concat($array) {
+        return self::GetObjectDatabase()->concat($array);
+    }
+
+    public static function FormatColumns($columns, $format) {
+        return self::GetObjectDatabase()->format($columns, $format);
+    }
+
+    public static function RowToJson($columns) {
+        return self::GetObjectDatabase()->row_to_json($columns);
+    }
+
+    public static function Collate() {
+        return 'collate "' .self::GetObjectDatabase()->get_collate() .'"';
     }
 }
