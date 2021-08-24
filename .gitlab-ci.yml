@@ -1,6 +1,5 @@
 stages:
   - Building
-  - TestingDatabases
   - Testing
 
 build:
@@ -18,13 +17,11 @@ build:
       - Server
 
 start_database:
-  stage: TestingDatabases
+  stage: Testing
   script:
-    - docker-compose -f ./tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
-    - docker-compose -f ./tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
+    - docker-compose -f tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
+    - docker-compose -f tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
     - sleep 65s # wait for deploy database from dumps
-  tags:
-    - shell
 
 test:
   stage: Testing
@@ -47,7 +44,6 @@ test:
     - mkdir report
     - export XDEBUG_MODE=coverage
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
-  needs: ["TestingDatabases"]
   artifacts:
     name: 'abris-server-base-report'
     paths:
