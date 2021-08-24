@@ -28,11 +28,11 @@ class SQLBase
     public function PrepareConnection() {
         $format = $this->options->GetFormat();
 
-        if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
+/*        if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
             $response = $this->sql_handler_test($this->query, $format);
             if ($response != 'new_query_test')
                 return $response;
-        }
+        }*/
         return null;
     }
 

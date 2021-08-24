@@ -1,0 +1,17 @@
+version: "3"
+services:
+  free-db-server-tests:
+    build:
+      context: .
+      dockerfile: free-server-tests.Dockerfile
+    expose:
+      - 5432
+      - 3306
+    ports:
+      - "44441:5432"
+      - "44442:3306"
+    environment:
+      PG_ROOT_PASSWORD: 123456
+      PG_MAIN_LOGIN: postgres
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_MAIN_LOGIN: mysql
