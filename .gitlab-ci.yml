@@ -39,8 +39,7 @@ test:
       - report
 
 stop_database:
-  stage: DemoDatabase
-  needs: [ "test" ]
+  stage: Building
   script:
     - docker-compose -f tests/Docker/docker-compose.yml down
   tags:
