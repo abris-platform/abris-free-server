@@ -2,14 +2,10 @@ FROM ubuntu:20.04
 
 RUN apt-get update -yqq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -yqq \
-    php7.4 php7.4-pgsql php7.4-zip php7.4-mysql \
-    wget libpq-dev libmagickwand-dev libzip-dev \
-    curl unzip nano sudo \
+    libpq-dev libmagickwand-dev libzip-dev \
+    wget curl unzip nano sudo \
     postgresql-12 \
     mysql-server
-
-RUN sed -i 's/;extension=pgsql/extension=pgsql/' /etc/php/7.4/cli/php.ini \
-    && sed -i 's/;extension=mysqli/extension=mysqli/' /etc/php/7.4/cli/php.ini
 
 RUN echo "host all  all   0.0.0.0/0   md5" >> /etc/postgresql/12/main/pg_hba.conf \
     && sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/12/main/postgresql.conf \

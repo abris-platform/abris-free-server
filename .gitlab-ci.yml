@@ -40,7 +40,7 @@ test:
 
 stop_database:
   stage: DemoDatabase
-  needs: [ "Testing" ]
+  needs: [ "test" ]
   script:
     - docker-compose -f tests/Docker/docker-compose.yml down
   tags:
@@ -48,7 +48,7 @@ stop_database:
 
 build:
   stage: Building
-  needs: [ "Testing" ]
+  needs: [ "test" ]
   script:
     - whoami
     - export COMMIT_TIME=$(date)
