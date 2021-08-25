@@ -3,20 +3,6 @@ stages:
   - DemoDatabase
   - Testing
 
-build:
-  stage: Building
-  script:
-    - whoami
-    - export COMMIT_TIME=$(date)
-    - sed -i "s/COMMIT/$CI_COMMIT_SHA/g" Server/version.json
-    - sed -i "s/DATE/$COMMIT_TIME/g" Server/version.json
-    - sed -i "s/Debug/Test/g" Server/version.json
-    - touch Server/install_abris
-  artifacts:
-    name: 'abris-server-base'
-    paths:
-      - Server
-
 start_database:
   stage: DemoDatabase
   script:
@@ -35,7 +21,7 @@ test:
     - pecl install imagick
     - pecl install xdebug
     - docker-php-ext-install pdo pdo_mysql mysqli
-    - docker-php-ext-enable mysqli 
+    - docker-php-ext-enable mysqli
     - docker-php-ext-install pgsql
     - docker-php-ext-install zip
     - docker-php-ext-enable imagick
@@ -53,3 +39,26 @@ test:
     name: 'abris-server-base-report'
     paths:
       - report
+
+stop_database:
+  stage: DemoDatabase
+  needs: [ "Testing" ]
+  script:
+    - docker-compose -f tests/Docker/docker-compose.yml down
+  tags:
+    - shell
+
+build:
+  stage: Building
+  needs: [ "Testing" ]
+  script:
+    - whoami
+    - export COMMIT_TIME=$(date)
+    - sed -i "s/COMMIT/$CI_COMMIT_SHA/g" Server/version.json
+    - sed -i "s/DATE/$COMMIT_TIME/g" Server/version.json
+    - sed -i "s/Debug/Test/g" Server/version.json
+    - touch Server/install_abris
+  artifacts:
+    name: 'abris-server-base'
+    paths:
+      - Server
