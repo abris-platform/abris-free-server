@@ -11,6 +11,7 @@
             <file>Server/ApplicationInitBase.php</file>
             <file>Server/services_methods.php</file>
             <file>Server/WebStorage.php</file>
+            <file>tests/TestDataBasePostgresql.php</file>
         </whitelist>
     </filter>
     <testsuites>
