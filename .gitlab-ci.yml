@@ -1,21 +1,17 @@
 stages:
-  - Building
+  - DemoDatabase
   - Testing
+  - Building
 
-build:
-  stage: Building
+start_database:
+  stage: DemoDatabase
   script:
-    - whoami
-    - export COMMIT_TIME=$(date)
-    - sed -i "s/COMMIT/$CI_COMMIT_SHA/g" Server/version.json
-    - sed -i "s/DATE/$COMMIT_TIME/g" Server/version.json
-    - sed -i "s/Debug/Test/g" Server/version.json
-    - touch Server/install_abris
-  artifacts:
-    name: 'abris-server-base'
-    paths:
-      - Server
-   
+    - docker-compose -f tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
+    - docker-compose -f tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
+    - sleep 65s # wait for deploy database from dumps
+  tags:
+    - shell
+
 test:
   stage: Testing
   image: php:7.4-cli
@@ -25,7 +21,7 @@ test:
     - pecl install imagick
     - pecl install xdebug
     - docker-php-ext-install pdo pdo_mysql mysqli
-    - docker-php-ext-enable mysqli 
+    - docker-php-ext-enable mysqli
     - docker-php-ext-install pgsql
     - docker-php-ext-install zip
     - docker-php-ext-enable imagick
@@ -41,3 +37,24 @@ test:
     name: 'abris-server-base-report'
     paths:
       - report
+
+stop_database:
+  stage: Building
+  script:
+    - docker-compose -f tests/Docker/docker-compose.yml down
+  tags:
+    - shell
+
+build:
+  stage: Building
+  script:
+    - whoami
+    - export COMMIT_TIME=$(date)
+    - sed -i "s/COMMIT/$CI_COMMIT_SHA/g" Server/version.json
+    - sed -i "s/DATE/$COMMIT_TIME/g" Server/version.json
+    - sed -i "s/Debug/Test/g" Server/version.json
+    - touch Server/install_abris
+  artifacts:
+    name: 'abris-server-base'
+    paths:
+      - Server

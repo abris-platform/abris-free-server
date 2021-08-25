@@ -63,7 +63,6 @@ class TestDataBase extends TestCase
         global $_STORAGE;
         $_STORAGE['database']->db_connect();
         $res = $_STORAGE['database']->db_close();
-        $this->assertNull($res);
+        $this->assertTrue($res);
     }
-
 }

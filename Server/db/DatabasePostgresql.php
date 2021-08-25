@@ -10,9 +10,9 @@ class DatabasePostgresql extends DatabaseAbstract
                 $data = $this->config;
 
             $password = isset($_STORAGE['private_key']) ? DecryptStr($_STORAGE['password'], $_STORAGE['private_key']) : $data['password'];
-
             $this->connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$data[user] password=$password");
         }
+
         return $this->connect;
     }
 
@@ -39,8 +39,11 @@ class DatabasePostgresql extends DatabaseAbstract
     }
 
     public function db_close() {
-        if (pg_close($this->connect))
+        if (pg_close($this->connect)) {
             $this->connect = null;
+            return true;
+        }
+        return false;
     }
 
     public function db_escape_string($value) {
@@ -102,5 +105,34 @@ class DatabasePostgresql extends DatabaseAbstract
     public function get_total_cost_explain($answer) {
         $arr_explain = json_decode($answer['QUERY PLAN'], true)[0];
         return $arr_explain['Plan']['Total Cost'];
+    }
+
+    public function numeric_trunc($numeric, $count = 0, $alias = false) {
+        $cmd = "trunc($numeric, $count)";
+        return $alias ? "$cmd AS trunc" : $cmd;
+    }
+
+    public function return_pkey_value($pkey_column) {
+        return "RETURNING $pkey_column";
+    }
+
+    public function wrap_insert_values($str_values) {
+        return "SELECT $str_values";
+    }
+
+    public function operator_like() {
+        return 'ILIKE';
+    }
+
+    public function format($columns_array, $format) {
+        return "format('$format', " .implode(', ', $columns_array) .")";
+    }
+
+    public function row_to_json($columns_array) {
+        return '(row_to_json(row(' .implode(', ', $columns_array) .'::text))::text)';
+    }
+
+    public function get_collate() {
+        return 'C';
     }
 }

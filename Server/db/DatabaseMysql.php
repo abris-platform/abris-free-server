@@ -93,4 +93,55 @@ class DatabaseMysql extends DatabaseAbstract
         $arr_explain = json_decode($answer['EXPLAIN'], true);
         return $arr_explain['query_block']['cost_info']['query_cost'];
     }
+
+    public function numeric_trunc($numeric, $count = 0, $alias = false) {
+        $cmd = "truncate($numeric, $count)";
+        return $alias ? "$cmd AS truncate" : $cmd;
+    }
+
+    public function return_pkey_value($pkey_column) {
+        return '; SELECT LAST_INSERT_ID()';
+    }
+
+    public function wrap_insert_values($str_values) {
+        return "VALUES $str_values";
+    }
+    public function operator_like() {
+        return 'LIKE';
+    }
+
+    public function format($columns_array, $format) {
+        return implode('|||', $columns_array);
+    }
+
+    private function add_element(&$source, $element, &$findex) {
+        $source[] = "'f$findex'";
+        $source[] = "$element";
+        $findex++;
+    }
+
+    public function row_to_json($columns_array) {
+        $columns = array();
+
+        $findex = 1;
+        $separator = '|||'; // if output from function format.
+        if (strpos($columns_array[0], '|||')) {
+            foreach (explode($separator, $columns_array[0]) as $item) {
+                $this->add_element($columns, $item, $findex);
+            }
+        }
+        else {
+            $this->add_element($columns, $columns_array[0], $findex);
+        }
+
+        for ($index = 1; $index < count($columns_array); $index++) {
+            $this->add_element($columns, $columns_array[$index], $findex);
+        }
+
+        return '(json_object(' .implode(', ', $columns) .'))';
+    }
+
+    public function get_collate() {
+        return 'utf8mb4_bin';
+    }
 }
