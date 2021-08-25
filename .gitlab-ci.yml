@@ -48,7 +48,6 @@ stop_database:
 
 build:
   stage: Building
-  needs: [ "test" ]
   script:
     - whoami
     - export COMMIT_TIME=$(date)
