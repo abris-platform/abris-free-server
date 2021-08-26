@@ -1,4 +1,4 @@
-<phpunit colors="true" bootstrap="tests/bootstrap.php" processIsolation = "true">
+<phpunit colors="true" bootstrap="tests/bootstrap.php" processIsolation="true">
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <file>Server/DbSqlController.php</file>
@@ -11,13 +11,12 @@
             <file>Server/ApplicationInitBase.php</file>
             <file>Server/services_methods.php</file>
             <file>Server/WebStorage.php</file>
-            <file>tests/TestDataBasePostgresql.php</file>
         </whitelist>
     </filter>
     <testsuites>
         <testsuite name="Base">
-            <file>tests/TestDataBasePostgresql.php</file>
-            <!--file>tests/TestServicesMethods.php</file>
+            <file>tests/TestDbPG.php</file>
+            <file>tests/TestServicesMethods.php</file>
             <file>tests/TestWebStorage.php</file>
             <file>tests/methodsTestFree.php</file>
             <file>tests/TestSQL.php</file>
@@ -25,7 +24,7 @@
             <file>tests/TestServer.php</file>
             <file>tests/TestApplicationInitBase.php</file>
             <file>pluginDocumentTest.php</file>
-            <file>tests/TestDataBaseMySQL.php</file>-->
+            <!--<file>tests/TestDataBaseMySQL.php</file>-->
         </testsuite>
     </testsuites>
 </phpunit>
