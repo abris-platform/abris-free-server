@@ -88,9 +88,10 @@ class DatabasePostgresql extends DatabaseAbstract
         return "'$value'::$type";
     }
 
-    public function type_field($field, $type) {
-        if (!$type) return "\"$field\"";
-        return "\"$field\"::$type";
+    public function type_field($field, $type, $need_quote = false) {
+        if (!$type)
+            return $need_quote ? "\"$field\"" : $field;
+        return $need_quote ? "\"$field\"::$type" : "$field::$type";
     }
 
     public function get_explain_query() {

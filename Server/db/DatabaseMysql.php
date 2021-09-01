@@ -80,7 +80,7 @@ class DatabaseMysql extends DatabaseAbstract
         return "CONVERT('$value','$type')";
     }
 
-    public function type_field($field, $type) {
+    public function type_field($field, $type, $need_quote = false) {
         if (!$type) return "`$field`";
         return "CONVERT(`$field`,'$type')";
     }

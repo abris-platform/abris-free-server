@@ -247,11 +247,21 @@ class TestDatabasePostgresql extends TestCase
 
         $this->assertEquals(
             '"' . $field . '"',
-            $db->type_field($field, false)
+            $db->type_field($field, false, true)
         );
 
         $this->assertEquals(
             "\"$field\"::$type",
+            $db->type_field($field, $type, true)
+        );
+
+        $this->assertEquals(
+            $field,
+            $db->type_field($field, false)
+        );
+
+        $this->assertEquals(
+            "$field::$type",
             $db->type_field($field, $type)
         );
     }

@@ -159,8 +159,8 @@ class DbSqlController {
         return self::GetObjectDatabase()->type($value, $type);
     }
 
-    public static function typeField($field, $type) {
-        return self::GetObjectDatabase()->type_field($field, $type);
+    public static function typeField($field, $type, $need_quote = false) {
+        return self::GetObjectDatabase()->type_field($field, $type, $need_quote);
     }
 
     public static function GetUserDescription($username) {

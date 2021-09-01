@@ -6,7 +6,7 @@ interface DataConvertInterface
 
     public function type($value, $type);
 
-    public function type_field($field, $type);
+    public function type_field($field, $type, $need_quote = false);
 
     public function get_format($format);
 

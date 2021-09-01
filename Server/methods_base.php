@@ -203,8 +203,12 @@ class methodsBase
                     if ($where) {
                         $where .= " OR ";
                     }
-                    $where .= DbSqlController::IdQuote($n) . '::TEXT ' .DbSqlController::Like()
-                        ." '" .DbSqlController::EscapeString('%' . $params['predicate'] . '%') . "'::TEXT";
+                    $where .= DbSqlController::typeField(DbSqlController::IdQuote($n), 'text')
+                        .' ' . DbSqlController::Like() .' '
+                        . DbSqlController::type(
+                            DbSqlController::EscapeString('%' . $params['predicate'] . '%'),
+                            'text'
+                        );
                 }
             }
         }
@@ -288,9 +292,8 @@ class methodsBase
                         $null_condition = '';
                         foreach ($value as $k => $v) {
                             if (!$v) {
-                                $null_condition = $field . " is null or " . $field . "::text = ''";
+                                $null_condition = $field . ' IS NULL OR ' . DbSqlController::typeField($field, 'text') ." = ''";
                                 unset($value[$k]);
-
                             }
 
                         }
@@ -300,21 +303,21 @@ class methodsBase
                         else
                             if ($null_condition == '')
                                 return $field . " IN ($value_list)";
-                        return $null_condition . ' or ' . $field . " IN ($value_list)";
+                        return $null_condition . ' OR ' . $field . " IN ($value_list)";
                     } else
-                        return $field . " is null or trim(" . $field . "::text) = ''";
+                        return $field . ' IS NULL OR trim(' . DbSqlController::typeField($field, 'text') . ") = ''";
                 }
                 if (empty($value)) {
-                    return $field . " is null";
+                    return $field . ' is null';
                 }
-                return $field . " = " . DbSqlController::type(DbSqlController::EscapeString($value), $type_desc);
+                return $field . ' = ' . DbSqlController::type(DbSqlController::EscapeString($value), $type_desc);
             case "NEQ":
                 if (is_array($value)) {
                     if (count($value) > 0) {
                         $null_condition = '';
                         foreach ($value as $k => $v) {
                             if (!$v) {
-                                $null_condition = $field . " is not null and trim(" . $field . "::text) <> ''";
+                                $null_condition = $field . ' IS NOT NULL AND trim(' . DbSqlController::typeField($field, 'text') . ") <> ''";
                                 unset($value[$k]);
 
                             }
@@ -327,7 +330,7 @@ class methodsBase
                                 return $field . " NOT IN ($value_list)";
                         return $null_condition . ' and ' . $field . " NOT IN ($value_list)";
                     } else
-                        return $field . " is not null and " . $field . "::text <> ''";
+                        return $field . ' IS NOT NULL AND ' . DbSqlController::typeField($field, 'text') . " <> ''";
                 }
                 if (empty($value)) {
                     return $field . " is null";
@@ -338,7 +341,7 @@ class methodsBase
             case "F":
                 return DbSqlController::IdQuote($value) . "($field)";
             case "FC":
-                return DbSqlController::IdQuote($value) . "('" . DbSqlController::EscapeString($params["schemaName"] . '.' . $params["entityName"]) . "', $field)";
+                return DbSqlController::IdQuote($value) . "('" . DbSqlController::relation($params['schemaName'], $params['entityName']) . "', $field)";
             case "EQF":
                 return $field . " =  " . DbSqlController::IdQuote($value) . "()";
             case "FEQ":
@@ -361,9 +364,15 @@ class methodsBase
                     $where_arr = array();
 
                     if ($field != "t.\"\"") {
-                        foreach ($value_parts as $i => $v)
-                            $where_arr[] = $field .'::TEXT ' .DbSqlController::Like() ." '%"
-                                    .DbSqlController::EscapeString($v) ."%'::TEXT";
+                        foreach ($value_parts as $i => $v) {
+                            $where_arr[] = DbSqlController::typeField($field, 'text')
+                                . ' ' . DbSqlController::Like() . ' '
+                                . DbSqlController::type(
+                                    '%' . DbSqlController::EscapeString($v) . '%',
+                                    'text'
+                                );
+                            ;
+                        }
                         return implode(' and ', $where_arr);
                     } else {
                         $where = '';
@@ -377,41 +386,53 @@ class methodsBase
                                     if ($where) {
                                         $where .= " OR ";
                                     }
-                                    $where .= $field_description["subfields_table_alias"][$m] . "."
-                                        .DbSqlController::IdQuote($j_field) . '::TEXT '
-                                        .DbSqlController::Like() ." '"
-                                        .DbSqlController::EscapeString('%' . $value . '%') . "'::TEXT";
+                                    $where .= $field_description['subfields_table_alias'][$m] . '.'
+                                        .DbSqlController::typeField(DbSqlController::IdQuote($j_field), 'text')
+                                        . ' ' .DbSqlController::Like() .' '
+                                        .DbSqlController::type(
+                                            DbSqlController::EscapeString('%' . $value . '%'),
+                                        'text'
+                                        );
                                 }
                             } else {
                                 if ($where) {
-                                    $where .= " OR ";
+                                    $where .= ' OR ';
                                 }
                                 $where_arr = array();
                                 foreach ($value_parts as $i => $v)
-                                    $where_arr[] = 't.' .DbSqlController::IdQuote($k) .'::TEXT ' .DbSqlController::Like()
-                                        ." '" .DbSqlController::EscapeString('%' . $v . '%') . "'::TEXT";
+                                    $where_arr[] = DbSqlController::typeField(
+                                            't.' . DbSqlController::IdQuote($k),
+                                            'text'
+                                        )
+                                        . ' ' . DbSqlController::Like() .' '
+                                        .DbSqlController::type(
+                                            DbSqlController::EscapeString('%' . $v . '%'),
+                                            'text'
+                                        );
 
                                 $where .= implode(' and ', $where_arr);
                             }
-                            if (isset($operand["m_order"])) {
-                                if (isset($result["m_order"]))
-                                    $result["m_order"] .= ", ";
+                            if (isset($operand['m_order'])) {
+                                if (isset($result['m_order']))
+                                    $result['m_order'] .= ', ';
                                 else
-                                    $result["m_order"] = "";
+                                    $result['m_order'] = '';
                                 $value = $value_parts[0];
-                                $result["m_order"] .= " NOT(t." .DbSqlController::IdQuote($k) .'::TEXT '
-                                    .DbSqlController::Like() ." '"
-                                    .DbSqlController::EscapeString($value . '%') . "'::TEXT), t."
-                                    .DbSqlController::IdQuote($k) . "::TEXT";
+                                $result['m_order'] .= ' NOT('
+                                    .DbSqlController::typeField('t.' .DbSqlController::IdQuote($k), 'text')
+                                    .' ' .DbSqlController::Like() .' '
+                                    .DbSqlController::type(
+                                        DbSqlController::EscapeString($value . '%'),'text')
+                                    .'), t.'
+                                    .DbSqlController::typeField(DbSqlController::IdQuote($k), 'text');
                             }
-
                         }
 
                         return "($where)";
                     }
 
                 } else
-                    return "true";
+                    return 'true';
             case "ISN":
                 return $field . " IS NULL ";
             case "ISNN":
@@ -551,13 +572,15 @@ class methodsBase
                     $field_list .= ", ";
                 }
 
-
                 if (isset($field_description["subfields"])) {
                     $j_field_list_array = array();
 
-
-                    foreach ($field_description["subfields"] as $m => $j_field) {
-                        $j_field_list_array[] = "COALESCE(" . $field_description["subfields_table_alias"][$m] . "." . DbSqlController::IdQuote($j_field) . "::text,'')";
+                    foreach ($field_description['subfields'] as $m => $j_field) {
+                        $j_field_list_array[] = 'COALESCE('
+                            . DbSqlController::IdQuote($field_description['subfields_table_alias'][$m])
+                            . '.'
+                            . DbSqlController::typeField($j_field, 'text')
+                            . ", '')";
                     }
 
                     if (isset($field_description["format"]))
@@ -927,15 +950,15 @@ class methodsBase
                     if ($params["types"][$key]) {
                         $type_conversion = $params["types"][$key];
                     }
-                $sql_where .= DbSqlController::typeField($key,$type_conversion) ." = " . DbSqlController::type(DbSqlController::EscapeString($value_arr[$j][$i]),$type_conversion);
+                $sql_where .= DbSqlController::typeField($key, $type_conversion, true)
+                    . " = "
+                    . DbSqlController::type(DbSqlController::EscapeString($value_arr[$j][$i]), $type_conversion);
                 if ($key != end($key_arr))
                     $sql_where .= " AND ";
 
             }
 
-            $sql .= 'UPDATE ' . DbSqlController::IdQuote($params["schemaName"]) . '.' . DbSqlController::IdQuote($params["entityName"]) . ' SET ' . $set . '  WHERE ' . $sql_where . ';';
-
-
+            $sql .= 'UPDATE ' . DbSqlController::relation($params['schemaName'], $params['entityName']) . " SET $set WHERE $sql_where;";
         }
 
         static::queryModifyEntities($sql);
