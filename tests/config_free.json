@@ -8,5 +8,5 @@
   "metaSchema": "meta",
   "cryptMethod": "AES-256-CBC",
   "databaseType": "pgsql",
-  "$anotherPrefLog": ""
+  "anotherPrefLog": ""
 }
