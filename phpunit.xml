@@ -24,8 +24,9 @@
             <file>tests/TestApplicationInitBase.php</file>
             <file>pluginDocumentTest.php</file>
             <file>tests/TestDbPostgresql.php</file>
+            <file>tests/TestConfigBase.php</file>
+            <file>tests/TestDbSqlController.php</file>
             <!--<file>tests/TestDataBaseMySQL.php</file>-->
         </testsuite>
     </testsuites>
 </phpunit>
-

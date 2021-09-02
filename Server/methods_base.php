@@ -164,7 +164,7 @@ class methodsBase
     }
 
     public static function getAllEntities($params) {
-        return DbSqlController::sql('SELECT * FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t');
+        return DbSqlController::sql('SELECT * FROM ' . DbSqlController::relation($params['schemaName'], $params['entityName']) . ' t');
     }
 
     public static function getTableData($params) {
@@ -503,7 +503,6 @@ class methodsBase
                     $orderfields .= " DESC";
                     $orderfields_no_aliases .= " DESC";
                 }
-
             }
         }
         if ($params["primaryKey"]) {
@@ -722,7 +721,6 @@ class methodsBase
 
             }
         }
-
 
         $statement_count = $statement;
         if (($params["limit"] != 0 and $params["limit"] != -1) or ($params["offset"] != 0 && $params["offset"] >= 0)) {
