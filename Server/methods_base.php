@@ -85,8 +85,13 @@ class methodsBase
 
     protected static function SetCookie($name, $value = '', $expires = 0, $path = '', $domain = '', $secure = false) {
         global $_STORAGE;
-        if (php_sapi_name() == 'cli')
+        if (php_sapi_name() == 'cli') {
             $_STORAGE[$name] = $value;
+            return;
+        }
+
+        if (is_array($expires))
+            setcookie($name, $value, $expires);
         else
             setcookie($name, $value, $expires, $path, $domain, $secure);
     }
