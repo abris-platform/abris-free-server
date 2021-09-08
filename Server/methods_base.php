@@ -511,16 +511,28 @@ class methodsBase
             }
         }
         if ($params["primaryKey"]) {
-            if($orderfields)
-                $orderfields .= ', ' . $params["primaryKey"];
-            else
-                $orderfields =  'ORDER BY '.$params["primaryKey"];
+            // array('val1', 'val2') => '\"val1\", \"val2\"',
+            // 'val1' => 'val1'
+            $orders_by_primary = is_array($params['primaryKey']) ?
+                implode(
+                    ', ',
+                    array_map(
+                        function ($value) {
+                            return DbSqlController::IdQuote($value);
+                        },
+                        $params['primaryKey']
+                    )
+                ) : $params['primaryKey'];
 
-            if($orderfields_no_aliases)
-                $orderfields_no_aliases .= ', ' . $params["primaryKey"];
+            if ($orderfields)
+                $orderfields .= ', ' . $orders_by_primary;
             else
-                $orderfields_no_aliases =  'ORDER BY '.$params["primaryKey"];
+                $orderfields = 'ORDER BY ' . $orders_by_primary;
 
+            if ($orderfields_no_aliases)
+                $orderfields_no_aliases .= ', ' . $orders_by_primary;
+            else
+                $orderfields_no_aliases = 'ORDER BY ' . $orders_by_primary;
         }
         return array('orderfields' => $orderfields, 'orderfields_no_aliases' => $orderfields_no_aliases, 'distinctfields' => $distinctfields);
     }
