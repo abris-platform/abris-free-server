@@ -2096,7 +2096,7 @@ class methodsTest extends TestCase
 
         // check relations loaded
         $this->assertArrayHasKey(
-            DbSqlController::Sql(
+            $_STORAGE['Controller']->Sql(
                 "SELECT format('%s.aircraft_code.%s.aircraft_code', 'bookings.aircrafts_data'::regclass::oid, 'bookings.flights'::regclass::oid) AS f"
             )[0]['f'],
             $res['projections']['aircrafts_data']['relations']

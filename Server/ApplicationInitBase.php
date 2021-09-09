@@ -53,6 +53,14 @@ class ApplicationInitBase
         $GLOBALS['_CONFIG'] = $config;
     }
 
+    public static function initDbSqlController(){
+        global $_STORAGE;
+        if (!isset($GLOBALS['_STORAGE']))
+            return;
+
+        $_STORAGE['Controller'] = new DbSqlController();
+    }
+
     public static function checkNeedInstallFree() {
         if (file_exists(__DIR__ .'/install_abris'))
             throw new Exception('Need install Abris-Core');

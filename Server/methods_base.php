@@ -20,11 +20,12 @@ class methodsBase
     }
 
     private static function sql_count_estimate($params, $statement, $count) {
+        global $_STORAGE;
         $desc = $params['desc'] ?? '';
 
         $options = static::GetDefaultOptions();
         $options->SetQueryDescription("$desc (explain)");
-        $explain = DbSqlController::SqlCountEstimate($statement, $options);
+        $explain = $_STORAGE['Controller']->SqlCountEstimate($statement, $options);
 
         $plan_rows = $explain['plan_rows'];
         $total_cost = $explain['total_cost'];
@@ -39,7 +40,7 @@ class methodsBase
 
         $options = static::GetDefaultOptions();
         $options->SetQueryDescription("$desc (count)");
-        $arr_count = DbSqlController::sql($count, $options);
+        $arr_count = $_STORAGE['Controller']->sql($count, $options);
         $plan_rows = $arr_count[0]["count"];
         return $plan_rows;
     }
@@ -70,17 +71,19 @@ class methodsBase
     }
 
     protected static function queryModifyEntities($query, $options = null, $query_description = '') {
+        global $_STORAGE;
         if (is_null($options))
             $options = static::GetDefaultOptions();
 
         $options->SetPreprocessData(null);
         $options->SetQueryDescription($query_description);
 
-        return DbSqlController::sql($query, $options);
+        return $_STORAGE['Controller']->sql($query, $options);
     }
 
     protected static function GetDefaultOptions() {
-        return SQLBase::GetDefaultOptions();
+        global $_STORAGE;
+        return $_STORAGE['Controller']->GetDefaultOptions();
     }
 
     protected static function SetCookie($name, $value = '', $expires = 0, $path = '', $domain = '', $secure = false) {
@@ -105,7 +108,7 @@ class methodsBase
 
             $options = static::GetDefaultOptions();
             $options->SetEncryptPassword(false);
-            $usenameDB = DbSqlController::sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
+            $usenameDB = $_STORAGE['Controller']->sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
 
             $privateKey = GenerateRandomString();
             if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
@@ -156,7 +159,8 @@ class methodsBase
     }
 
     public static function getUserDescription() {
-        $res = DbSqlController::GetUserDescription(
+        global $_STORAGE;
+        $res = $_STORAGE['Controller']->GetUserDescription(
             methodsBase::getCurrentUser()
         );
         return $res[0];
@@ -169,10 +173,12 @@ class methodsBase
     }
 
     public static function getAllEntities($params) {
-        return DbSqlController::sql('SELECT * FROM ' . DbSqlController::relation($params['schemaName'], $params['entityName']) . ' t');
+        global $_STORAGE;
+        return $_STORAGE['Controller']->sql('SELECT * FROM ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . ' t');
     }
 
     public static function getTableData($params) {
+        global $_STORAGE;
         if ($params["fields"]) {
             $field_list = "";
             foreach ($params["fields"] as $field_index => $field_name) {
@@ -180,7 +186,7 @@ class methodsBase
                     $field_list .= ", ";
                 }
 
-                $field_list .= DbSqlController::IdQuote($field_name);
+                $field_list .= $_STORAGE['Controller']->IdQuote($field_name);
             }
         } else {
             $field_list = "*";
@@ -192,12 +198,12 @@ class methodsBase
         if (isset($params["distinct"])) {
             if (is_array($params["distinct"])) {
             } else {
-                $statement = "SELECT DISTINCT $field_list FROM " . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t';
-                $count = "SELECT count(DISTINCT $field_list) FROM " . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t';
+                $statement = "SELECT DISTINCT $field_list FROM " . $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' t';
+                $count = "SELECT count(DISTINCT $field_list) FROM " . $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' t';
             }
         } else {
-            $statement = "SELECT $field_list FROM " . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t';
-            $count = "SELECT count(*) as count FROM " . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' t';
+            $statement = "SELECT $field_list FROM " . $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' t';
+            $count = "SELECT count(*) as count FROM " . $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' t';
         }
 
         $where = "";
@@ -208,10 +214,10 @@ class methodsBase
                     if ($where) {
                         $where .= " OR ";
                     }
-                    $where .= DbSqlController::typeField(DbSqlController::IdQuote($n), 'text')
-                        .' ' . DbSqlController::Like() .' '
-                        . DbSqlController::type(
-                            DbSqlController::EscapeString('%' . $params['predicate'] . '%'),
+                    $where .= $_STORAGE['Controller']->typeField($_STORAGE['Controller']->IdQuote($n), 'text')
+                        .' ' . $_STORAGE['Controller']->Like() .' '
+                        . $_STORAGE['Controller']->type(
+                            $_STORAGE['Controller']->EscapeString('%' . $params['predicate'] . '%'),
                             'text'
                         );
                 }
@@ -222,7 +228,7 @@ class methodsBase
             if ($where) {
                 $where = "(" . $where . ") AND ";
             }
-            $where .= DbSqlController::IdQuote($params["key"]) . " = '" . DbSqlController::EscapeString($params["value"]) . "'";
+            $where .= $_STORAGE['Controller']->IdQuote($params["key"]) . " = '" . $_STORAGE['Controller']->EscapeString($params["value"]) . "'";
         }
 
         if ($where) {
@@ -237,7 +243,7 @@ class methodsBase
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
-        $data_result_statement = DbSqlController::sql($statement);
+        $data_result_statement = $_STORAGE['Controller']->sql($statement);
         $count_data = count($data_result_statement);
 
         if (($count_data < $params["limit"]) || ($params["limit"] == 1)) {
@@ -251,10 +257,12 @@ class methodsBase
 
     // If anything return to function - getTableDataPredicate 
     public static function quote($n) {
-        return "'" . DbSqlController::EscapeString($n) . "'";
+        global $_STORAGE;
+        return "'" . $_STORAGE['Controller']->EscapeString($n) . "'";
     }
 
     public static function makeSimplePredicate($operand, $replace_rules, $fields, $params, &$result) {
+        global $_STORAGE;
         $func = null;
         $type_desc = '';
         $field = '';
@@ -277,14 +285,14 @@ class methodsBase
             $field = $replace_rules[$field];
         } else {
             if (isset($operand["table_alias"])) {
-                $field = DbSqlController::IdQuote($operand["table_alias"]) . "." . DbSqlController::IdQuote($field);
+                $field = $_STORAGE['Controller']->IdQuote($operand["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field);
             } else {
-                $field = "t." . DbSqlController::IdQuote($field);
+                $field = "t." . $_STORAGE['Controller']->IdQuote($field);
             }
         }
 
         if (isset($operand["type"]))
-            $field .= '::' . DbSqlController::IdQuote($operand["type"]);
+            $field .= '::' . $_STORAGE['Controller']->IdQuote($operand["type"]);
 
         if (isset($operand["value"]))
             $value = $operand["value"];
@@ -297,7 +305,7 @@ class methodsBase
                         $null_condition = '';
                         foreach ($value as $k => $v) {
                             if (!$v) {
-                                $null_condition = $field . ' IS NULL OR ' . DbSqlController::typeField($field, 'text') ." = ''";
+                                $null_condition = $field . ' IS NULL OR ' . $_STORAGE['Controller']->typeField($field, 'text') ." = ''";
                                 unset($value[$k]);
                             }
 
@@ -310,19 +318,19 @@ class methodsBase
                                 return $field . " IN ($value_list)";
                         return $null_condition . ' OR ' . $field . " IN ($value_list)";
                     } else
-                        return $field . ' IS NULL OR trim(' . DbSqlController::typeField($field, 'text') . ") = ''";
+                        return $field . ' IS NULL OR trim(' . $_STORAGE['Controller']->typeField($field, 'text') . ") = ''";
                 }
                 if (empty($value)) {
                     return $field . ' is null';
                 }
-                return $field . ' = ' . DbSqlController::type(DbSqlController::EscapeString($value), $type_desc);
+                return $field . ' = ' . $_STORAGE['Controller']->type($_STORAGE['Controller']->EscapeString($value), $type_desc);
             case "NEQ":
                 if (is_array($value)) {
                     if (count($value) > 0) {
                         $null_condition = '';
                         foreach ($value as $k => $v) {
                             if (!$v) {
-                                $null_condition = $field . ' IS NOT NULL AND trim(' . DbSqlController::typeField($field, 'text') . ") <> ''";
+                                $null_condition = $field . ' IS NOT NULL AND trim(' . $_STORAGE['Controller']->typeField($field, 'text') . ") <> ''";
                                 unset($value[$k]);
 
                             }
@@ -335,28 +343,28 @@ class methodsBase
                                 return $field . " NOT IN ($value_list)";
                         return $null_condition . ' and ' . $field . " NOT IN ($value_list)";
                     } else
-                        return $field . ' IS NOT NULL AND ' . DbSqlController::typeField($field, 'text') . " <> ''";
+                        return $field . ' IS NOT NULL AND ' . $_STORAGE['Controller']->typeField($field, 'text') . " <> ''";
                 }
                 if (empty($value)) {
                     return $field . " is null";
                 }
-                return $field . " <> '" . DbSqlController::EscapeString($value) . "'";
+                return $field . " <> '" . $_STORAGE['Controller']->EscapeString($value) . "'";
             case "G":
-                return $field . " > '" . DbSqlController::EscapeString($value) . "'";
+                return $field . " > '" . $_STORAGE['Controller']->EscapeString($value) . "'";
             case "F":
-                return DbSqlController::IdQuote($value) . "($field)";
+                return $_STORAGE['Controller']->IdQuote($value) . "($field)";
             case "FC":
-                return DbSqlController::IdQuote($value) . "('" . DbSqlController::relation($params['schemaName'], $params['entityName']) . "', $field)";
+                return $_STORAGE['Controller']->IdQuote($value) . "('" . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . "', $field)";
             case "EQF":
-                return $field . " =  " . DbSqlController::IdQuote($value) . "()";
+                return $field . " =  " . $_STORAGE['Controller']->IdQuote($value) . "()";
             case "FEQ":
-                return DbSqlController::IdQuote($func) . "($field) =  '" . DbSqlController::EscapeString($value) . "'";
+                return $_STORAGE['Controller']->IdQuote($func) . "($field) =  '" . $_STORAGE['Controller']->EscapeString($value) . "'";
             case "L":
-                return $field . " < '" . DbSqlController::EscapeString($value) . "'";
+                return $field . " < '" . $_STORAGE['Controller']->EscapeString($value) . "'";
             case "GEQ":
-                return $field . " >= '" . DbSqlController::EscapeString($value) . "'";
+                return $field . " >= '" . $_STORAGE['Controller']->EscapeString($value) . "'";
             case "LEQ":
-                return $field . " <= '" . DbSqlController::EscapeString($value) . "'";
+                return $field . " <= '" . $_STORAGE['Controller']->EscapeString($value) . "'";
             case "C":
                 if ($value) {
                     $value_parts = array();
@@ -370,10 +378,10 @@ class methodsBase
 
                     if ($field != "t.\"\"") {
                         foreach ($value_parts as $i => $v) {
-                            $where_arr[] = DbSqlController::typeField($field, 'text')
-                                . ' ' . DbSqlController::Like() . ' '
-                                . DbSqlController::type(
-                                    '%' . DbSqlController::EscapeString($v) . '%',
+                            $where_arr[] = $_STORAGE['Controller']->typeField($field, 'text')
+                                . ' ' . $_STORAGE['Controller']->Like() . ' '
+                                . $_STORAGE['Controller']->type(
+                                    '%' . $_STORAGE['Controller']->EscapeString($v) . '%',
                                     'text'
                                 );
                             ;
@@ -392,10 +400,10 @@ class methodsBase
                                         $where .= " OR ";
                                     }
                                     $where .= $field_description['subfields_table_alias'][$m] . '.'
-                                        .DbSqlController::typeField(DbSqlController::IdQuote($j_field), 'text')
-                                        . ' ' .DbSqlController::Like() .' '
-                                        .DbSqlController::type(
-                                            DbSqlController::EscapeString('%' . $value . '%'),
+                                        .$_STORAGE['Controller']->typeField($_STORAGE['Controller']->IdQuote($j_field), 'text')
+                                        . ' ' .$_STORAGE['Controller']->Like() .' '
+                                        .$_STORAGE['Controller']->type(
+                                            $_STORAGE['Controller']->EscapeString('%' . $value . '%'),
                                         'text'
                                         );
                                 }
@@ -405,13 +413,13 @@ class methodsBase
                                 }
                                 $where_arr = array();
                                 foreach ($value_parts as $i => $v)
-                                    $where_arr[] = DbSqlController::typeField(
-                                            't.' . DbSqlController::IdQuote($k),
+                                    $where_arr[] = $_STORAGE['Controller']->typeField(
+                                            't.' . $_STORAGE['Controller']->IdQuote($k),
                                             'text'
                                         )
-                                        . ' ' . DbSqlController::Like() .' '
-                                        .DbSqlController::type(
-                                            DbSqlController::EscapeString('%' . $v . '%'),
+                                        . ' ' . $_STORAGE['Controller']->Like() .' '
+                                        .$_STORAGE['Controller']->type(
+                                            $_STORAGE['Controller']->EscapeString('%' . $v . '%'),
                                             'text'
                                         );
 
@@ -424,12 +432,12 @@ class methodsBase
                                     $result['m_order'] = '';
                                 $value = $value_parts[0];
                                 $result['m_order'] .= ' NOT('
-                                    .DbSqlController::typeField('t.' .DbSqlController::IdQuote($k), 'text')
-                                    .' ' .DbSqlController::Like() .' '
-                                    .DbSqlController::type(
-                                        DbSqlController::EscapeString($value . '%'),'text')
+                                    .$_STORAGE['Controller']->typeField('t.' .$_STORAGE['Controller']->IdQuote($k), 'text')
+                                    .' ' .$_STORAGE['Controller']->Like() .' '
+                                    .$_STORAGE['Controller']->type(
+                                        $_STORAGE['Controller']->EscapeString($value . '%'),'text')
                                     .'), t.'
-                                    .DbSqlController::typeField(DbSqlController::IdQuote($k), 'text');
+                                    .$_STORAGE['Controller']->typeField($_STORAGE['Controller']->IdQuote($k), 'text');
                             }
                         }
 
@@ -464,6 +472,7 @@ class methodsBase
     }
 
     public static function makeOrderAndDistinctString($order_object, $params) {
+        global $_STORAGE;
         $orderfields = '';
         $orderfields_no_aliases = '';
         $distinctfields = '';
@@ -473,21 +482,21 @@ class methodsBase
                 $o_t_alias = 't';
 
             if ($orderfields_no_aliases) {
-                $orderfields_no_aliases .= ', ' . DbSqlController::IdQuote($o["field"]);
+                $orderfields_no_aliases .= ', ' . $_STORAGE['Controller']->IdQuote($o["field"]);
             } else {
-                $orderfields_no_aliases = 'ORDER BY ' . DbSqlController::IdQuote($o["field"]);
+                $orderfields_no_aliases = 'ORDER BY ' . $_STORAGE['Controller']->IdQuote($o["field"]);
             }
 
             if (isset($params["fields"][$o["field"]]["subfields"]))
-                $o_f = DbSqlController::IdQuote($o["field"]);
+                $o_f = $_STORAGE['Controller']->IdQuote($o["field"]);
             else
-                $o_f = DbSqlController::IdQuote($o_t_alias) . '.' . DbSqlController::IdQuote($o["field"]);
+                $o_f = $_STORAGE['Controller']->IdQuote($o_t_alias) . '.' . $_STORAGE['Controller']->IdQuote($o["field"]);
 
             if (isset($o["func"])) {
-                $o_f = DbSqlController::IdQuote($o["func"]) . '(' . $o_f . ')';
+                $o_f = $_STORAGE['Controller']->IdQuote($o["func"]) . '(' . $o_f . ')';
             }
             if (isset($o["type"])) {
-                $o_f = $o_f . '::' . DbSqlController::IdQuote($o["type"]);
+                $o_f = $o_f . '::' . $_STORAGE['Controller']->IdQuote($o["type"]);
             }
             if (isset($o["distinct"])) {
                 if ($distinctfields) {
@@ -517,8 +526,8 @@ class methodsBase
                 implode(
                     ', ',
                     array_map(
-                        function ($value) {
-                            return DbSqlController::IdQuote($value);
+                        function ($value) use($_STORAGE) {
+                            return $_STORAGE['Controller']->IdQuote($value);
                         },
                         $params['primaryKey']
                     )
@@ -538,6 +547,7 @@ class methodsBase
     }
 
     public static function getTableDataPredicate($params) {
+        global $_STORAGE;
         $desc = $params['desc'] ?? '';
         $replace_rules = array();
 
@@ -568,7 +578,7 @@ class methodsBase
                     $field_list .= ", ";
                 }
                 $field_description = $params["fields"][$field_name];
-                $field_list .= DbSqlController::IdQuote($field_description["table_alias"]) . "." . DbSqlController::IdQuote($field_name);
+                $field_list .= $_STORAGE['Controller']->IdQuote($field_description["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field_name);
                 $field_array[] = $field_name;
             }
             foreach ($params["aggregate"] as $i => $field_obj) {
@@ -578,7 +588,7 @@ class methodsBase
                 $field_name = $field_obj["field"];
                 $field_func = $field_obj["func"];
                 $field_description = $params["fields"][$field_name];
-                $field_list .= $field_func . "(" . DbSqlController::IdQuote($field_description["table_alias"]) . "." . DbSqlController::IdQuote($field_name) . ") as $field_name";
+                $field_list .= $field_func . "(" . $_STORAGE['Controller']->IdQuote($field_description["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field_name) . ") as $field_name";
                 $field_array[] = $field_name;
             }
         } else {
@@ -593,33 +603,33 @@ class methodsBase
 
                     foreach ($field_description['subfields'] as $m => $j_field) {
                         $j_field_list_array[] = 'COALESCE('
-                            . DbSqlController::IdQuote($field_description['subfields_table_alias'][$m])
+                            . $_STORAGE['Controller']->IdQuote($field_description['subfields_table_alias'][$m])
                             . '.'
-                            . DbSqlController::typeField($j_field, 'text')
+                            . $_STORAGE['Controller']->typeField($j_field, 'text')
                             . ", '')";
                     }
 
                     if (isset($field_description["format"]))
-                        $j_field_list = DbSqlController::FormatColumns(
+                        $j_field_list = $_STORAGE['Controller']->FormatColumns(
                             $j_field_list_array,
-                            DbSqlController::EscapeString($field_description["format"])
+                            $_STORAGE['Controller']->EscapeString($field_description["format"])
                         );
                     else
-                        $j_field_list = DbSqlController::Concat($j_field_list_array);
+                        $j_field_list = $_STORAGE['Controller']->Concat($j_field_list_array);
 
                     if (isset($field_description["virtual"]))
-                        $field_list .= DbSqlController::RowToJson(
+                        $field_list .= $_STORAGE['Controller']->RowToJson(
                                 array(
                                     $j_field_list,
-                                    $field_description['subfields_navigate_alias'] . '.' . DbSqlController::IdQuote($field_description['subfields_key']))
-                            ) .' ' .DbSqlController::Collate() .' AS ' . DbSqlController::IdQuote($field_name);
+                                    $field_description['subfields_navigate_alias'] . '.' . $_STORAGE['Controller']->IdQuote($field_description['subfields_key']))
+                            ) .' ' .$_STORAGE['Controller']->Collate() .' AS ' . $_STORAGE['Controller']->IdQuote($field_name);
                     else
-                        $field_list .= DbSqlController::RowToJson(
+                        $field_list .= $_STORAGE['Controller']->RowToJson(
                                 array(
                                     $j_field_list,
-                                    DbSqlController::IdQuote($field_description['table_alias']) . '.' . DbSqlController::IdQuote($field_name)
+                                    $_STORAGE['Controller']->IdQuote($field_description['table_alias']) . '.' . $_STORAGE['Controller']->IdQuote($field_name)
                                 )
-                            ) .' ' .DbSqlController::Collate() .' AS ' . DbSqlController::IdQuote($field_name);
+                            ) .' ' .$_STORAGE['Controller']->Collate() .' AS ' . $_STORAGE['Controller']->IdQuote($field_name);
                     $field_array[] = $field_name;
 
                     $replace_rules[$field_name] = $j_field_list;
@@ -630,11 +640,11 @@ class methodsBase
                         $field_table_alias = 't';
 
                     if (isset($field_description["only_filled"]))
-                        $field_list .= DbSqlController::IdQuote($field_table_alias) . "." . DbSqlController::IdQuote($field_name) . " is not null as " . DbSqlController::IdQuote($field_name);
+                        $field_list .= $_STORAGE['Controller']->IdQuote($field_table_alias) . "." . $_STORAGE['Controller']->IdQuote($field_name) . " is not null as " . $_STORAGE['Controller']->IdQuote($field_name);
                     else
-                        $field_list .= DbSqlController::IdQuote($field_table_alias) . "." . DbSqlController::IdQuote($field_name);
+                        $field_list .= $_STORAGE['Controller']->IdQuote($field_table_alias) . "." .  $_STORAGE['Controller']->IdQuote($field_name);
                     if (isset($field_description['type']))
-                        $field_list .= '::' . DbSqlController::IdQuote($field_description['type']);
+                        $field_list .= '::' .  $_STORAGE['Controller']->IdQuote($field_description['type']);
                     $field_array[] = $field_name;
                 }
             }
@@ -647,10 +657,10 @@ class methodsBase
                     if ($param_list) {
                         $param_list .= ", ";
                     }
-                    $param_list .= DbSqlController::IdQuote($param['field']);
+                    $param_list .=  $_STORAGE['Controller']->IdQuote($param['field']);
                 }
 
-                $field_list .= DbSqlController::IdQuote($function_description["schema"]) . "." . DbSqlController::IdQuote($function_description["func"]) . "($param_list)";
+                $field_list .=  $_STORAGE['Controller']->IdQuote($function_description["schema"]) . "." .  $_STORAGE['Controller']->IdQuote($function_description["func"]) . "($param_list)";
                 $field_array[] = $function_description["func"];
             }
         }
@@ -661,9 +671,9 @@ class methodsBase
         foreach ($params["join"] as $k => $j) {
             if (isset($j["distinct"])) {
                 $order_distinct = self::makeOrderAndDistinctString($j["distinct"], $params);
-                $join .= " left join (select distinct on (" . $order_distinct['distinctfields'] . ") * from " . DbSqlController::relation($j["schema"], $j["entity"]) . " t " . $order_distinct['orderfields'] . ")as " . DbSqlController::IdQuote($j["table_alias"]) . " on " . DbSqlController::IdQuote($j["parent_table_alias"]) . "." . DbSqlController::IdQuote($j["key"]) . " = " . DbSqlController::IdQuote($j["table_alias"]) . "." . DbSqlController::IdQuote($j["entityKey"]);
+                $join .= " left join (select distinct on (" . $order_distinct['distinctfields'] . ") * from " .  $_STORAGE['Controller']->relation($j["schema"], $j["entity"]) . " t " . $order_distinct['orderfields'] . ")as " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . " on " .  $_STORAGE['Controller']->IdQuote($j["parent_table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["key"]) . " = " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["entityKey"]);
             } else
-                $join .= " left join " . DbSqlController::relation($j["schema"], $j["entity"]) . " as " . DbSqlController::IdQuote($j["table_alias"]) . " on " . DbSqlController::IdQuote($j["parent_table_alias"]) . "." . DbSqlController::IdQuote($j["key"]) . " = " . DbSqlController::IdQuote($j["table_alias"]) . "." . DbSqlController::IdQuote($j["entityKey"]);
+                $join .= " left join " .  $_STORAGE['Controller']->relation($j["schema"], $j["entity"]) . " as " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . " on " .  $_STORAGE['Controller']->IdQuote($j["parent_table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["key"]) . " = " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["entityKey"]);
         }
 
 
@@ -676,14 +686,14 @@ class methodsBase
         $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params, $pred_res);
 
         if ($distinctfields)
-            $count = 'SELECT count(distinct ' . $distinctfields . ') FROM (SELECT ' . $field_list . ' FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(distinct ' . $distinctfields . ') FROM (SELECT ' . $field_list . ' FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
         else
-            $count = 'SELECT count(*) AS count FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(*) AS count FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if ($distinctfields) {
             $distinctfields = 'distinct on (' . $distinctfields . ')';
         }
-        $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+        $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         $sql_aggregates = "";
         foreach ($params["aggregate"] as $aggregateDescription) {
@@ -693,7 +703,7 @@ class methodsBase
                 $sql_aggregates = $sql_aggregates . $aggregateDescription["func"] . '(t.' . $aggregateDescription["field"] . ') as "' . $aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')", ';
             }
         }
-        $sql_aggregates = 'SELECT ' . $sql_aggregates . ' FROM ' . DbSqlController::relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+        $sql_aggregates = 'SELECT ' . $sql_aggregates . ' FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if (isset($params["sample"])) {
             $ratio = intval($params["sample"]);
@@ -724,14 +734,14 @@ class methodsBase
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
             if ($params["currentKey"] && ($params["limit"] != 0 and $params["limit"] != -1)) {
-                $equation = '(' .DbSqlController::NumericTruncate("(k.row_number - 1) / $params[limit]") ." * $params[limit])";
+                $equation = '(' . $_STORAGE['Controller']->NumericTruncate("(k.row_number - 1) / $params[limit]") ." * $params[limit])";
                 if (isset($params["middleRow"])) {
-                    if ($params["middleRow"]) $equation = 'greatest(' .DbSqlController::NumericTruncate("k.row_number - ($params[limit] / 2) - 1") .', 0)';
+                    if ($params["middleRow"]) $equation = 'greatest(' . $_STORAGE['Controller']->NumericTruncate("k.row_number - ($params[limit] / 2) - 1") .', 0)';
                 }
                 $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE ' . $equation . ' END as row_number
-                    FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' . DbSqlController::IdQuote($params["primaryKey"]) .
-                    '  from (' . $statement . ') t ) k WHERE k.' . $params["primaryKey"] . '=\'' . DbSqlController::EscapeString($params["currentKey"]) . '\'';
-                $rowNumberRes = DbSqlController::sql($pageNumberStatement);
+                    FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' .  $_STORAGE['Controller']->IdQuote($params["primaryKey"]) .
+                    '  from (' . $statement . ') t ) k WHERE k.' . $params["primaryKey"] . '=\'' .  $_STORAGE['Controller']->EscapeString($params["currentKey"]) . '\'';
+                $rowNumberRes =  $_STORAGE['Controller']->sql($pageNumberStatement);
                 $params["offset"] = 0;
                 if (isset($rowNumberRes[0]["row_number"]))
                     $params["offset"] = $rowNumberRes[0]["row_number"];
@@ -754,7 +764,7 @@ class methodsBase
         $options = static::GetDefaultOptions();
         $options->SetFormat((isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object');
         $options->SetQueryDescription($desc);
-        $data_result_statement = DbSqlController::sql($statement, $options);
+        $data_result_statement =  $_STORAGE['Controller']->sql($statement, $options);
         $count_data = count($data_result_statement);
 
         if (($count_data < $params["limit"]) || ($params["limit"] == 1)) {
@@ -770,8 +780,8 @@ class methodsBase
             $fst_operand = $params['predicate']['operands'][0];
             if ($fst_operand['operand']['op'] == "FTS") {
                 $ts_query = json_decode($fst_operand['operand']['value'], true);
-                $ts_n = DbSqlController::sql('select plainto_tsquery(\'' . DbSqlController::EscapeString($ts_query["language"]) .
-                    '\', \'' . DbSqlController::EscapeString($ts_query["ft_query"]) . '\')');
+                $ts_n =  $_STORAGE['Controller']->sql('select plainto_tsquery(\'' .  $_STORAGE['Controller']->EscapeString($ts_query["language"]) .
+                    '\', \'' .  $_STORAGE['Controller']->EscapeString($ts_query["ft_query"]) . '\')');
                 $data_result['ft_keywords'] = $ts_n[0]['plainto_tsquery'];
             }
         }
@@ -779,7 +789,7 @@ class methodsBase
         if (sizeof($params["aggregate"])) {
             $options = static::GetDefaultOptions();
             $options->SetQueryDescription("$desc (aggregate)");
-            $data_aggregates = DbSqlController::sql($sql_aggregates, $options);
+            $data_aggregates =  $_STORAGE['Controller']->sql($sql_aggregates, $options);
 
             foreach ($params["aggregate"] as $aggrIndex => $aggregateDescription) {
                 $data_result[$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'][][$aggregateDescription["func"]] = $data_aggregates[0][$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'];
@@ -794,6 +804,7 @@ class methodsBase
     }
 
     public static function deleteEntitiesByKey($params) {
+        global $_STORAGE;
         $replaceDataWithSQL;
         static::preProcessing($params, "deleteEntitiesByKey", $replaceDataWithSQL);
         $sql = '';
@@ -828,13 +839,13 @@ class methodsBase
                 if (isset($params["types"]))
                     if (isset($params["types"][$key]))
                         if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
-                $sql_where .= DbSqlController::IdQuote($key) . " = '" . DbSqlController::EscapeString($value_arr[$j][$i]) . "'" . $type_conversion;
+                $sql_where .=  $_STORAGE['Controller']->IdQuote($key) . " = '" .  $_STORAGE['Controller']->EscapeString($value_arr[$j][$i]) . "'" . $type_conversion;
                 if ($key != end($key_arr))
                     $sql_where .= " AND ";
 
             }
 
-            $sql .= 'DELETE FROM ' . DbSqlController::relation($params['schemaName'], $params['entityName']) . ' WHERE ' . $sql_where . ';';
+            $sql .= 'DELETE FROM ' .  $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . ' WHERE ' . $sql_where . ';';
         }
 
         static::queryModifyEntities($sql);
@@ -845,6 +856,7 @@ class methodsBase
 
 
     public static function addEntities($params) {
+        global $_STORAGE;
         $replaceDataWithSQL;
         static::preProcessing($params, "addEntities", $replaceDataWithSQL);
 
@@ -857,11 +869,11 @@ class methodsBase
             foreach ($row as $field => $value) {
                 if (!is_null($value) && $value!='') {
                     $sql_to_set = '';
-                    $sql_to_set = "'" . DbSqlController::EscapeString($value) . "'";
+                    $sql_to_set = "'" .  $_STORAGE['Controller']->EscapeString($value) . "'";
                     if (isset($params["types"])) {
                         if (isset($params["types"][$field]))
                             if ($params["types"][$field]) {
-                                $sql_to_set = DbSqlController::type(DbSqlController::EscapeString($value), $params["types"][$field]);
+                                $sql_to_set =  $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value), $params["types"][$field]);
                             }
                     }
 
@@ -869,9 +881,9 @@ class methodsBase
                         $sql_to_set = $replaceDataWithSQL[$field];
 
                     if ($fields) {
-                        $fields .= ', ' . DbSqlController::IdQuote($field);
+                        $fields .= ', ' .  $_STORAGE['Controller']->IdQuote($field);
                     } else {
-                        $fields = DbSqlController::IdQuote($field);
+                        $fields =  $_STORAGE['Controller']->IdQuote($field);
                     }
 
                     if ($values) {
@@ -882,9 +894,9 @@ class methodsBase
                 }
             }
 
-            $sql .= 'INSERT INTO ' .DbSqlController::relation($params['schemaName'], $params['entityName'])
-                    . "($fields) "  .DbSqlController::InsertValues($values) .' '
-                    .DbSqlController::ReturningPKey(DbSqlController::IdQuote($params['key']))  .';';
+            $sql .= 'INSERT INTO ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName'])
+                    . "($fields) "  . $_STORAGE['Controller']->InsertValues($values) .' '
+                    . $_STORAGE['Controller']->ReturningPKey( $_STORAGE['Controller']->IdQuote($params['key']))  .';';
         }
 
         $ins_ret = static::queryModifyEntities($sql, null, "$desc (files)");
@@ -892,6 +904,7 @@ class methodsBase
     }
 
     public static function updateEntity($params) {
+        global $_STORAGE;
         $replaceDataWithSQL;
         static::preProcessing($params, "updateEntity", $replaceDataWithSQL);
 
@@ -943,18 +956,18 @@ class methodsBase
                     if(isset($replaceDataWithSQL[$field]))
                         $sql_to_set = $replaceDataWithSQL[$field];
                     else
-                        $sql_to_set = "'" . DbSqlController::EscapeString($value) . "'". $type_conversion;
+                        $sql_to_set = "'" .  $_STORAGE['Controller']->EscapeString($value) . "'". $type_conversion;
 
                     if ($set) {
-                        $set .= ', ' . DbSqlController::IdQuote($field) . " = $sql_to_set";
+                        $set .= ', ' .  $_STORAGE['Controller']->IdQuote($field) . " = $sql_to_set";
                     } else {
-                        $set = DbSqlController::IdQuote($field) . " = $sql_to_set";
+                        $set =  $_STORAGE['Controller']->IdQuote($field) . " = $sql_to_set";
                     }
                 } else {
                     if ($set) {
-                        $set .= ', ' . DbSqlController::IdQuote($field) . " = NULL";
+                        $set .= ', ' .  $_STORAGE['Controller']->IdQuote($field) . " = NULL";
                     } else {
-                        $set = DbSqlController::IdQuote($field) . " = NULL";
+                        $set =  $_STORAGE['Controller']->IdQuote($field) . " = NULL";
                     }
                 }
             };
@@ -965,15 +978,15 @@ class methodsBase
                     if ($params["types"][$key]) {
                         $type_conversion = $params["types"][$key];
                     }
-                $sql_where .= DbSqlController::typeField($key, $type_conversion, true)
+                $sql_where .=  $_STORAGE['Controller']->typeField($key, $type_conversion, true)
                     . " = "
-                    . DbSqlController::type(DbSqlController::EscapeString($value_arr[$j][$i]), $type_conversion);
+                    .  $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value_arr[$j][$i]), $type_conversion);
                 if ($key != end($key_arr))
                     $sql_where .= " AND ";
 
             }
 
-            $sql .= 'UPDATE ' . DbSqlController::relation($params['schemaName'], $params['entityName']) . " SET $set WHERE $sql_where;";
+            $sql .= 'UPDATE ' .  $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . " SET $set WHERE $sql_where;";
         }
 
         static::queryModifyEntities($sql);
@@ -984,7 +997,7 @@ class methodsBase
 
     public static function getPIDs($params) {
         global $_STORAGE;
-        $r = DbSqlController::sql('SELECT * FROM pg_stat_activity WHERE datname = current_database()');
+        $r =  $_STORAGE['Controller']->sql('SELECT * FROM pg_stat_activity WHERE datname = current_database()');
         $pid_map = array();
         foreach ($r as $i => $v) {
             $pid_map[$v['pid']] = 1;
@@ -1000,7 +1013,7 @@ class methodsBase
 
     public static function killPID($params) {
         global $_STORAGE;
-        $r = DbSqlController::sql('select pg_terminate_backend(' . DbSqlController::EscapeString($params['pid']) . ')');
+        $r =  $_STORAGE['Controller']->sql('select pg_terminate_backend(' .  $_STORAGE['Controller']->EscapeString($params['pid']) . ')');
         unset($_STORAGE['pids'][$params['pid']]);
         return $r;
     }
@@ -1010,11 +1023,11 @@ class methodsBase
     }
 
     public static function getAllModelMetadata() {
-        global $_CONFIG;
+        global $_CONFIG, $_STORAGE;
         $buttons = "";
         $pages = "";
 
-        $proj_arr = DbSqlController::sql("SELECT * FROM $_CONFIG->metaSchema.view_projection_entity");
+        $proj_arr =  $_STORAGE['Controller']->sql("SELECT * FROM $_CONFIG->metaSchema.view_projection_entity");
         if (@count($proj_arr) == 0) {
             //throw new Exception("Metadata: no projections");
         }
@@ -1032,7 +1045,7 @@ class methodsBase
 
         $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons);
 
-        $options = DbSqlController::sql("SELECT * FROM $_CONFIG->metaSchema.options");
+        $options =  $_STORAGE['Controller']->sql("SELECT * FROM $_CONFIG->metaSchema.options");
 
         return array('projections' => $metadata, 'pages' => $pages, 'options' => $options);
     }

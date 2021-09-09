@@ -31,6 +31,7 @@ try {
 
     ApplicationInitBase::initStorage();
     ApplicationInitBase::initDatabase();
+    ApplicationInitBase::initDbSqlController();
 
     echo ApplicationInitBase::request();
 } catch (Exception $e) {

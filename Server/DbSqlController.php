@@ -2,7 +2,7 @@
 
 
 class DbSqlController {
-    protected static function GetObjectDatabase() {
+    protected function GetObjectDatabase() {
         global $_STORAGE;
 
         if (isset($_STORAGE['database']))
@@ -11,23 +11,23 @@ class DbSqlController {
         throw new Exception('Object database not found.');
     }
 
-    protected static function GetObjectSql($query, $options) {
+    protected function GetObjectSql($query, $options) {
         return new SQLBase($query, $options);
     }
 
-    public static function EscapeString($value) {
-        return self::GetObjectDatabase()->db_escape_string($value);
+    public function EscapeString($value) {
+        return $this->GetObjectDatabase()->db_escape_string($value);
     }
 
-    public static function EscapeBytea($value) {
-        return self::GetObjectDatabase()->db_escape_bytea($value);
+    public function EscapeBytea($value) {
+        return $this->GetObjectDatabase()->db_escape_bytea($value);
     }
 
-    public static function IdQuote($identifier) {
-        return self::GetObjectDatabase()->id_quote($identifier);
+    public function IdQuote($identifier) {
+        return $this->GetObjectDatabase()->id_quote($identifier);
     }
 
-    public static function Connect($encrypt_password, $default_connection) {
+    public function Connect($encrypt_password, $default_connection) {
         global $_STORAGE, $_CONFIG;
         $usename = '';
         $dbname = $_STORAGE['dbname'] ?? $_CONFIG->dbname;
@@ -51,7 +51,7 @@ class DbSqlController {
 
             foreach ($variants_login as $login) {
                 $usename = $login;
-                $dbconnect = self::GetObjectDatabase()->db_connect(
+                $dbconnect = $this->GetObjectDatabase()->db_connect(
                     array(
                         'host' => $_CONFIG->host, 'dbname' => $_CONFIG->dbname,
                         'port' => $_CONFIG->port, 'user' => $login,
@@ -68,7 +68,7 @@ class DbSqlController {
         }
         else {
             $usename = $_CONFIG->dbDefaultUser;
-            $dbconnect = self::GetObjectDatabase()->db_connect(
+            $dbconnect = $this->GetObjectDatabase()->db_connect(
                 array(
                     'host' => $_CONFIG->host, 'dbname' => $_CONFIG->dbname,
                     'port' => $_CONFIG->port, 'user' => $usename,
@@ -84,11 +84,11 @@ class DbSqlController {
         throw new Exception("Unable to connect by user $usename to system.");
     }
 
-    public static function Sql($query, $options = null) {
+    public function Sql($query, $options = null) {
         global $_STORAGE;
 
-        $databaseObject = self::GetObjectDatabase();
-        $sqlObject = static::GetObjectSql($query, $options);
+        $databaseObject = $this->GetObjectDatabase();
+        $sqlObject = $this->GetObjectSql($query, $options);
 
         $prepareResponse = $sqlObject->PrepareConnection();
         if (!is_null($prepareResponse))
@@ -97,7 +97,7 @@ class DbSqlController {
         $format = $databaseObject->get_format($sqlObject->GetOptions()->GetFormat());
         $databaseObject->db_type_compare($format);
 
-        self::Connect(
+        $this->Connect(
             $sqlObject->GetOptions()->GetEncryptPassword(),
             $sqlObject->GetOptions()->GetDefaultConnection()
         );
@@ -113,7 +113,7 @@ class DbSqlController {
             $_STORAGE->pauseSession();
         }
 
-        $result = self::QueryExec($query);
+        $result = $this->QueryExec($query);
 
         if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__') && (session_status() == PHP_SESSION_NONE)) {
             // Reopen session after close.
@@ -133,11 +133,11 @@ class DbSqlController {
         return $response;
     }
 
-    public static function SqlCountEstimate($query, $options = null) {
-        $sqlObject = static::GetObjectSql($query, $options);
+    public function SqlCountEstimate($query, $options = null) {
+        $sqlObject = $this->GetObjectSql($query, $options);
         $result =
-            self::Sql(
-                self::GetObjectDatabase()->get_explain_query() . " $query",
+            $this->Sql(
+                $this->GetObjectDatabase()->get_explain_query() . " $query",
                 $options
             );
 
@@ -147,57 +147,61 @@ class DbSqlController {
         return $sqlObject->ParseCountEstimateAnswer($result[0]);
     }
 
-    public static function QueryExec($query) {
-        return self::GetObjectDatabase()->db_query($query);
+    public function QueryExec($query) {
+        return $this->GetObjectDatabase()->db_query($query);
     }
 
-    public static function relation($schemaName, $entityName) {
-        return self::IdQuote($schemaName). '.' .self::IdQuote($entityName);
+    public function relation($schemaName, $entityName) {
+        return $this->IdQuote($schemaName). '.' .$this->IdQuote($entityName);
     }
 
-    public static function type($value, $type) {
-        return self::GetObjectDatabase()->type($value, $type);
+    public function type($value, $type) {
+        return $this->GetObjectDatabase()->type($value, $type);
     }
 
-    public static function typeField($field, $type, $need_quote = false) {
-        return self::GetObjectDatabase()->type_field($field, $type, $need_quote);
+    public function typeField($field, $type, $need_quote = false) {
+        return $this->GetObjectDatabase()->type_field($field, $type, $need_quote);
     }
 
-    public static function GetUserDescription($username) {
-        return self::Sql(
-            self::GetObjectDatabase()->db_query_user_description($username)
+    public function GetUserDescription($username) {
+        return $this->Sql(
+            $this->GetObjectDatabase()->db_query_user_description($username)
         );
     }
 
-    public static function NumericTruncate($numeric, $count = 0, $alias = false) {
-        return self::GetObjectDatabase()->numeric_trunc($numeric, $count, $alias);
+    public function NumericTruncate($numeric, $count = 0, $alias = false) {
+        return $this->GetObjectDatabase()->numeric_trunc($numeric, $count, $alias);
     }
 
-    public static function ReturningPKey($pkey_column) {
-        return self::GetObjectDatabase()->return_pkey_value($pkey_column);
+    public function ReturningPKey($pkey_column) {
+        return $this->GetObjectDatabase()->return_pkey_value($pkey_column);
     }
 
-    public static function InsertValues($str_values) {
-        return self::GetObjectDatabase()->wrap_insert_values($str_values);
+    public function InsertValues($str_values) {
+        return $this->GetObjectDatabase()->wrap_insert_values($str_values);
     }
 
-    public static function Like() {
-        return self::GetObjectDatabase()->operator_like();
+    public function Like() {
+        return $this->GetObjectDatabase()->operator_like();
     }
 
-    public static function Concat($array) {
-        return self::GetObjectDatabase()->concat($array);
+    public function Concat($array) {
+        return $this->GetObjectDatabase()->concat($array);
     }
 
-    public static function FormatColumns($columns, $format) {
-        return self::GetObjectDatabase()->format($columns, $format);
+    public function FormatColumns($columns, $format) {
+        return $this->GetObjectDatabase()->format($columns, $format);
     }
 
-    public static function RowToJson($columns) {
-        return self::GetObjectDatabase()->row_to_json($columns);
+    public function RowToJson($columns) {
+        return $this->GetObjectDatabase()->row_to_json($columns);
     }
 
-    public static function Collate() {
-        return 'collate "' .self::GetObjectDatabase()->get_collate() .'"';
+    public function Collate() {
+        return 'collate "' .$this->GetObjectDatabase()->get_collate() .'"';
+    }
+
+    public function GetDefaultOptions() {
+        return new SQLParamBase();
     }
 }

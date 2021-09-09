@@ -114,9 +114,10 @@ class SQLBase
         return 'new_query_test';
     }
 
-    public function ExistsScheme($schemaName, $options = null) {
+    public static function ExistsScheme($schemaName, $options = null) {
+        global $_STORAGE;
         // TODO move to database class.
-        return DbSqlController::sql(
+        return $_STORAGE['Controller']->sql(
             "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$schemaName');",
             $options
         )[0]['exists'];

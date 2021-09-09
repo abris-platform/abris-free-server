@@ -21,14 +21,14 @@ class TestDbSqlController extends TestCase
 
         unset($_STORAGE['database']);
         $this->expectExceptionMessage('Object database not found.');
-        $esc = DbSqlController::IdQuote('test');
+        $esc = $_STORAGE['Controller']->IdQuote('test');
     }
 
     public function test_Connect_with_private_key_success_connect() {
         global $_STORAGE, $_CONFIG;
         $this->SetParamsConnect($_CONFIG->dbDefaultPass);
 
-        $connect = DbSqlController::Connect($_STORAGE['password'], false);
+        $connect = $_STORAGE['Controller']->Connect($_STORAGE['password'], false);
 
         $this->assertNotFalse($connect);
     }
@@ -38,7 +38,7 @@ class TestDbSqlController extends TestCase
         $this->SetParamsConnect();
 
         $this->expectExceptionMessage('Invalid password detected! Password can be changed!');
-        DbSqlController::Connect($_STORAGE['password'], false);
+        $_STORAGE['Controller']->Connect($_STORAGE['password'], false);
     }
 
     public function test_Connect_with_private_key_unseccess_connect() {
@@ -46,12 +46,12 @@ class TestDbSqlController extends TestCase
         $this->SetParamsConnect('bad_password');
 
         $this->expectExceptionMessage('Unable to connect by user');
-        DbSqlController::Connect($_STORAGE['password'], false);
+        $_STORAGE['Controller']->Connect($_STORAGE['password'], false);
     }
 
     public function test_Connect_default_connection() {
         $this->assertNotFalse(
-            DbSqlController::Connect('', true)
+            $_STORAGE['Controller']->Connect('', true)
         );
     }
 }
