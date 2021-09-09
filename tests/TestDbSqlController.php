@@ -50,6 +50,7 @@ class TestDbSqlController extends TestCase
     }
 
     public function test_Connect_default_connection() {
+        global $_STORAGE;
         $this->assertNotFalse(
             $_STORAGE['Controller']->Connect('', true)
         );

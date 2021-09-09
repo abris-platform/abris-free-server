@@ -2092,6 +2092,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getAllModelMetadata() {
+        global $_STORAGE;
         $res = methodsBase::getAllModelMetadata();
 
         // check relations loaded
