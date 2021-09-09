@@ -7,3 +7,4 @@
     ApplicationInitBase::initConfigFree();
     ApplicationInitBase::initStorage();
     ApplicationInitBase::initDatabase();
+    ApplicationInitBase::initDbSqlController();
