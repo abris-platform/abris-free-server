@@ -78,6 +78,7 @@ class methodsBase
         $options->SetPreprocessData(null);
         $options->SetQueryDescription($query_description);
 
+
         return $_STORAGE['Controller']->sql($query, $options);
     }
 

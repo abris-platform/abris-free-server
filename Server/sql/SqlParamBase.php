@@ -36,8 +36,8 @@ class SQLParamBase
     }
 
     private function SetFileLog() {
-        global $isLogFile;
-        $this->isLogFile = isset($isLogFile) ?? false;
+        global $_CONFIG;
+        $this->isLogFile = isset($_CONFIG->logFile);
     }
 
     public function SetQueryDescription($value = '') {

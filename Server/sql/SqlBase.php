@@ -27,12 +27,6 @@ class SQLBase
 
     public function PrepareConnection() {
         $format = $this->options->GetFormat();
-
-/*        if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
-            $response = $this->sql_handler_test($this->query, $format);
-            if ($response != 'new_query_test')
-                return $response;
-        }*/
         return null;
     }
 
@@ -50,9 +44,6 @@ class SQLBase
             );
             $_STORAGE['pids'] = $tmpPids;
         }
-
-        if ($this->options->IsLogFile())
-            file_put_contents("$_CONFIG->databaseType.log", date('Y-m-d H:i:s', time()) . '\t' . ($_SERVER['REMOTE_ADDR'] ?? 'cli') . '\t' . $pid . '\t' . $this->query . '\n', FILE_APPEND);
 
     }
 
@@ -77,41 +68,6 @@ class SQLBase
 
         $this->database->db_free_result($result);
         return $response;
-    }
-
-    public function WriteTestsResult($response) {
-        if (!(!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
-            if($this->query == 'select version()') return;
-            $fp = fopen('test_query_response_json.txt', 'a+');
-            $json = [
-                'query' => str_replace(array("\r\n", "\r", "\n"), ' ', $this->query),
-                'format' => $this->options->GetFormat(),
-                'response' => $response,
-
-            ];
-            fwrite($fp, json_encode($json) . PHP_EOL);
-            fclose($fp);
-        }
-    }
-
-    public function sql_handler_test($query, $format) {
-        global $_STORAGE;
-
-        if (!isset($_STORAGE['pids']))
-            $_STORAGE['pids'] = array();
-
-        if($query == 'select version()') return 'new_query_test';
-
-        $query = str_replace(array("\r\n", "\r", "\n"), ' ', $query);
-        $query_test_array = file('test_query_response_json.txt', FILE_IGNORE_NEW_LINES);
-        foreach ($query_test_array as $line_num => $line) {
-            $json_response = json_decode($line, true);
-            if (isset($json_response['query']) && isset($json_response['format']))
-                if (($json_response['query'] == $query) && ($json_response['format'] == $format))
-                    return $json_response['response'];
-        }
-
-        return 'new_query_test';
     }
 
     public static function ExistsScheme($schemaName, $options = null) {

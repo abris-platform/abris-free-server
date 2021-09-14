@@ -124,12 +124,11 @@ class DbSqlController {
         unset($unstor[$pid]);
         $_STORAGE['pids'] = $unstor;
 
+
         $sqlObject->AfterQuery($result);
         $response = $sqlObject->ProcessResult($result, $format);
 
         $databaseObject->db_close();
-        $sqlObject->WriteTestsResult($response);
-
         return $response;
     }
 
