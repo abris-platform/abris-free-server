@@ -11,19 +11,16 @@ RUN echo "host all  all   0.0.0.0/0   md5" >> /etc/postgresql/12/main/pg_hba.con
     && sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/12/main/postgresql.conf \
     && sed -i 's/127.0.0.1/0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 
-RUN curl -O https://abrisplatform.com/downloads/abris-free.zip \
-    && unzip abris-free.zip -d abris-free
-RUN curl -O https://edu.postgrespro.ru/demo-small.zip \
-    && unzip demo-small.zip -d demo-small
+RUN curl -O https://abrisplatform.com/downloads/abris-free-databases.zip \
+    && unzip abris-free-databases.zip -d abris-free
 
-COPY pgsql_additional.sql /tmp/
+COPY free-pgsql-demo.sql /tmp/
 
 CMD service postgresql start \
     && service mysql start \
-    && su postgres -c "psql -U postgres -c \"ALTER USER ${PG_MAIN_LOGIN} WITH ENCRYPTED PASSWORD '${PG_ROOT_PASSWORD}';\"" \
-    && su postgres -c "psql -U ${PG_MAIN_LOGIN} -f /demo-small/demo-small-20170815.sql" \
-    && su postgres -c "psql -U ${PG_MAIN_LOGIN} -d demo -f /abris-free/Server/sql_install/pg_abris_free.sql" \
-    && su postgres -c "psql -U ${PG_MAIN_LOGIN} -d demo -f /tmp/pgsql_additional.sql" \
+    && su postgres -c "psql -U ${PG_MAIN_LOGIN} -c \"ALTER USER ${PG_MAIN_LOGIN} WITH ENCRYPTED PASSWORD '${PG_ROOT_PASSWORD}';\"" \
+    && su postgres -c "psql -U ${PG_MAIN_LOGIN} -f /tmp/free-pgsql-demo.sql" \
+    && su postgres -c "psql -U ${PG_MAIN_LOGIN} -d demo -f /abris-free/pg_abris_free.sql" \
     && sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;" \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='';" \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" \

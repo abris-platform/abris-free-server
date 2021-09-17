@@ -650,10 +650,10 @@ class methodsTest extends TestCase
 
                 "data" => [
                     [
-                        0 => 104,
-                        1 => 104,
-                        2 => 104,
-                        3 => 104,
+                        0 => 11,
+                        1 => 11,
+                        2 => 11,
+                        3 => 11,
 
                     ],
 
@@ -676,25 +676,25 @@ class methodsTest extends TestCase
                 "sql" => "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t  LIMIT 1 OFFSET 0",
                 "count(airport_name)" => [
                     0 => [
-                        "count" => 104
+                        "count" => 11
                     ]
                 ],
 
                 "count(city)" => [
                     0 => [
-                        "count" => 104
+                        "count" => 11
                     ]
                 ],
 
                 "count(coordinates)" => [
                     0 => [
-                        "count" => 104
+                        "count" => 11
                     ]
                 ],
 
                 "count(timezone)" => [
                     0 => [
-                        "count" => 104
+                        "count" => 11
                     ]
                 ],
             ]
@@ -742,44 +742,29 @@ class methodsTest extends TestCase
             [
                 "data" => [
                     [
-                        "NNM",
-                        "Нарьян-Мар",
-                        "Europe/Moscow"
+                        "YKS",
+                        "Якутск",
+                        "Asia/Yakutsk"
                     ],
                     [
-                        "NJC",
-                        "Нижневартовск",
-                        "Asia/Yekaterinburg"
+                        "VVO",
+                        "Владивосток",
+                        "Asia/Vladivostok"
                     ],
                     [
-                        "NFG",
-                        "Нефтеюганск",
-                        "Asia/Yekaterinburg"
+                        "UUS",
+                        "Хомутово",
+                        "Asia/Sakhalin"
                     ],
                     [
-                        "NBC",
-                        "Бегишево",
-                        "Europe/Moscow"
+                        "PKC",
+                        "Елизово",
+                        "Asia/Kamchatka"
                     ],
                     [
-                        "NAL",
-                        "Нальчик",
-                        "Europe/Moscow"
-                    ],
-                    [
-                        "MRV",
-                        "Минеральные Воды",
-                        "Europe/Moscow"
-                    ],
-                    [
-                        "MQF",
-                        "Магнитогорск",
-                        "Asia/Yekaterinburg"
-                    ],
-                    [
-                        "MMK",
-                        "Мурманск",
-                        "Europe/Moscow"
+                        "NOZ",
+                        "Спиченково",
+                        "Asia/Novokuznetsk"
                     ],
                     [
                         "MJZ",
@@ -787,23 +772,38 @@ class methodsTest extends TestCase
                         "Asia/Yakutsk"
                     ],
                     [
-                        "MCX",
-                        "Уйташ",
+                        "LED",
+                        "Пулково",
                         "Europe/Moscow"
+                    ],
+                    [
+                        "KHV",
+                        "Хабаровск-Новый",
+                        "Asia/Vladivostok"
+                    ],
+                    [
+                        "KGD",
+                        "Храброво",
+                        "Europe/Kaliningrad"
+                    ],
+                    [
+                        "KEJ",
+                        "Кемерово",
+                        "Asia/Novokuznetsk"
                     ]
                 ],
                 "records" => [
                     [
-                        "count" => 104
+                        "count" => 11
                     ]
                 ],
-                "offset" => '50',
+                "offset" => '0',
                 "fields" => [
                     "airport_code",
                     "airport_name",
                     "timezone"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 50"
+                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 0"
             ], $res
         );
 
@@ -811,82 +811,65 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         $this->assertEquals(
             [
-                "data" => [
+                "data" =>
                     [
-                        'NFG',
-                        'Нефтеюганск',
-                        'Asia/Yekaterinburg'
-                    ],
-
-                    [
-                        'NBC',
-                        'Бегишево',
-                        'Europe/Moscow'
-                    ],
-
-                    [
-                        'NAL',
-                        'Нальчик',
-                        'Europe/Moscow'
-                    ],
-
-                    [
-                        'MRV',
-                        'Минеральные Воды',
-                        'Europe/Moscow'
-                    ],
-
-                    [
-                        'MQF',
-                        'Магнитогорск',
-                        'Asia/Yekaterinburg'
-                    ],
-
-                    [
-                        'MMK',
-                        'Мурманск',
-                        'Europe/Moscow'
-                    ],
-
-                    [
+                        [
+                            'YKS',
+                            'Якутск',
+                            'Asia/Yakutsk'
+                        ],
+                        [
+                            'VVO',
+                            'Владивосток',
+                            'Asia/Vladivostok'
+                        ], [
+                        'UUS',
+                        'Хомутово',
+                        'Asia/Sakhalin'
+                    ], [
+                        'PKC',
+                        'Елизово',
+                        'Asia/Kamchatka'
+                    ], [
+                        'NOZ',
+                        'Спиченково',
+                        'Asia/Novokuznetsk'
+                    ], [
                         'MJZ',
                         'Мирный',
                         'Asia/Yakutsk'
-                    ],
-
-                    [
-                        'MCX',
-                        'Уйташ',
-                        'Europe/Moscow'
-                    ],
-
-                    [
-                        'LPK',
-                        'Липецк',
-                        'Europe/Moscow'
-                    ],
-
-                    [
+                    ], [
                         'LED',
                         'Пулково',
                         'Europe/Moscow'
+                    ], [
+                        'KHV',
+                        'Хабаровск-Новый',
+                        'Asia/Vladivostok'
                     ],
-
-                ],
+                        [
+                            'KGD',
+                            'Храброво',
+                            'Europe/Kaliningrad'
+                        ], [
+                        'KEJ',
+                        'Кемерово',
+                        'Asia/Novokuznetsk'
+                    ]
+                    ],
                 "records" => [
                     [
-                        "count" => 104
+                        "count" => 11
                     ]
                 ],
-                "offset" => '52',
+                "offset" => '0',
                 "fields" => [
                     "airport_code",
                     "airport_name",
                     "timezone"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 52",
+                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 0",
             ], $res);
-
     }
 
     public function test_getTableDataPredicate_currentKey_costructedField_order() {
@@ -940,31 +923,31 @@ class methodsTest extends TestCase
 
         $this->assertEquals(
             [
-                "offset" => "13808",
+                "offset" => "0",
                 "fields" => [
                     "airport_code",
                     "airport_name",
                     "timezone",
                     "flight_no"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  left join \"bookings\".\"flights\" as \"t0\" on \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC, airport_code LIMIT 2 OFFSET 13808",
+                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  left join \"bookings\".\"flights\" as \"t0\" on \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC, airport_code LIMIT 2 OFFSET 0",
                 "data" => [
                     [
-                        "MMK",
-                        "Мурманск",
-                        "Europe/Moscow",
-                        "PG0415"
+                        "KEJ",
+                        "Кемерово",
+                        "Asia/Novokuznetsk",
+                        ""
                     ],
                     [
-                        "MMK",
-                        "Мурманск",
-                        "Europe/Moscow",
-                        "PG0415"
+                        "KGD",
+                        "Храброво",
+                        "Europe/Kaliningrad",
+                        ""
                     ]
                 ],
                 "records" => [
                     [
-                        "count" => "33121"
+                        "count" => "20"
                     ]
                 ]
             ], $res
@@ -1132,64 +1115,64 @@ class methodsTest extends TestCase
         $this->assertEquals($res["data"],
             array(
                 array(
-                    '20834',
-                    'PG0001',
-                    '2017-08-12 12:15:00+00',
-                    '2017-08-12 14:35:00+00',
-                    '{"f1":"UIK Усть-Илимск Усть-Илимск (102.56500244140625,58.13610076904297) Asia/Irkutsk","f2":"UIK"}',
-                    '{"f1":"SGC Сургут Сургут (73.40180206298828,61.34370040893555) Asia/Yekaterinburg","f2":"SGC"}',
+                    '2',
+                    'PG0404',
+                    '2017-08-05 16:05:00+00',
+                    '2017-08-05 17:00:00+00',
+                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
                     'Arrived',
-                    '{"f1":"CR2 Бомбардье CRJ-200 2700","f2":"CR2"}',
-                    '2017-08-12 12:17:00+00',
-                    '2017-08-12 14:34:00+00'
+                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                    '2017-08-05 16:06:00+00',
+                    '2017-08-05 17:01:00+00',
                 ),
                 array(
-                    '20835',
-                    'PG0001',
-                    '2017-07-22 12:15:00+00',
-                    '2017-07-22 14:35:00+00',
-                    '{"f1":"UIK Усть-Илимск Усть-Илимск (102.56500244140625,58.13610076904297) Asia/Irkutsk","f2":"UIK"}',
-                    '{"f1":"SGC Сургут Сургут (73.40180206298828,61.34370040893555) Asia/Yekaterinburg","f2":"SGC"}',
+                    '17',
+                    'PG0404',
+                    '2017-08-06 16:05:00+00',
+                    '2017-08-06 17:00:00+00',
+                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
                     'Arrived',
-                    '{"f1":"CR2 Бомбардье CRJ-200 2700","f2":"CR2"}',
-                    '2017-07-22 12:17:00+00',
-                    '2017-07-22 14:35:00+00'
+                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                    '2017-08-06 16:05:00+00',
+                    '2017-08-06 17:00:00+00'
                 ),
                 array(
-                    '20839',
-                    'PG0001',
-                    '2017-08-05 12:15:00+00',
-                    '2017-08-05 14:35:00+00',
-                    '{"f1":"UIK Усть-Илимск Усть-Илимск (102.56500244140625,58.13610076904297) Asia/Irkutsk","f2":"UIK"}',
-                    '{"f1":"SGC Сургут Сургут (73.40180206298828,61.34370040893555) Asia/Yekaterinburg","f2":"SGC"}',
-                    'Arrived',
-                    '{"f1":"CR2 Бомбардье CRJ-200 2700","f2":"CR2"}',
-                    '2017-08-05 12:18:00+00',
-                    '2017-08-05 14:38:00+00'
-                ),
-                array(
-                    '20841',
-                    'PG0001',
-                    '2017-07-29 12:15:00+00',
-                    '2017-07-29 14:35:00+00',
-                    '{"f1":"UIK Усть-Илимск Усть-Илимск (102.56500244140625,58.13610076904297) Asia/Irkutsk","f2":"UIK"}',
-                    '{"f1":"SGC Сургут Сургут (73.40180206298828,61.34370040893555) Asia/Yekaterinburg","f2":"SGC"}',
-                    'Arrived',
-                    '{"f1":"CR2 Бомбардье CRJ-200 2700","f2":"CR2"}',
-                    '2017-07-29 12:19:00+00',
-                    '2017-07-29 14:40:00+00'
-                ),
-                array(
-                    '20836',
-                    'PG0001',
-                    '2017-09-09 12:15:00+00',
-                    '2017-09-09 14:35:00+00',
-                    '{"f1":"UIK Усть-Илимск Усть-Илимск (102.56500244140625,58.13610076904297) Asia/Irkutsk","f2":"UIK"}',
-                    '{"f1":"SGC Сургут Сургут (73.40180206298828,61.34370040893555) Asia/Yekaterinburg","f2":"SGC"}',
-                    'Cancelled',
-                    '{"f1":"CR2 Бомбардье CRJ-200 2700","f2":"CR2"}',
+                    '6',
+                    'PG0404',
+                    '2017-08-16 16:05:00+00',
+                    '2017-08-16 17:00:00+00',
+                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                    'Scheduled',
+                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
                     '',
                     ''
+                ),
+                array(
+                    '12',
+                    'PG0404',
+                    '2017-08-23 16:05:00+00',
+                    '2017-08-23 17:00:00+00',
+                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                    'Scheduled',
+                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                    '',
+                    ''
+                ),
+                array(
+                    '1',
+                    'PG0405',
+                    '2017-07-16 06:35:00+00',
+                    '2017-07-16 07:30:00+00',
+                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                    'Arrived',
+                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                    '2017-07-16 06:44:00+00',
+                    '2017-07-16 07:39:00+00'
                 )
             )
         );
@@ -1249,21 +1232,16 @@ class methodsTest extends TestCase
         $this->assertEquals($res, [
             "data" => [
                 0 => ["passenger_id" => '1405 221312'],
-                1 => ["passenger_id" => '2117 213123'],
-                2 => ["passenger_id" => '2846 021312'],
-                3 => ["passenger_id" => '3960 621312'],
-                4 => ["passenger_id" => '4152 521312'],
-                5 => ["passenger_id" => '5838 621312'],
-                6 => ["passenger_id" => '6366 213128'],
-                7 => ["passenger_id" => '6704 621312'],
-                8 => ["passenger_id" => '6772 213122'],
-                9 => ["passenger_id" => '6991 021312'],
-                //10 => ["passenger_id" => '7437 921312'],
-                //11 => ["passenger_id" => '9183 213124'],
-
+                1 => ["passenger_id" => '2846 021312'],
+                2 => ["passenger_id" => '3960 621312'],
+                3 => ["passenger_id" => '4152 521312'],
+                4 => ["passenger_id" => '5838 621312'],
+                5 => ["passenger_id" => '6704 621312'],
+                6 => ["passenger_id" => '6991 021312'],
+                7 => ["passenger_id" => '7437 921312']
             ],
             "records" => [
-                0 => ["count" => '12'],
+                0 => ["count" => '8'],
             ]
         ]);
 
@@ -1297,7 +1275,6 @@ class methodsTest extends TestCase
 
         $_STORAGE['login'] = 'admins';
         $res = methodsBase::getUserDescription();
-
         $this->assertEquals(
             $res,
             array(
@@ -1403,7 +1380,7 @@ class methodsTest extends TestCase
             ];
         $res = methodsBase::getTableDataPredicate($params);
 
-        $this->assertEquals('[{"airport_code":"ABA","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"BAX","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"CEK","timezone":"Asia\/Yekaterinburg"},{"airport_code":"CNN","timezone":"Asia\/Yakutsk"},{"airport_code":"DYR","timezone":"Asia\/Anadyr"},{"airport_code":"EYK","timezone":"Asia\/Yekaterinburg"},{"airport_code":"GDX","timezone":"Asia\/Magadan"},{"airport_code":"HMA","timezone":"Asia\/Yekaterinburg"},{"airport_code":"KEJ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"KGD","timezone":"Europe\/Kaliningrad"},{"airport_code":"KGP","timezone":"Asia\/Yekaterinburg"},{"airport_code":"KJA","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"KRO","timezone":"Asia\/Yekaterinburg"},{"airport_code":"KYZ","timezone":"Asia\/Krasnoyarsk"},{"airport_code":"KZN","timezone":"Europe\/Moscow"}]',
+        $this->assertEquals('[{"airport_code":"KEJ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"KGD","timezone":"Europe\/Kaliningrad"},{"airport_code":"NOZ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"UUS","timezone":"Asia\/Sakhalin"}]',
             json_encode($res['data']));
     }
 
@@ -1530,9 +1507,9 @@ class methodsTest extends TestCase
             'fields' => ['book_ref', 'book_date', 'total_amount'],
             'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
             'data' => [
-                ['0059AA', '2017-07-19 11:47:00+00', '6200.00'],
-                ['003FA5', '2017-08-10 17:19:00+00', '6300.00'],
-                ['00551A', '2017-07-25 10:32:00+00', '6400.00'],
+                ['1DC435', '2017-07-20 02:36:00+00', '6700.00'],
+                ['7F5D7B', '2017-08-04 18:31:00+00', '7300.00'],
+                ['44444', '2020-03-12 15:55:00+00', '9999.00']
             ],
             'records' => [
                 ['count' => $res['records'][0]['count']]
@@ -1564,10 +1541,10 @@ class methodsTest extends TestCase
             'data' => [
                 ['000068', '2020-03-12 15:18:00+00', '18100.00'],
                 ['0002D8', '2017-08-07 18:40:00+00', '23600.00'],
-                ['000012', '2020-03-12 15:18:00+00', '37900.00'],
+                ['000012', '2020-03-12 15:18:00+00', '37900.00']
             ],
             'records' => [
-                ['count' => 5]
+                ['count' => 4]
             ],
         ]);
 
@@ -1624,10 +1601,10 @@ class methodsTest extends TestCase
             'data' => [
                 ['CN1', 'Сессна 208 Караван', '1200'],
                 ['CR2', 'Бомбардье CRJ-200', '2700'],
-                ['SU9', 'Сухой Суперджет-100', '3000'],
+                ['SU9', 'Сухой Суперджет-100', '3000']
             ],
             'records' => [
-                ['count' => 10]
+                ['count' => 9]
             ],
         ]);
 
@@ -1641,10 +1618,10 @@ class methodsTest extends TestCase
             'data' => [
                 ['CN1', 'Сессна 208 Караван', '1200'],
                 ['CR2', 'Бомбардье CRJ-200', '2700'],
-                ['SU9', 'Сухой Суперджет-100', '3000'],
+                ['SU9', 'Сухой Суперджет-100', '3000']
             ],
             'records' => [
-                ['count' => 10]
+                ['count' => 9]
             ],
         ]);
 
@@ -1736,16 +1713,13 @@ class methodsTest extends TestCase
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
                 'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NULL OR "t"."timezone"::text = \'\' OR "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
                 'data' => [
-                    ['BQS', 'Игнатьево', 'Asia/Yakutsk'],
-                    ['CNN', 'Чульман', 'Asia/Yakutsk'],
                     ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
                     ['MJZ', 'Мирный', 'Asia/Yakutsk'],
                     ['NOZ', 'Спиченково', 'Asia/Novokuznetsk'],
-                    ['PYJ', 'Полярный', 'Asia/Yakutsk'],
-                    ['YKS', 'Якутск', 'Asia/Yakutsk'],
+                    ['YKS', 'Якутск', 'Asia/Yakutsk']
                 ],
                 'records' => [
-                    ['count' => 7]
+                    ['count' => 4]
                 ],
             ]
         );
@@ -1906,19 +1880,16 @@ class methodsTest extends TestCase
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
                 'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
                 'data' => [
-                    ['AAQ', 'Витязево', 'Europe/Moscow'],
-                    ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
-                    ['AER', 'Сочи', 'Europe/Moscow'],
-                    ['ARH', 'Талаги', 'Europe/Moscow'],
-                    ['ASF', 'Астрахань', 'Europe/Samara'],
-                    ['BAX', 'Барнаул', 'Asia/Krasnoyarsk'],
-                    ['BTK', 'Братск', 'Asia/Irkutsk'],
-                    ['BZK', 'Брянск', 'Europe/Moscow'],
-                    ['CEE', 'Череповец', 'Europe/Moscow'],
-                    ['CEK', 'Челябинск', 'Asia/Yekaterinburg'],
+                    ['DME', 'Домодедово', 'Europe/Moscow'],
+                    ['KGD', 'Храброво', 'Europe/Kaliningrad'],
+                    ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok'],
+                    ['LED', 'Пулково', 'Europe/Moscow'],
+                    ['PKC', 'Елизово', 'Asia/Kamchatka'],
+                    ['UUS', 'Хомутово', 'Asia/Sakhalin'],
+                    ['VVO', 'Владивосток', 'Asia/Vladivostok']
                 ],
                 'records' => [
-                    ['count' => 97]
+                    ['count' => 7]
                 ],
             ]
         );
@@ -1945,12 +1916,12 @@ class methodsTest extends TestCase
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
                 'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
                 'data' => [
-                    ['AAQ', 'Витязево', 'Europe/Moscow'],
-                    ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
-                    ['AER', 'Сочи', 'Europe/Moscow'],
+                    ['DME', 'Домодедово', 'Europe/Moscow'],
+                    ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
+                    ['KGD', 'Храброво', 'Europe/Kaliningrad']
                 ],
                 'records' => [
-                    ['count' => 104]
+                    ['count' => 11]
                 ],
             ]
         );
@@ -1963,12 +1934,12 @@ class methodsTest extends TestCase
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
                 'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
                 'data' => [
-                    ['AAQ', 'Витязево', 'Europe/Moscow'],
-                    ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
-                    ['AER', 'Сочи', 'Europe/Moscow'],
+                    ['DME', 'Домодедово', 'Europe/Moscow'],
+                    ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
+                    ['KGD', 'Храброво', 'Europe/Kaliningrad']
                 ],
                 'records' => [
-                    ['count' => 104]
+                    ['count' => 11]
                 ],
             ]
         );
@@ -1982,12 +1953,12 @@ class methodsTest extends TestCase
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
                 'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0',
                 'data' => [
-                    ['AAQ', 'Витязево', 'Europe/Moscow'],
-                    ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
-                    ['AER', 'Сочи', 'Europe/Moscow'],
+                    ['DME', 'Домодедово', 'Europe/Moscow'],
+                    ['KGD', 'Храброво', 'Europe/Kaliningrad'],
+                    ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok']
                 ],
                 'records' => [
-                    ['count' => 97]
+                    ['count' => 7]
                 ],
             ]
         );
@@ -1999,12 +1970,12 @@ class methodsTest extends TestCase
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
                 'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
                 'data' => [
-                    ['AAQ', 'Витязево', 'Europe/Moscow'],
-                    ['ABA', 'Абакан', 'Asia/Krasnoyarsk'],
-                    ['AER', 'Сочи', 'Europe/Moscow'],
+                    ['DME', 'Домодедово', 'Europe/Moscow'],
+                    ['KGD', 'Храброво', 'Europe/Kaliningrad'],
+                    ['KHV', 'Хабаровск-Новый', 'Asia/Vladivostok']
                 ],
                 'records' => [
-                    ['count' => 102]
+                    ['count' => 9]
                 ],
             ]
         );
@@ -2072,7 +2043,7 @@ class methodsTest extends TestCase
             "format" => "array",
             "desc" => "Загрузка таблицы \"Tickets\""
         ];
-// temporarly remove failed test
+
         $res = methodsBase::getTableDataPredicate($params);
         $this->assertEquals($res["data"][0], ['0005432000991',
             '{"f1":"F313DD 2017-07-03 01:37:00+00 30900.00","f2":"F313DD"}',
