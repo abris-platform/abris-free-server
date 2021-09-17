@@ -67,12 +67,13 @@ class DbSqlController {
             $usename = $session_usename;
         }
         else {
-            $usename = $_CONFIG->dbDefaultUser;
+            $usename = $_STORAGE['login'] ?? $_CONFIG->dbDefaultUser;
+            $pass = $_STORAGE['password'] ?? $_CONFIG->dbDefaultPass;
             $dbconnect = $this->GetObjectDatabase()->db_connect(
                 array(
                     'host' => $_CONFIG->host, 'dbname' => $_CONFIG->dbname,
                     'port' => $_CONFIG->port, 'user' => $usename,
-                    'password' => $_CONFIG->dbDefaultPass
+                    'password' => $pass
                 )
             );
             if ($dbconnect)
