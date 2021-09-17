@@ -1,10 +1,3 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 9.6.3
--- Dumped by pg_dump version 9.6.3
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -15,15 +8,9 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 DROP DATABASE IF EXISTS demo;
---
--- Name: demo; Type: DATABASE; Schema: -; Owner: -
---
-
 CREATE DATABASE demo;
 
-
 \connect demo
-
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -37,37 +24,20 @@ SET row_security = off;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 --
--- Name: bookings; Type: SCHEMA; Schema: -; Owner: -
 --
 
 CREATE SCHEMA bookings;
-
-
---
--- Name: SCHEMA bookings; Type: COMMENT; Schema: -; Owner: -
---
-
 COMMENT ON SCHEMA bookings IS 'Airlines demo database schema';
 
-
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
 SET search_path = bookings, pg_catalog;
 
 --
--- Name: lang(); Type: FUNCTION; Schema: bookings; Owner: -
 --
 
 CREATE FUNCTION lang() RETURNS text
@@ -81,29 +51,22 @@ EXCEPTION
 END;
 $$;
 
-
 --
--- Name: now(); Type: FUNCTION; Schema: bookings; Owner: -
 --
 
 CREATE FUNCTION now() RETURNS timestamp with time zone
     LANGUAGE sql IMMUTABLE
     AS $$SELECT '2017-08-15 18:00:00'::TIMESTAMP AT TIME ZONE 'Europe/Moscow';$$;
 
-
 --
--- Name: FUNCTION now(); Type: COMMENT; Schema: bookings; Owner: -
 --
 
 COMMENT ON FUNCTION now() IS 'Point in time according to which the data are generated';
 
-
 SET default_tablespace = '';
-
 SET default_with_oids = false;
 
 --
--- Name: aircrafts_data; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE aircrafts_data (
@@ -113,37 +76,12 @@ CREATE TABLE aircrafts_data (
     CONSTRAINT aircrafts_range_check CHECK ((range > 0))
 );
 
-
---
--- Name: TABLE aircrafts_data; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE aircrafts_data IS 'Aircrafts (internal data)';
-
-
---
--- Name: COLUMN aircrafts_data.aircraft_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN aircrafts_data.aircraft_code IS 'Aircraft code, IATA';
-
-
---
--- Name: COLUMN aircrafts_data.model; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN aircrafts_data.model IS 'Aircraft model';
-
-
---
--- Name: COLUMN aircrafts_data.range; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN aircrafts_data.range IS 'Maximal flying distance, km';
 
-
 --
--- Name: aircrafts; Type: VIEW; Schema: bookings; Owner: -
 --
 
 CREATE VIEW aircrafts AS
@@ -152,37 +90,12 @@ CREATE VIEW aircrafts AS
     ml.range
    FROM aircrafts_data ml;
 
-
---
--- Name: VIEW aircrafts; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON VIEW aircrafts IS 'Aircrafts';
-
-
---
--- Name: COLUMN aircrafts.aircraft_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN aircrafts.aircraft_code IS 'Aircraft code, IATA';
-
-
---
--- Name: COLUMN aircrafts.model; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN aircrafts.model IS 'Aircraft model';
-
-
---
--- Name: COLUMN aircrafts.range; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN aircrafts.range IS 'Maximal flying distance, km';
 
-
 --
--- Name: airports_data; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE airports_data (
@@ -193,51 +106,14 @@ CREATE TABLE airports_data (
     timezone text NOT NULL
 );
 
-
---
--- Name: TABLE airports_data; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE airports_data IS 'Airports (internal data)';
-
-
---
--- Name: COLUMN airports_data.airport_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports_data.airport_code IS 'Airport code';
-
-
---
--- Name: COLUMN airports_data.airport_name; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports_data.airport_name IS 'Airport name';
-
-
---
--- Name: COLUMN airports_data.city; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports_data.city IS 'City';
-
-
---
--- Name: COLUMN airports_data.coordinates; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports_data.coordinates IS 'Airport coordinates (longitude and latitude)';
-
-
---
--- Name: COLUMN airports_data.timezone; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports_data.timezone IS 'Airport time zone';
 
-
 --
--- Name: airports; Type: VIEW; Schema: bookings; Owner: -
 --
 
 CREATE VIEW airports AS
@@ -248,51 +124,14 @@ CREATE VIEW airports AS
     ml.timezone
    FROM bookings.airports_data ml;
 
-
---
--- Name: VIEW airports; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON VIEW airports IS 'Airports';
-
-
---
--- Name: COLUMN airports.airport_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports.airport_code IS 'Airport code';
-
-
---
--- Name: COLUMN airports.airport_name; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports.airport_name IS 'Airport name';
-
-
---
--- Name: COLUMN airports.city; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports.city IS 'City';
-
-
---
--- Name: COLUMN airports.coordinates; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports.coordinates IS 'Airport coordinates (longitude and latitude)';
-
-
---
--- Name: COLUMN airports.timezone; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN airports.timezone IS 'Airport time zone';
 
-
 --
--- Name: boarding_passes; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE boarding_passes (
@@ -302,44 +141,13 @@ CREATE TABLE boarding_passes (
     seat_no character varying(4) NOT NULL
 );
 
-
---
--- Name: TABLE boarding_passes; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE boarding_passes IS 'Boarding passes';
-
-
---
--- Name: COLUMN boarding_passes.ticket_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN boarding_passes.ticket_no IS 'Ticket number';
-
-
---
--- Name: COLUMN boarding_passes.flight_id; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN boarding_passes.flight_id IS 'Flight ID';
-
-
---
--- Name: COLUMN boarding_passes.boarding_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN boarding_passes.boarding_no IS 'Boarding pass number';
-
-
---
--- Name: COLUMN boarding_passes.seat_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN boarding_passes.seat_no IS 'Seat number';
 
-
 --
--- Name: bookings; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE bookings (
@@ -348,37 +156,12 @@ CREATE TABLE bookings (
     total_amount numeric(10,2) NOT NULL
 );
 
-
---
--- Name: TABLE bookings; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE bookings IS 'Bookings';
-
-
---
--- Name: COLUMN bookings.book_ref; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN bookings.book_ref IS 'Booking number';
-
-
---
--- Name: COLUMN bookings.book_date; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN bookings.book_date IS 'Booking date';
-
-
---
--- Name: COLUMN bookings.total_amount; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN bookings.total_amount IS 'Total booking cost';
 
-
 --
--- Name: flights; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE flights (
@@ -397,86 +180,19 @@ CREATE TABLE flights (
     CONSTRAINT flights_status_check CHECK (((status)::text = ANY (ARRAY[('On Time'::character varying)::text, ('Delayed'::character varying)::text, ('Departed'::character varying)::text, ('Arrived'::character varying)::text, ('Scheduled'::character varying)::text, ('Cancelled'::character varying)::text])))
 );
 
-
---
--- Name: TABLE flights; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE flights IS 'Flights';
-
-
---
--- Name: COLUMN flights.flight_id; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.flight_id IS 'Flight ID';
-
-
---
--- Name: COLUMN flights.flight_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.flight_no IS 'Flight number';
-
-
---
--- Name: COLUMN flights.scheduled_departure; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.scheduled_departure IS 'Scheduled departure time';
-
-
---
--- Name: COLUMN flights.scheduled_arrival; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.scheduled_arrival IS 'Scheduled arrival time';
-
-
---
--- Name: COLUMN flights.departure_airport; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.departure_airport IS 'Airport of departure';
-
-
---
--- Name: COLUMN flights.arrival_airport; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.arrival_airport IS 'Airport of arrival';
-
-
---
--- Name: COLUMN flights.status; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.status IS 'Flight status';
-
-
---
--- Name: COLUMN flights.aircraft_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.aircraft_code IS 'Aircraft code, IATA';
-
-
---
--- Name: COLUMN flights.actual_departure; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.actual_departure IS 'Actual departure time';
-
-
---
--- Name: COLUMN flights.actual_arrival; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights.actual_arrival IS 'Actual arrival time';
 
-
 --
--- Name: flights_flight_id_seq; Type: SEQUENCE; Schema: bookings; Owner: -
 --
 
 CREATE SEQUENCE flights_flight_id_seq
@@ -486,16 +202,9 @@ CREATE SEQUENCE flights_flight_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
---
--- Name: flights_flight_id_seq; Type: SEQUENCE OWNED BY; Schema: bookings; Owner: -
---
-
 ALTER SEQUENCE flights_flight_id_seq OWNED BY flights.flight_id;
 
-
 --
--- Name: flights_v; Type: VIEW; Schema: bookings; Owner: -
 --
 
 CREATE VIEW flights_v AS
@@ -524,156 +233,29 @@ CREATE VIEW flights_v AS
     airports arr
   WHERE ((f.departure_airport = dep.airport_code) AND (f.arrival_airport = arr.airport_code));
 
-
---
--- Name: VIEW flights_v; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON VIEW flights_v IS 'Flights (extended)';
-
-
---
--- Name: COLUMN flights_v.flight_id; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.flight_id IS 'Flight ID';
-
-
---
--- Name: COLUMN flights_v.flight_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.flight_no IS 'Flight number';
-
-
---
--- Name: COLUMN flights_v.scheduled_departure; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.scheduled_departure IS 'Scheduled departure time';
-
-
---
--- Name: COLUMN flights_v.scheduled_departure_local; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.scheduled_departure_local IS 'Scheduled departure time, local time at the point of departure';
-
-
---
--- Name: COLUMN flights_v.scheduled_arrival; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.scheduled_arrival IS 'Scheduled arrival time';
-
-
---
--- Name: COLUMN flights_v.scheduled_arrival_local; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.scheduled_arrival_local IS 'Scheduled arrival time, local time at the point of destination';
-
-
---
--- Name: COLUMN flights_v.scheduled_duration; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.scheduled_duration IS 'Scheduled flight duration';
-
-
---
--- Name: COLUMN flights_v.departure_airport; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.departure_airport IS 'Deprature airport code';
-
-
---
--- Name: COLUMN flights_v.departure_airport_name; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.departure_airport_name IS 'Departure airport name';
-
-
---
--- Name: COLUMN flights_v.departure_city; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.departure_city IS 'City of departure';
-
-
---
--- Name: COLUMN flights_v.arrival_airport; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.arrival_airport IS 'Arrival airport code';
-
-
---
--- Name: COLUMN flights_v.arrival_airport_name; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.arrival_airport_name IS 'Arrival airport name';
-
-
---
--- Name: COLUMN flights_v.arrival_city; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.arrival_city IS 'City of arrival';
-
-
---
--- Name: COLUMN flights_v.status; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.status IS 'Flight status';
-
-
---
--- Name: COLUMN flights_v.aircraft_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.aircraft_code IS 'Aircraft code, IATA';
-
-
---
--- Name: COLUMN flights_v.actual_departure; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.actual_departure IS 'Actual departure time';
-
-
---
--- Name: COLUMN flights_v.actual_departure_local; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.actual_departure_local IS 'Actual departure time, local time at the point of departure';
-
-
---
--- Name: COLUMN flights_v.actual_arrival; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.actual_arrival IS 'Actual arrival time';
-
-
---
--- Name: COLUMN flights_v.actual_arrival_local; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.actual_arrival_local IS 'Actual arrival time, local time at the point of destination';
-
-
---
--- Name: COLUMN flights_v.actual_duration; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN flights_v.actual_duration IS 'Actual flight duration';
 
-
 --
--- Name: routes; Type: VIEW; Schema: bookings; Owner: -
 --
 
 CREATE VIEW routes AS
@@ -716,86 +298,19 @@ CREATE VIEW routes AS
     airports arr
   WHERE ((f3.departure_airport = dep.airport_code) AND (f3.arrival_airport = arr.airport_code));
 
-
---
--- Name: VIEW routes; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON VIEW routes IS 'Routes';
-
-
---
--- Name: COLUMN routes.flight_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.flight_no IS 'Flight number';
-
-
---
--- Name: COLUMN routes.departure_airport; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.departure_airport IS 'Code of airport of departure';
-
-
---
--- Name: COLUMN routes.departure_airport_name; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.departure_airport_name IS 'Name of airport of departure';
-
-
---
--- Name: COLUMN routes.departure_city; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.departure_city IS 'City of departure';
-
-
---
--- Name: COLUMN routes.arrival_airport; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.arrival_airport IS 'Code of airport of arrival';
-
-
---
--- Name: COLUMN routes.arrival_airport_name; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.arrival_airport_name IS 'Name of airport of arrival';
-
-
---
--- Name: COLUMN routes.arrival_city; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.arrival_city IS 'City of arrival';
-
-
---
--- Name: COLUMN routes.aircraft_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.aircraft_code IS 'Aircraft code, IATA';
-
-
---
--- Name: COLUMN routes.duration; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.duration IS 'Scheduled duration of flight';
-
-
---
--- Name: COLUMN routes.days_of_week; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN routes.days_of_week IS 'Days of week on which flights are scheduled';
 
-
 --
--- Name: seats; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE seats (
@@ -805,37 +320,12 @@ CREATE TABLE seats (
     CONSTRAINT seats_fare_conditions_check CHECK (((fare_conditions)::text = ANY (ARRAY[('Economy'::character varying)::text, ('Comfort'::character varying)::text, ('Business'::character varying)::text])))
 );
 
-
---
--- Name: TABLE seats; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE seats IS 'Seats';
-
-
---
--- Name: COLUMN seats.aircraft_code; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN seats.aircraft_code IS 'Aircraft code, IATA';
-
-
---
--- Name: COLUMN seats.seat_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN seats.seat_no IS 'Seat number';
-
-
---
--- Name: COLUMN seats.fare_conditions; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN seats.fare_conditions IS 'Travel class';
 
-
 --
--- Name: ticket_flights; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE ticket_flights (
@@ -847,44 +337,13 @@ CREATE TABLE ticket_flights (
     CONSTRAINT ticket_flights_fare_conditions_check CHECK (((fare_conditions)::text = ANY (ARRAY[('Economy'::character varying)::text, ('Comfort'::character varying)::text, ('Business'::character varying)::text])))
 );
 
-
---
--- Name: TABLE ticket_flights; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE ticket_flights IS 'Flight segment';
-
-
---
--- Name: COLUMN ticket_flights.ticket_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN ticket_flights.ticket_no IS 'Ticket number';
-
-
---
--- Name: COLUMN ticket_flights.flight_id; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN ticket_flights.flight_id IS 'Flight ID';
-
-
---
--- Name: COLUMN ticket_flights.fare_conditions; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN ticket_flights.fare_conditions IS 'Travel class';
-
-
---
--- Name: COLUMN ticket_flights.amount; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN ticket_flights.amount IS 'Travel cost';
 
-
 --
--- Name: tickets; Type: TABLE; Schema: bookings; Owner: -
 --
 
 CREATE TABLE tickets (
@@ -895,58 +354,19 @@ CREATE TABLE tickets (
     contact_data jsonb
 );
 
-
---
--- Name: TABLE tickets; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON TABLE tickets IS 'Tickets';
-
-
---
--- Name: COLUMN tickets.ticket_no; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN tickets.ticket_no IS 'Ticket number';
-
-
---
--- Name: COLUMN tickets.book_ref; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN tickets.book_ref IS 'Booking number';
-
-
---
--- Name: COLUMN tickets.passenger_id; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN tickets.passenger_id IS 'Passenger ID';
-
-
---
--- Name: COLUMN tickets.passenger_name; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN tickets.passenger_name IS 'Passenger name';
-
-
---
--- Name: COLUMN tickets.contact_data; Type: COMMENT; Schema: bookings; Owner: -
---
-
 COMMENT ON COLUMN tickets.contact_data IS 'Passenger contact information';
 
-
 --
--- Name: flights flight_id; Type: DEFAULT; Schema: bookings; Owner: -
 --
 
 ALTER TABLE ONLY flights ALTER COLUMN flight_id SET DEFAULT nextval('flights_flight_id_seq'::regclass);
 
-
 --
--- Data for Name: aircrafts_data; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.aircrafts_data (aircraft_code, model, range) VALUES ('773', '{"en": "Boeing 777-300", "ru": "Боинг 777-300"}', 11100);
@@ -959,9 +379,7 @@ INSERT INTO bookings.aircrafts_data (aircraft_code, model, range) VALUES ('733',
 INSERT INTO bookings.aircrafts_data (aircraft_code, model, range) VALUES ('CN1', '{"en": "Cessna 208 Caravan", "ru": "Сессна 208 Караван"}', 1200);
 INSERT INTO bookings.aircrafts_data (aircraft_code, model, range) VALUES ('CR2', '{"en": "Bombardier CRJ-200", "ru": "Бомбардье CRJ-200"}', 2700);
 
-
 --
--- Data for Name: airports_data; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.airports_data (airport_code, airport_name, city, coordinates, timezone) VALUES ('YKS', '{"en": "Yakutsk Airport", "ru": "Якутск"}', '{"en": "Yakutsk", "ru": "Якутск"}', '(129.77099609375,62.0932998657226562)', 'Asia/Yakutsk');
@@ -976,9 +394,7 @@ INSERT INTO bookings.airports_data (airport_code, airport_name, city, coordinate
 INSERT INTO bookings.airports_data (airport_code, airport_name, city, coordinates, timezone) VALUES ('NOZ', '{"en": "Spichenkovo Airport", "ru": "Спиченково"}', '{"en": "Novokuznetsk", "ru": "Новокузнецк"}', '(86.877197265625,53.8114013671875)', 'Asia/Novokuznetsk');
 INSERT INTO bookings.airports_data (airport_code, airport_name, city, coordinates, timezone) VALUES ('DME', '{"en": "Domodedovo International Airport", "ru": "Домодедово"}', '{"en": "Moscow", "ru": "Москва"}', '(37.9062995910644531,55.4087982177734375)', 'Europe/Moscow');
 
-
 --
--- Data for Name: bookings; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.bookings (book_ref, book_date, total_amount) VALUES ('064589', '2017-07-22 12:33:00+03', 310100.00);
@@ -1006,7 +422,6 @@ INSERT INTO bookings.bookings (book_ref, book_date, total_amount) VALUES ('644C1
 INSERT INTO bookings.bookings (book_ref, book_date, total_amount) VALUES ('3A458F', '2017-07-20 21:47:00.000000 +00:00', 203500.00);
 
 --
--- Data for Name: flights; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (1, 'PG0405', '2017-07-16 09:35:00+03', '2017-07-16 10:30:00+03', 'DME', 'LED', 'Arrived', '321', '2017-07-16 09:44:00+03', '2017-07-16 10:39:00+03');
@@ -1020,9 +435,7 @@ INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, schedul
 INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (17, 'PG0404', '2017-08-06 19:05:00+03', '2017-08-06 20:00:00+03', 'DME', 'LED', 'Arrived', '321', '2017-08-06 19:05:00+03', '2017-08-06 20:00:00+03');
 INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (18, 'PG0405', '2017-08-06 09:35:00+03', '2017-08-06 10:30:00+03', 'DME', 'LED', 'Arrived', '321', '2017-08-06 09:39:00+03', '2017-08-06 10:35:00+03');
 
-
 --
--- Data for Name: tickets; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.tickets (ticket_no, book_ref, passenger_id, passenger_name, contact_data) VALUES ('0005432262099', '1DC435', '2902 380461', 'ZINAIDA KOLESNIKOVA', '{"email": "kolesnikovaz_22021966@postgrespro.ru", "phone": "+70165381701"}');
@@ -1048,7 +461,6 @@ INSERT INTO bookings.tickets (ticket_no, book_ref, passenger_id, passenger_name,
 INSERT INTO bookings.tickets (ticket_no, book_ref, passenger_id, passenger_name, contact_data) VALUES ('0005434586243', '644C15', '4152 521312', 'EKATERINA SOROKINA', '{"email": "esorokina-30031971@postgrespro.ru", "phone": "+70878960119"}');
 
 --
--- Data for Name: ticket_flights; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.ticket_flights (ticket_no, flight_id, fare_conditions, amount) VALUES ('0005432816945', 1, 'Business', 20000.00);
@@ -1062,9 +474,7 @@ INSERT INTO bookings.ticket_flights (ticket_no, flight_id, fare_conditions, amou
 INSERT INTO bookings.ticket_flights (ticket_no, flight_id, fare_conditions, amount) VALUES ('0005433477016', 13, 'Economy', 6700.00);
 INSERT INTO bookings.ticket_flights (ticket_no, flight_id, fare_conditions, amount) VALUES ('0005433477058', 9, 'Economy', 6700.00);
 
-
 --
--- Data for Name: boarding_passes; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.boarding_passes (ticket_no, flight_id, boarding_no, seat_no) VALUES ('0005432816945', 1, 1, '2C');
@@ -1073,9 +483,7 @@ INSERT INTO bookings.boarding_passes (ticket_no, flight_id, boarding_no, seat_no
 INSERT INTO bookings.boarding_passes (ticket_no, flight_id, boarding_no, seat_no) VALUES ('0005432391976', 17, 11, '5A');
 INSERT INTO bookings.boarding_passes (ticket_no, flight_id, boarding_no, seat_no) VALUES ('0005432262099', 18, 78, '26D');
 
-
 --
--- Data for Name: seats; Type: TABLE DATA; Schema: bookings; Owner: postgres
 --
 
 INSERT INTO bookings.seats (aircraft_code, seat_no, fare_conditions) VALUES ('319', '2A', 'Business');
@@ -1089,161 +497,67 @@ INSERT INTO bookings.seats (aircraft_code, seat_no, fare_conditions) VALUES ('31
 INSERT INTO bookings.seats (aircraft_code, seat_no, fare_conditions) VALUES ('319', '4A', 'Business');
 INSERT INTO bookings.seats (aircraft_code, seat_no, fare_conditions) VALUES ('319', '4C', 'Business');
 
-
 --
--- Name: aircrafts_data aircrafts_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
 --
 
 ALTER TABLE ONLY aircrafts_data
     ADD CONSTRAINT aircrafts_pkey PRIMARY KEY (aircraft_code);
 
-
---
--- Name: airports_data airports_data_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY airports_data
     ADD CONSTRAINT airports_data_pkey PRIMARY KEY (airport_code);
-
-
---
--- Name: boarding_passes boarding_passes_flight_id_boarding_no_key; Type: CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY boarding_passes
     ADD CONSTRAINT boarding_passes_flight_id_boarding_no_key UNIQUE (flight_id, boarding_no);
 
-
---
--- Name: boarding_passes boarding_passes_flight_id_seat_no_key; Type: CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY boarding_passes
     ADD CONSTRAINT boarding_passes_flight_id_seat_no_key UNIQUE (flight_id, seat_no);
-
-
---
--- Name: boarding_passes boarding_passes_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY boarding_passes
     ADD CONSTRAINT boarding_passes_pkey PRIMARY KEY (ticket_no, flight_id);
 
-
---
--- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY bookings
     ADD CONSTRAINT bookings_pkey PRIMARY KEY (book_ref);
-
-
---
--- Name: flights flights_flight_no_scheduled_departure_key; Type: CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY flights
     ADD CONSTRAINT flights_flight_no_scheduled_departure_key UNIQUE (flight_no, scheduled_departure);
 
-
---
--- Name: flights flights_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY flights
     ADD CONSTRAINT flights_pkey PRIMARY KEY (flight_id);
-
-
---
--- Name: seats seats_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY seats
     ADD CONSTRAINT seats_pkey PRIMARY KEY (aircraft_code, seat_no);
 
-
---
--- Name: ticket_flights ticket_flights_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY ticket_flights
     ADD CONSTRAINT ticket_flights_pkey PRIMARY KEY (ticket_no, flight_id);
-
-
---
--- Name: tickets tickets_pkey; Type: CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY tickets
     ADD CONSTRAINT tickets_pkey PRIMARY KEY (ticket_no);
 
-
---
--- Name: boarding_passes boarding_passes_ticket_no_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY boarding_passes
     ADD CONSTRAINT boarding_passes_ticket_no_fkey FOREIGN KEY (ticket_no, flight_id) REFERENCES ticket_flights(ticket_no, flight_id);
-
-
---
--- Name: flights flights_aircraft_code_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY flights
     ADD CONSTRAINT flights_aircraft_code_fkey FOREIGN KEY (aircraft_code) REFERENCES aircrafts_data(aircraft_code);
 
-
---
--- Name: flights flights_arrival_airport_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY flights
     ADD CONSTRAINT flights_arrival_airport_fkey FOREIGN KEY (arrival_airport) REFERENCES airports_data(airport_code);
-
-
---
--- Name: flights flights_departure_airport_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY flights
     ADD CONSTRAINT flights_departure_airport_fkey FOREIGN KEY (departure_airport) REFERENCES airports_data(airport_code);
 
-
---
--- Name: seats seats_aircraft_code_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY seats
     ADD CONSTRAINT seats_aircraft_code_fkey FOREIGN KEY (aircraft_code) REFERENCES aircrafts_data(aircraft_code) ON DELETE CASCADE;
-
-
---
--- Name: ticket_flights ticket_flights_flight_id_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY ticket_flights
     ADD CONSTRAINT ticket_flights_flight_id_fkey FOREIGN KEY (flight_id) REFERENCES flights(flight_id);
 
-
---
--- Name: ticket_flights ticket_flights_ticket_no_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
-
 ALTER TABLE ONLY ticket_flights
     ADD CONSTRAINT ticket_flights_ticket_no_fkey FOREIGN KEY (ticket_no) REFERENCES tickets(ticket_no);
-
-
---
--- Name: tickets tickets_book_ref_fkey; Type: FK CONSTRAINT; Schema: bookings; Owner: -
---
 
 ALTER TABLE ONLY tickets
     ADD CONSTRAINT tickets_book_ref_fkey FOREIGN KEY (book_ref) REFERENCES bookings(book_ref);
 
-
 --
--- PostgreSQL database dump complete
 --
 
 ALTER DATABASE demo SET search_path = bookings, public;
@@ -1267,10 +581,8 @@ CREATE SCHEMA test_schema;
 ALTER SCHEMA test_schema OWNER TO postgres;
 COMMENT ON SCHEMA test_schema IS 'Test schema';
 
-
 SET default_tablespace = '';
 SET default_with_oids = FALSE;
-
 
 --
 --

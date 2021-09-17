@@ -15,6 +15,7 @@ RUN curl -O https://abrisplatform.com/downloads/abris-free-databases.zip \
     && unzip abris-free-databases.zip -d abris-free
 
 COPY free-pgsql-demo.sql /tmp/
+COPY free-mysql-demo.sql /tmp/
 
 CMD service postgresql start \
     && service mysql start \
@@ -25,7 +26,8 @@ CMD service postgresql start \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='';" \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_MAIN_LOGIN}'@'%' IDENTIFIED WITH caching_sha2_password BY '${PG_ROOT_PASSWORD}'; GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_MAIN_LOGIN}'@'%'; FLUSH PRIVILEGES;" \
-    # && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} < /abris-free/Server/sql_install/mysql_abris_free.sql \
+    && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} < /abris-free/mysql_abris_free.sql \
+    && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} < /tmp/free-mysql-demo.sql \
     && /etc/init.d/postgresql restart \
     && /etc/init.d/mysql restart \
     && tail -f /dev/null
