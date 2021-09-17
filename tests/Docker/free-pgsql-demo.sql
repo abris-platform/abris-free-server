@@ -1368,4 +1368,6 @@ CREATE ROLE admins WITH
     INHERIT
     NOREPLICATION
     CONNECTION LIMIT -1;
-COMMENT ON ROLE admins IS 'Администратор';
+
+
+COMMENT ON ROLE postgres IS 'Администратор';

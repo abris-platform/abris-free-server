@@ -1273,12 +1273,11 @@ class methodsTest extends TestCase
     public function test_getUserDescription() {
         global $_STORAGE;
 
-        $_STORAGE['login'] = 'admins';
         $res = methodsBase::getUserDescription();
         $this->assertEquals(
             $res,
             array(
-                'user' => 'admins',
+                'user' => 'postgres',
                 'comment' => 'Администратор'
             )
         );
