@@ -7,7 +7,8 @@ start_database:
   stage: DemoDatabase
   script:
     - docker-compose -f tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
-    - docker-compose -f tests/Docker/docker-compose.yml up --force-recreate free-db-server-tests
+    - docker-compose -f tests/Docker/docker-compose.yml up -d --force-recreate free-db-server-tests
+    - sleep 30s
   tags:
     - shell
 
