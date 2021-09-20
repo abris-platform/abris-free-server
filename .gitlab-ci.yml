@@ -8,7 +8,6 @@ start_database:
   script:
     - docker-compose -f tests/Docker/docker-compose.yml build --no-cache free-db-server-tests
     - docker-compose -f tests/Docker/docker-compose.yml up --force-recreate free-db-server-tests
-    - sleep 65s # wait for deploy database from dumps
   tags:
     - shell
 
