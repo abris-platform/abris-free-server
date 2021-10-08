@@ -1,7 +1,8 @@
 <?php
 
 
-class DbSqlController {
+class DbSqlController
+{
     protected function GetObjectDatabase() {
         global $_STORAGE;
 
@@ -33,7 +34,7 @@ class DbSqlController {
         $dbname = $_STORAGE['dbname'] ?? $_CONFIG->dbname;
 
         if ((isset($_COOKIE['private_key']) || isset($_STORAGE['private_key']))
-                && !$default_connection) {
+            && !$default_connection) {
             $privateKey = $_COOKIE['private_key'] ?? $_STORAGE['private_key'];
 
             $password = $encrypt_password ? DecryptStr($_STORAGE['password'], $privateKey) : $_STORAGE['password'];
@@ -65,8 +66,7 @@ class DbSqlController {
             }
 
             $usename = $session_usename;
-        }
-        else {
+        } else {
             $usename = empty($_STORAGE['login']) ? $_CONFIG->dbDefaultUser : $_STORAGE['login'];
             $pass = empty($_STORAGE['password']) ? $_CONFIG->dbDefaultPass : $_STORAGE['password'];
             $dbconnect = $this->GetObjectDatabase()->db_connect(
@@ -125,10 +125,8 @@ class DbSqlController {
         unset($unstor[$pid]);
         $_STORAGE['pids'] = $unstor;
 
-
         $sqlObject->AfterQuery($result);
         $response = $sqlObject->ProcessResult($result, $format);
-
         $databaseObject->db_close();
         return $response;
     }
@@ -152,7 +150,7 @@ class DbSqlController {
     }
 
     public function relation($schemaName, $entityName) {
-        return $this->IdQuote($schemaName). '.' .$this->IdQuote($entityName);
+        return $this->IdQuote($schemaName) . '.' . $this->IdQuote($entityName);
     }
 
     public function type($value, $type) {
@@ -198,10 +196,30 @@ class DbSqlController {
     }
 
     public function Collate() {
-        return 'collate "' .$this->GetObjectDatabase()->get_collate() .'"';
+        return 'collate "' . $this->GetObjectDatabase()->get_collate() . '"';
     }
 
     public function GetDefaultOptions() {
         return new SQLParamBase();
+    }
+
+    public function GetAllDbPIDs($dbname = null) {
+        $db = $this->GetObjectDatabase();
+
+        if (empty($dbname))
+            $dbname = $db->get_name_current_database_query();
+
+        return $db->get_pids_database_query($dbname);
+    }
+
+    public function KillProcess($pid) {
+        global $_STORAGE;
+        $db = $this->GetObjectDatabase();
+
+        if (isset($_STORAGE['pids'][$pid])) {
+            return $this->Sql($db->kill_pid_query($pid));
+        }
+
+        return false;
     }
 }

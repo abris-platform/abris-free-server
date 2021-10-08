@@ -1,0 +1,12 @@
+{
+    "host": "192.168.10.97",
+    "port": "44442",
+    "dbname": "bookings",
+    "dbDefaultUser": "mysql",
+    "dbDefaultPass": "123456",
+    "dbDefaultLanguage": "ru",
+    "metaSchema": "meta",
+    "cryptMethod": "AES-256-CBC",
+    "databaseType": "mysql",
+    "anotherPrefLog": ""
+}

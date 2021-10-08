@@ -7,23 +7,25 @@ class methodsTest extends TestCase
 {
     public function test_getPIDs() {
         global $_STORAGE;
-        $_STORAGE['pids'] = array('test' => '123456');
 
+        $_STORAGE['pids'] = array('test' => '123456');
         $resDb = methodsBase::getPIDs([]);
         $this->assertEquals(array('pids' => array()), $resDb);
     }
 
     public function test_killPID() {
+        $res = methodsBase::getPIDs([]);
+
         $params = [
-            'pid' => '13008',
+            'pid' => '13008'
         ];
         $res = methodsBase::killPID($params);
-        $this->assertEquals($res, array(
-            array('pg_terminate_backend' => 'f')
-        ));
+        $this->assertFalse($res);
     }
 
     public function test_addEntities() {
+        global $_STORAGE;
+
         $params = array(
             'entityName' => 'bookings',
             'schemaName' => 'bookings',
@@ -39,7 +41,7 @@ class methodsTest extends TestCase
             'fields' => array(
                 array(
                     'book_ref' => '44444',
-                    'book_date' => '2020-03-12 12:01:00+03',
+                    'book_date' => '2020-03-12 12:01:00',
                     'total_amount' => '44444'
                 ),
             ),
@@ -51,11 +53,17 @@ class methodsTest extends TestCase
         );
 
         $res = methodsBase::addEntities($params);
-        $this->assertEquals($res, array(
-            array(
-                'book_ref' => '44444'
-            ),
-        ));
+
+        $val_pkey_insert = array();
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $val_pkey_insert['book_ref'] = '44444';
+                break;
+            case(DatabaseMysql::class):
+                $val_pkey_insert = array();
+        }
+
+        $this->assertEquals($res, array($val_pkey_insert));
 
         $params = array(
             'entityName' => 'bookings',
@@ -63,7 +71,7 @@ class methodsTest extends TestCase
             'fields' => array(
                 array(
                     'book_ref' => '123456',
-                    'book_date' => '2020-03-12 12:04:00+03',
+                    'book_date' => '2020-03-12 12:04:00',
                     'total_amount' => '654321'
                 ),
             ),
@@ -72,19 +80,23 @@ class methodsTest extends TestCase
             'types' => NULL
         );
 
+
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $val_pkey_insert['book_ref'] = '123456';
+                break;
+            case(DatabaseMysql::class):
+                $val_pkey_insert = array();
+        }
         $res = methodsBase::addEntities($params);
-        $this->assertEquals($res, array(
-            array(
-                'book_ref' => '123456'
-            )
-        ));
+        $this->assertEquals($res, array($val_pkey_insert));
 
         $params = array(
             'entityName' => 'text_types',
             'schemaName' => 'test_schema',
             'fields' => array(
                 array(
-                    'text_types_key' => '',
+                    'text_types_key' => '07dca42d-ddcf-45fe-bb9d-c8a7654da6ca',
                     'meta_plain' => 'test12',
                     'meta_text' => 'test2',
                     'detail_plain' => 'test3',
@@ -97,29 +109,37 @@ class methodsTest extends TestCase
         );
 
         $res = methodsBase::addEntities($params);
-        $this->assertNotNull($res[0]['text_types_key']);
+        $this->assertNotNull($res[0]);
     }
 
     public function test_updateEntity() {
+        global $_STORAGE;
         $params = [
             'entityName' => 'bookings',
             'schemaName' => 'bookings',
             'key' => ['book_ref', "total_amount"],
             'value' => [
                 0 => ['000068'],
-                1 => ['18100'],
+                1 => ['18100']
             ],
             'fields' => [
-                "book_date" => "2020-03-12 18:18:00+03",
+                "book_date" => "2020-03-12 18:18:00"
             ],
             'files' => [],
-            'types' => NULL,
+            'types' => NULL
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';"
-        ]);
+
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000068' AND `total_amount` = '18100';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -131,16 +151,21 @@ class methodsTest extends TestCase
                 1 => ['18100', '131800', '37900'],
             ],
             'fields' => [
-                "book_date" => ["2020-03-12 18:18:00+03", "2020-03-12 18:18:00+03", "2020-03-12 18:18:00+03"],
+                "book_date" => ["2020-03-12 18:18:00", "2020-03-12 18:18:00", "2020-03-12 18:18:00"],
             ],
             'files' => [],
             'types' => NULL,
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000181' AND \"total_amount\" = '131800';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000012' AND \"total_amount\" = '37900';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000181' AND \"total_amount\" = '131800';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000012' AND \"total_amount\" = '37900';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000068' AND `total_amount` = '18100';UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000181' AND `total_amount` = '131800';UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000012' AND `total_amount` = '37900';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -149,20 +174,25 @@ class methodsTest extends TestCase
             'key' => 'book_ref',
             'value' => [
                 '123456',
-                '44444',
+                '44444'
             ],
             'fields' => [
-                "total_amount" => ['6666', '9999',],
-                "book_date" => ["2020-03-12 18:44:00+03", "2020-03-12 18:55:00+03",],
+                "total_amount" => ['6666', '9999'],
+                "book_date" => ["2020-03-12 18:44:00", "2020-03-12 18:55:00"],
             ],
             'files' => [],
-            'types' => NULL,
+            'types' => NULL
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '6666', \"book_date\" = '2020-03-12 18:44:00+03' WHERE \"book_ref\" = '123456';UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '9999', \"book_date\" = '2020-03-12 18:55:00+03' WHERE \"book_ref\" = '44444';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '6666', \"book_date\" = '2020-03-12 18:44:00' WHERE \"book_ref\" = '123456';UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '9999', \"book_date\" = '2020-03-12 18:55:00' WHERE \"book_ref\" = '44444';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `total_amount` = '6666', `book_date` = '2020-03-12 18:44:00' WHERE `book_ref` = '123456';UPDATE `bookings`.`bookings` SET `total_amount` = '9999', `book_date` = '2020-03-12 18:55:00' WHERE `book_ref` = '44444';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -173,17 +203,22 @@ class methodsTest extends TestCase
             "fields" => [
                 "meta_plain" => NULL,
                 "meta_text" => NULL,
-                "detail_plain" => NULL,
+                "detail_plain" => NULL
             ],
             "files" => [
             ],
-            "types" => NULL,
+            "types" => NULL
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"test_schema\".\"text_types\" SET \"meta_plain\" = NULL, \"meta_text\" = NULL, \"detail_plain\" = NULL WHERE \"text_types_key\" = 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"test_schema\".\"text_types\" SET \"meta_plain\" = NULL, \"meta_text\" = NULL, \"detail_plain\" = NULL WHERE \"text_types_key\" = 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `test_schema`.`text_types` SET `meta_plain` = NULL, `meta_text` = NULL, `detail_plain` = NULL WHERE `text_types_key` = 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -192,106 +227,120 @@ class methodsTest extends TestCase
             'key' => 'book_ref',
             'value' => '123456',
             'fields' => [
-                'book_ref' => '22222',
+                'book_ref' => '22222'
             ],
             'files' => [],
             'types' => [
-                'book_ref' => 'text',
-            ],
+                'book_ref' => 'text'
+            ]
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_ref\" = '22222'::text WHERE \"book_ref\"::text = '123456'::text;"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"book_ref\" = '22222'::text WHERE \"book_ref\"::text = '123456'::text;";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `book_ref` = CONVERT('22222', char(100000)) WHERE CONVERT(`book_ref`, char(100000)) = CONVERT('123456', char(100000));";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
     }
 
     public function test_deleteEntitiesByKey() {
+        global $_STORAGE;
+        $sql_equal = '';
 
         $params = [
-            "entityName" => "bookings",
-            "schemaName" => "bookings",
+            'entityName' => 'bookings',
+            'schemaName' => 'bookings',
             'key' => 'book_ref',
-            'value' => ['000015', '000016'],
+            'value' => ['000015', '000016']
         ];
 
         $res = methodsBase::deleteEntitiesByKey($params);
-        $this->assertEquals($res, [
-            "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000015';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000016';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000015';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000016';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000015';DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000016';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
         $params = [
-            "entityName" => "bookings",
-            "schemaName" => "bookings",
-            'key' => ['book_ref', "total_amount"],
+            'entityName' => 'bookings',
+            'schemaName' => 'bookings',
+            'key' => ['book_ref', 'total_amount'],
             'value' => [
                 0 => ['000013', '000014'],
-                1 => ['000045', '000055'],
-            ],
+                1 => ['000045', '000055']
+            ]
         ];
 
         $res = methodsBase::deleteEntitiesByKey($params);
-        $this->assertEquals($res, [
-            "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000013' AND \"total_amount\" = '000045';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000014' AND \"total_amount\" = '000055';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000013' AND \"total_amount\" = '000045';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000014' AND \"total_amount\" = '000055';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000013' AND `total_amount` = '000045';DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000014' AND `total_amount` = '000055';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
         $params = [
-            "entityName" => "bookings",
-            "schemaName" => "bookings",
-            "key" => "book_ref",
-            "value" => "22222",
-            "types" => [
-                "book_ref" => "text",
-            ],
+            'entityName' => 'bookings',
+            'schemaName' => 'bookings',
+            'key' => 'book_ref',
+            'value' => '22222',
+            'types' => [
+                'book_ref' => 'text'
+            ]
         ];
 
         $res = methodsBase::deleteEntitiesByKey($params);
-        $this->assertEquals($res, [
-            "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '22222'::text;"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '22222'::text;";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "DELETE FROM `bookings`.`bookings` WHERE `book_ref` = CONVERT('22222', char(100000));";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
     }
 
     public function test_getCurrentUser() {
         global $_STORAGE, $flag_astra;
         $_STORAGE['login'] = '';
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "guest");
-        $_SERVER['REMOTE_USER'] = "abris.site\\postgres";
+        $this->assertEquals($res, 'guest');
+        $_SERVER['REMOTE_USER'] = 'abris.site\\postgres';
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "postgres");
+        $this->assertEquals($res, 'postgres');
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "postgres");
+        $this->assertEquals($res, 'postgres');
 
         $flag_astra = true;
-        $_SERVER['KRB5CCNAME'] = "";
-        $_SERVER['PHP_AUTH_USER'] = "postgres";
+        $_SERVER['KRB5CCNAME'] = '';
+        $_SERVER['PHP_AUTH_USER'] = 'postgres';
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "postgres");
+        $this->assertEquals($res, 'postgres');
         $flag_astra = false;
-
-
     }
 
     public function test_isGuest() {
-        global $_STORAGE, $flag_astra;
-        $_SESSION['login'] = 'postgres';
+        global $_STORAGE, $_CONFIG;
+        $_STORAGE['login'] = $_CONFIG->dbDefaultPass;
         $res = methodsBase::isGuest();
         $this->assertEquals($res, 1);
-
-        $flag_astra = true;
-        $_SERVER['PHP_AUTH_USER'] = "postgres";
-        $res = methodsBase::isGuest();
-        $this->assertEquals($res, true);
-        $flag_astra = false;
     }
 
     public function test_quote() {
-        $res = methodsBase::quote("test");
+        $res = methodsBase::quote('test');
         $this->assertEquals($res, "'test'");
     }
 
     public function test_test() {
-        $res = methodsBase::test("test");
+        $res = methodsBase::test('test');
         $this->assertEquals($res, "test");
     }
 
@@ -367,7 +416,6 @@ class methodsTest extends TestCase
                 ]
             ]
         );
-
     }
 
     public function test_getTableDataPredicate_empty_groups() {
@@ -1179,7 +1227,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableData() {
-        $params = [
+        /*$params = [
             "entityName" => "bookings",
             "schemaName" => "bookings",
             "fields" => [
@@ -1193,9 +1241,7 @@ class methodsTest extends TestCase
             "value" => "00000F",
             "predicate" => "00000F",
             "exclude" => [
-                0 => ["book_ref",
-                    "total_amount"],
-
+                0 => ["book_ref", "total_amount"],
             ],
             "desc" => 'Загрузка списка "Bookings"'
         ];
@@ -1210,7 +1256,7 @@ class methodsTest extends TestCase
                 0 => ["count" => '1'],
             ]
 
-        ]);
+        ]);*/
 
 
         $params = [
@@ -1226,9 +1272,24 @@ class methodsTest extends TestCase
             "value" => null,
             "distinct" => true,
             "exclude" => [],
+            "order" => [["field" => "passenger_id"]],
             "desc" => 'Загрузка списка "Tickets"'
         ];
         $res = methodsBase::getTableData($params);
+        $a = array(
+            0 => ["passenger_id" => '1405 221312'],
+            1 => ["passenger_id" => '2846 021312'],
+            2 => ["passenger_id" => '3960 621312'],
+            3 => ["passenger_id" => '4152 521312'],
+            4 => ["passenger_id" => '5838 621312'],
+            5 => ["passenger_id" => '6704 621312'],
+            6 => ["passenger_id" => '6991 021312'],
+            7 => ["passenger_id" => '7437 921312']
+        );
+        $diff = array_diff_assoc($res['data'], $a);
+        throw new Exception(print_r(
+            $res['data'],
+            true));
         $this->assertEquals($res, [
             "data" => [
                 0 => ["passenger_id" => '1405 221312'],
@@ -1271,13 +1332,14 @@ class methodsTest extends TestCase
     }
 
     public function test_getUserDescription() {
-        global $_STORAGE;
+        global $_STORAGE, $_CONFIG;
+        $_STORAGE['login'] = $_CONFIG->dbDefaultUser;
 
         $res = methodsBase::getUserDescription();
         $this->assertEquals(
             $res,
             array(
-                'user' => 'postgres',
+                'user' => $_STORAGE['login'],
                 'comment' => 'Администратор'
             )
         );
@@ -1508,7 +1570,7 @@ class methodsTest extends TestCase
             'data' => [
                 ['1DC435', '2017-07-20 02:36:00+00', '6700.00'],
                 ['7F5D7B', '2017-08-04 18:31:00+00', '7300.00'],
-                ['44444', '2020-03-12 15:55:00+00', '9999.00']
+                ['44444', '2020-03-12 18:55:00+00', '9999.00']
             ],
             'records' => [
                 ['count' => $res['records'][0]['count']]
@@ -1538,9 +1600,9 @@ class methodsTest extends TestCase
             'fields' => ['book_ref', 'book_date', 'total_amount'],
             'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
             'data' => [
-                ['000068', '2020-03-12 15:18:00+00', '18100.00'],
+                ['000068', '2020-03-12 18:18:00+00', '18100.00'],
                 ['0002D8', '2017-08-07 18:40:00+00', '23600.00'],
-                ['000012', '2020-03-12 15:18:00+00', '37900.00']
+                ['000012', '2020-03-12 18:18:00+00', '37900.00']
             ],
             'records' => [
                 ['count' => 4]
@@ -2081,17 +2143,19 @@ class methodsTest extends TestCase
     }
 
     public function test_authenticate() {
-        global $_STORAGE;
+        global $_STORAGE, $_CONFIG;
         $_STORAGE['PHPSESSID'] = '';
+
+        $res = $_STORAGE['Controller']->Sql("select version();");
         $params = [
-            'usename' => 'postgres',
-            'passwd' => '123456'
+            'usename' => $_CONFIG->dbDefaultUser,
+            'passwd' => $_CONFIG->dbDefaultPass
         ];
 
         $res = methodsBase::authenticate($params);
         $this->assertEquals($res, [
             0 => [
-                'usename' => 'postgres'
+                'usename' => $_CONFIG->dbDefaultUser
             ],
         ]);
 

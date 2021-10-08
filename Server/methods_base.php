@@ -40,7 +40,7 @@ class methodsBase
 
         $options = static::GetDefaultOptions();
         $options->SetQueryDescription("$desc (count)");
-        $arr_count = $_STORAGE['Controller']->sql($count, $options);
+        $arr_count = $_STORAGE['Controller']->Sql($count, $options);
         $plan_rows = $arr_count[0]["count"];
         return $plan_rows;
     }
@@ -70,16 +70,23 @@ class methodsBase
         return $metadata;
     }
 
-    protected static function queryModifyEntities($query, $options = null, $query_description = '') {
+    protected static function queryModifyEntities($queries, $options = null, $query_description = '') {
         global $_STORAGE;
         if (is_null($options))
             $options = static::GetDefaultOptions();
 
         $options->SetPreprocessData(null);
         $options->SetQueryDescription($query_description);
+        // $options->SetInfoAffectedRows(true);
 
+        $result = array();
 
-        return $_STORAGE['Controller']->sql($query, $options);
+        foreach ($queries as $query) {
+            $s = $_STORAGE['Controller']->Sql($query, $options);
+            $result[] = $s[0] ?? $s;
+        }
+
+        return $result;
     }
 
     protected static function GetDefaultOptions() {
@@ -109,7 +116,7 @@ class methodsBase
 
             $options = static::GetDefaultOptions();
             $options->SetEncryptPassword(false);
-            $usenameDB = $_STORAGE['Controller']->sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
+            $usenameDB = $_STORAGE['Controller']->Sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
 
             $privateKey = GenerateRandomString();
             if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
@@ -175,7 +182,7 @@ class methodsBase
 
     public static function getAllEntities($params) {
         global $_STORAGE;
-        return $_STORAGE['Controller']->sql('SELECT * FROM ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . ' t');
+        return $_STORAGE['Controller']->Sql('SELECT * FROM ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . ' t');
     }
 
     public static function getTableData($params) {
@@ -215,7 +222,7 @@ class methodsBase
                     if ($where) {
                         $where .= " OR ";
                     }
-                    $where .= $_STORAGE['Controller']->typeField($_STORAGE['Controller']->IdQuote($n), 'text')
+                    $where .= $_STORAGE['Controller']->typeField($n, 'text')
                         .' ' . $_STORAGE['Controller']->Like() .' '
                         . $_STORAGE['Controller']->type(
                             $_STORAGE['Controller']->EscapeString('%' . $params['predicate'] . '%'),
@@ -244,7 +251,7 @@ class methodsBase
             $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
         }
 
-        $data_result_statement = $_STORAGE['Controller']->sql($statement);
+        $data_result_statement = $_STORAGE['Controller']->Sql($statement);
         $count_data = count($data_result_statement);
 
         if (($count_data < $params["limit"]) || ($params["limit"] == 1)) {
@@ -742,7 +749,7 @@ class methodsBase
                 $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE ' . $equation . ' END as row_number
                     FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' .  $_STORAGE['Controller']->IdQuote($params["primaryKey"]) .
                     '  from (' . $statement . ') t ) k WHERE k.' . $params["primaryKey"] . '=\'' .  $_STORAGE['Controller']->EscapeString($params["currentKey"]) . '\'';
-                $rowNumberRes =  $_STORAGE['Controller']->sql($pageNumberStatement);
+                $rowNumberRes =  $_STORAGE['Controller']->Sql($pageNumberStatement);
                 $params["offset"] = 0;
                 if (isset($rowNumberRes[0]["row_number"]))
                     $params["offset"] = $rowNumberRes[0]["row_number"];
@@ -765,7 +772,9 @@ class methodsBase
         $options = static::GetDefaultOptions();
         $options->SetFormat((isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object');
         $options->SetQueryDescription($desc);
-        $data_result_statement =  $_STORAGE['Controller']->sql($statement, $options);
+
+        $data_result_statement =  $_STORAGE['Controller']->Sql($statement, $options);
+
         $count_data = count($data_result_statement);
 
         if (($count_data < $params["limit"]) || ($params["limit"] == 1)) {
@@ -781,7 +790,7 @@ class methodsBase
             $fst_operand = $params['predicate']['operands'][0];
             if ($fst_operand['operand']['op'] == "FTS") {
                 $ts_query = json_decode($fst_operand['operand']['value'], true);
-                $ts_n =  $_STORAGE['Controller']->sql('select plainto_tsquery(\'' .  $_STORAGE['Controller']->EscapeString($ts_query["language"]) .
+                $ts_n =  $_STORAGE['Controller']->Sql('select plainto_tsquery(\'' .  $_STORAGE['Controller']->EscapeString($ts_query["language"]) .
                     '\', \'' .  $_STORAGE['Controller']->EscapeString($ts_query["ft_query"]) . '\')');
                 $data_result['ft_keywords'] = $ts_n[0]['plainto_tsquery'];
             }
@@ -790,7 +799,7 @@ class methodsBase
         if (sizeof($params["aggregate"])) {
             $options = static::GetDefaultOptions();
             $options->SetQueryDescription("$desc (aggregate)");
-            $data_aggregates =  $_STORAGE['Controller']->sql($sql_aggregates, $options);
+            $data_aggregates =  $_STORAGE['Controller']->Sql($sql_aggregates, $options);
 
             foreach ($params["aggregate"] as $aggrIndex => $aggregateDescription) {
                 $data_result[$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'][][$aggregateDescription["func"]] = $data_aggregates[0][$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'];
@@ -806,52 +815,61 @@ class methodsBase
 
     public static function deleteEntitiesByKey($params) {
         global $_STORAGE;
+        $controller = $_STORAGE['Controller'];
+
         $replaceDataWithSQL;
-        static::preProcessing($params, "deleteEntitiesByKey", $replaceDataWithSQL);
-        $sql = '';
+        static::preProcessing($params, 'deleteEntitiesByKey', $replaceDataWithSQL);
+        $sql = array();
         $value_arr = array();
         $key_arr = array();
         $request_number = array();
 
-        if (is_array($params["key"])) {
-            $key_arr = $params["key"];
-            $value_arr = $params["value"];
-            if (is_array($params["value"][0])) {
-                $request_number = $params["value"][0];
+        if (is_array($params['key'])) {
+            $key_arr = $params['key'];
+            $value_arr = $params['value'];
+            if (is_array($params['value'][0])) {
+                $request_number = $params['value'][0];
             } else {
-                $request_number = array($params["value"][0]);
+                $request_number = array($params['value'][0]);
             }
 
         } else {
-            $key_arr = array($params["key"]);
-            if (is_array($params["value"]))
-                $value_arr[0] = $params["value"];
+            $key_arr = array($params['key']);
+            if (is_array($params['value']))
+                $value_arr[0] = $params['value'];
             else
-                $value_arr[0] = array($params["value"]);
+                $value_arr[0] = array($params['value']);
             $request_number = $value_arr[0];
 
         }
 
         foreach ($request_number as $i => $request) {
             $sql_where = '';
-            $type_conversion = '';
+            // $type_conversion = '';
+            $type_conversion = false;
 
             foreach ($key_arr as $j => $key) {
-                if (isset($params["types"]))
-                    if (isset($params["types"][$key]))
-                        if ($params["types"][$key]) $type_conversion = '::' . $params["types"][$key];
-                $sql_where .=  $_STORAGE['Controller']->IdQuote($key) . " = '" .  $_STORAGE['Controller']->EscapeString($value_arr[$j][$i]) . "'" . $type_conversion;
+                if (isset($params['types']))
+                    if (isset($params['types'][$key]))
+                        if ($params['types'][$key]) $type_conversion = true; // $type_conversion = '::' . $params['types'][$key];
+
+                if ($type_conversion)
+                    $sql_where .=  $controller->IdQuote($key) . " = " .
+                        $controller->type($controller->EscapeString($value_arr[$j][$i]), $params['types'][$key]);
+                else
+                    $sql_where .=  $controller->IdQuote($key) . " = '" .  $controller->EscapeString($value_arr[$j][$i]) . "'";
+                    //$sql_where .=  $controller->IdQuote($key) . " = '" .  $controller->EscapeString($value_arr[$j][$i]) . "'" . $type_conversion;
                 if ($key != end($key_arr))
-                    $sql_where .= " AND ";
+                    $sql_where .= ' AND ';
 
             }
 
-            $sql .= 'DELETE FROM ' .  $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . ' WHERE ' . $sql_where . ';';
+            $sql[] = 'DELETE FROM ' .  $controller->relation($params['schemaName'], $params['entityName']) . ' WHERE ' . $sql_where . ';';
         }
 
         static::queryModifyEntities($sql);
 
-        $return_data["sql"] = $sql;
+        $return_data['sql'] = implode('', $sql);
         return $return_data;
     }
 
@@ -859,22 +877,21 @@ class methodsBase
     public static function addEntities($params) {
         global $_STORAGE;
         $replaceDataWithSQL;
-        static::preProcessing($params, "addEntities", $replaceDataWithSQL);
+        static::preProcessing($params, 'addEntities', $replaceDataWithSQL);
 
-        $desc = isset($params['desc']) ? $params['desc'] : '';
-        $sql = '';
+        $desc = $params['desc'] ?? '';
+        $sql = array();
 
-        foreach ($params["fields"] as $r => $row) {
+        foreach ($params['fields'] as $r => $row) {
             $fields = '';
             $values = '';
             foreach ($row as $field => $value) {
                 if (!is_null($value) && $value!='') {
-                    $sql_to_set = '';
                     $sql_to_set = "'" .  $_STORAGE['Controller']->EscapeString($value) . "'";
                     if (isset($params["types"])) {
                         if (isset($params["types"][$field]))
                             if ($params["types"][$field]) {
-                                $sql_to_set =  $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value), $params["types"][$field]);
+                                $sql_to_set = $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value), $params["types"][$field]);
                             }
                     }
 
@@ -895,7 +912,7 @@ class methodsBase
                 }
             }
 
-            $sql .= 'INSERT INTO ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName'])
+            $sql[] = 'INSERT INTO ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName'])
                     . "($fields) "  . $_STORAGE['Controller']->InsertValues($values) .' '
                     . $_STORAGE['Controller']->ReturningPKey( $_STORAGE['Controller']->IdQuote($params['key']))  .';';
         }
@@ -906,31 +923,31 @@ class methodsBase
 
     public static function updateEntity($params) {
         global $_STORAGE;
+        $controller = $_STORAGE['Controller'];
+
         $replaceDataWithSQL;
-        static::preProcessing($params, "updateEntity", $replaceDataWithSQL);
+        static::preProcessing($params, 'updateEntity', $replaceDataWithSQL);
 
-        $sql = '';
-
-        $sql = '';
+        $sql = array();
         $value_arr = array();
         $key_arr = array();
         $request_number = array();
 
-        if (is_array($params["key"])) {
-            $key_arr = $params["key"];
-            $value_arr = $params["value"];
-            if (is_array($params["value"][0])) {
-                $request_number = $params["value"][0];
+        if (is_array($params['key'])) {
+            $key_arr = $params['key'];
+            $value_arr = $params['value'];
+            if (is_array($params['value'][0])) {
+                $request_number = $params['value'][0];
             } else {
-                $request_number = array($params["value"][0]);
+                $request_number = array($params['value'][0]);
             }
 
         } else {
-            $key_arr = array($params["key"]);
-            if (is_array($params["value"]))
-                $value_arr[0] = $params["value"];
+            $key_arr = array($params['key']);
+            if (is_array($params['value']))
+                $value_arr[0] = $params['value'];
             else
-                $value_arr[0] = array($params["value"]);
+                $value_arr[0] = array($params['value']);
             $request_number = $value_arr[0];
 
         }
@@ -940,7 +957,7 @@ class methodsBase
             $sql_where = '';
             $type_conversion = '';
 
-            foreach ($params["fields"] as $field => $values) {
+            foreach ($params['fields'] as $field => $values) {
 
                 if (is_array($values))
                     $value = $values[$i];
@@ -948,57 +965,66 @@ class methodsBase
                     $value = $values;
 
                 if (isset($value) && trim($value) !== '') {
-                    $type_conversion = '';
-                    if (isset($params["types"]))
-                        if ($params["types"][$field])
-                            $type_conversion = '::' . $params["types"][$field];
+                    $type_conversion = false;
+                    if (isset($params['types']))
+                        if ($params['types'][$field])
+                            $type_conversion = true;
 
-                                                
                     if(isset($replaceDataWithSQL[$field]))
                         $sql_to_set = $replaceDataWithSQL[$field];
                     else
-                        $sql_to_set = "'" .  $_STORAGE['Controller']->EscapeString($value) . "'". $type_conversion;
+                        if ($type_conversion)
+                            $sql_to_set = $controller->type(
+                                $controller->EscapeString($value),
+                                $params['types'][$field]
+                            );
+                        else
+                            $sql_to_set =  "'" .  $controller->EscapeString($value) . "'";
 
                     if ($set) {
-                        $set .= ', ' .  $_STORAGE['Controller']->IdQuote($field) . " = $sql_to_set";
+                        $set .= ', ' .  $controller->IdQuote($field) . " = $sql_to_set";
                     } else {
-                        $set =  $_STORAGE['Controller']->IdQuote($field) . " = $sql_to_set";
+                        $set =  $controller->IdQuote($field) . " = $sql_to_set";
                     }
                 } else {
                     if ($set) {
-                        $set .= ', ' .  $_STORAGE['Controller']->IdQuote($field) . " = NULL";
+                        $set .= ', ' .  $controller->IdQuote($field) . ' = NULL';
                     } else {
-                        $set =  $_STORAGE['Controller']->IdQuote($field) . " = NULL";
+                        $set =  $controller->IdQuote($field) . ' = NULL';
                     }
                 }
             };
 
             foreach ($key_arr as $j => $key) {
                 $type_conversion = '';
-                if (isset($params["types"]))
-                    if ($params["types"][$key]) {
-                        $type_conversion = $params["types"][$key];
+                if (isset($params['types']))
+                    if ($params['types'][$key]) {
+                        $type_conversion = $params['types'][$key];
                     }
-                $sql_where .=  $_STORAGE['Controller']->typeField($key, $type_conversion, true)
-                    . " = "
-                    .  $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value_arr[$j][$i]), $type_conversion);
+                $sql_where .=  $controller->typeField($key, $type_conversion, true)
+                    . ' = '
+                    .  $controller->type($controller->EscapeString($value_arr[$j][$i]), $type_conversion);
                 if ($key != end($key_arr))
-                    $sql_where .= " AND ";
+                    $sql_where .= ' AND ';
 
             }
 
-            $sql .= 'UPDATE ' .  $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName']) . " SET $set WHERE $sql_where;";
+            $sql[] = 'UPDATE ' .  $controller->relation($params['schemaName'], $params['entityName']) . " SET $set WHERE $sql_where;";
         }
 
         static::queryModifyEntities($sql);
-
-        $return_data["sql"] = $sql;
+        $return_data['sql'] = implode('', $sql);
         return $return_data;
     }
 
     public static function getPIDs($params) {
         global $_STORAGE;
-        $r =  $_STORAGE['Controller']->sql('SELECT * FROM pg_stat_activity WHERE datname = current_database()');
+        $controller = $_STORAGE['Controller'];
+
+        $r =  $controller->Sql(
+            $controller->GetAllDbPIDs()
+        );
+
         $pid_map = array();
         foreach ($r as $i => $v) {
             $pid_map[$v['pid']] = 1;
@@ -1014,7 +1040,12 @@ class methodsBase
 
     public static function killPID($params) {
         global $_STORAGE;
-        $r =  $_STORAGE['Controller']->sql('select pg_terminate_backend(' .  $_STORAGE['Controller']->EscapeString($params['pid']) . ')');
+        $controller = $_STORAGE['Controller'];
+
+        $r = $controller->KillProcess(
+            $controller->EscapeString($params['pid'])
+        );
+
         unset($_STORAGE['pids'][$params['pid']]);
         return $r;
     }
@@ -1028,7 +1059,7 @@ class methodsBase
         $buttons = "";
         $pages = "";
 
-        $proj_arr =  $_STORAGE['Controller']->sql("SELECT * FROM $_CONFIG->metaSchema.view_projection_entity");
+        $proj_arr =  $_STORAGE['Controller']->Sql("SELECT * FROM $_CONFIG->metaSchema.view_projection_entity");
         if (@count($proj_arr) == 0) {
             //throw new Exception("Metadata: no projections");
         }
@@ -1046,7 +1077,7 @@ class methodsBase
 
         $metadata = methodsBase::mergeMetadata($proj_arr, $prop_arr, $rel_arr, $buttons);
 
-        $options =  $_STORAGE['Controller']->sql("SELECT * FROM $_CONFIG->metaSchema.options");
+        $options =  $_STORAGE['Controller']->Sql("SELECT * FROM $_CONFIG->metaSchema.options");
 
         return array('projections' => $metadata, 'pages' => $pages, 'options' => $options);
     }

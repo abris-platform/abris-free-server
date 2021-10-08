@@ -388,3 +388,6 @@ BEGIN
 	RETURN CAST(a1 as CHAR);
 END$$
 DELIMITER ;
+--
+--
+ALTER USER mysql COMMENT 'Администратор';

@@ -25,7 +25,7 @@ CMD service postgresql start \
     && sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;" \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='';" \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" \
-    && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_MAIN_LOGIN}'@'%' IDENTIFIED WITH caching_sha2_password BY '${PG_ROOT_PASSWORD}'; GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_MAIN_LOGIN}'@'%'; FLUSH PRIVILEGES;" \
+    && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_MAIN_LOGIN}'@'%' IDENTIFIED WITH mysql_native_password BY '${PG_ROOT_PASSWORD}'; GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_MAIN_LOGIN}'@'%'; FLUSH PRIVILEGES;" \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} < /abris-free/mysql_abris_free.sql \
     && sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} < /tmp/free-mysql-demo.sql \
     && /etc/init.d/postgresql restart \

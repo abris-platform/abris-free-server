@@ -21,4 +21,12 @@ interface DatabaseInterface
     public function db_escape_bytea($value);
 
     public function db_type_compare($format);
+
+    public function db_get_count_affected_row($result);
+
+    public function get_pids_database_query($dbname);
+
+    public function get_name_current_database_query();
+
+    public function kill_pid_query($pid);
 }
