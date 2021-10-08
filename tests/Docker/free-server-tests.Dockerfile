@@ -5,7 +5,11 @@ RUN apt-get update -yqq \
     libpq-dev libmagickwand-dev libzip-dev \
     wget curl unzip nano sudo \
     postgresql-12 \
-    mysql-server
+    mysql-server \
+    locales
+
+RUN sed -i '/ru_RU.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
 
 RUN echo "host all  all   0.0.0.0/0   md5" >> /etc/postgresql/12/main/pg_hba.conf \
     && sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/12/main/postgresql.conf \
@@ -31,3 +35,7 @@ CMD service postgresql start \
     && /etc/init.d/postgresql restart \
     && /etc/init.d/mysql restart \
     && tail -f /dev/null
+
+ENV LANG ru_RU.UTF-8
+ENV LANGUAGE ru_RU:ru
+ENV LC_ALL ru_RU.UTF-8
