@@ -1,5 +1,5 @@
-DROP SCHEMA IF EXISTS bookings;
-CREATE SCHEMA bookings;
+DROP DATABASE IF EXISTS bookings;
+CREATE DATABASE bookings DEFAULT CHARSET utf8;
 --
 --
 DELIMITER $$
@@ -332,12 +332,12 @@ ALTER TABLE bookings.tickets
 --
 --
 --
-DROP SCHEMA IF EXISTS test_schema;
-CREATE SCHEMA test_schema;
+DROP DATABASE IF EXISTS test_schema;
+CREATE DATABASE test_schema DEFAULT CHARSET utf8;
 --
 --
-DROP SCHEMA IF EXISTS public;
-CREATE SCHEMA public;
+DROP DATABASE IF EXISTS public;
+CREATE DATABASE public DEFAULT CHARSET utf8;
 --
 --
 CREATE TABLE test_schema.text_types
