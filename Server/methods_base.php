@@ -394,7 +394,7 @@ class methodsBase
                                 );
                             ;
                         }
-                        return implode(' and ', $where_arr);
+                        return implode(' AND ', $where_arr);
                     } else {
                         $where = '';
 
@@ -408,7 +408,7 @@ class methodsBase
                                         $where .= " OR ";
                                     }
                                     $where .= $field_description['subfields_table_alias'][$m] . '.'
-                                        .$_STORAGE['Controller']->typeField($_STORAGE['Controller']->IdQuote($j_field), 'text')
+                                        .$_STORAGE['Controller']->typeField($j_field, 'text')
                                         . ' ' .$_STORAGE['Controller']->Like() .' '
                                         .$_STORAGE['Controller']->type(
                                             $_STORAGE['Controller']->EscapeString('%' . $value . '%'),

@@ -104,7 +104,7 @@ class DatabaseMysql extends DatabaseAbstract
     public function type_field($field, $type, $need_quote = false) {
         if (!$type) return "`$field`";
         $type = $type == 'text' ? 'char(100000)' : $type;
-        return "CONVERT(`$field`, $type)";
+        return $need_quote ? "CONVERT(`$field`, $type)" : "CONVERT($field, $type)" ;
     }
 
     public function get_explain_query() {

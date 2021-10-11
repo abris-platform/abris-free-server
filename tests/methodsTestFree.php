@@ -550,6 +550,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_aggregate() {
+        global $_STORAGE;
         $params =
             [
                 "entityName" => "airports",
@@ -597,6 +598,14 @@ class methodsTest extends TestCase
 
             ];
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = "";
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')  ORDER BY airport_code LIMIT 10 OFFSET 0";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` = \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
         $this->assertEquals($res,
             [
                 "data" => [
@@ -622,7 +631,7 @@ class methodsTest extends TestCase
                     "airport_name",
                     "timezone"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')  ORDER BY airport_code LIMIT 10 OFFSET 0",
+                "sql" => $sql_equal,
                 "count(airport_code)" => [
                     [
                         "count" => "2"
@@ -693,6 +702,13 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t  LIMIT 1 OFFSET 0";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  count(`t`.`airport_name`) as airport_name, count(`t`.`city`) as city, count(`t`.`coordinates`) as coordinates, count(`t`.`timezone`) as timezone FROM `bookings`.`airports` as t  LIMIT 1 OFFSET 0';
+        }
         $this->assertEquals($res,
             [
 
@@ -721,7 +737,7 @@ class methodsTest extends TestCase
                     3 => "timezone"
                 ],
 
-                "sql" => "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t  LIMIT 1 OFFSET 0",
+                "sql" => $sql_equal,
                 "count(airport_name)" => [
                     0 => [
                         "count" => 11
@@ -921,6 +937,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_currentKey_costructedField_order() {
+
         $params =
             [
                 "format" => "array",
@@ -966,9 +983,8 @@ class methodsTest extends TestCase
                 "functions" => []
 
             ];
+
         $res = methodsBase::getTableDataPredicate($params);
-
-
         $this->assertEquals(
             [
                 "offset" => "0",
@@ -1446,6 +1462,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_space_search() {
+        global $_STORAGE;
         $params =
             [
                 "format" => "array",
@@ -1494,13 +1511,19 @@ class methodsTest extends TestCase
                 "functions" => []
 
             ];
+
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::text ILIKE \'%As%\'::text and "t"."timezone"::text ILIKE \'%vo%\'::text)  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (CONVERT(`t`.`timezone`, char(100000)) LIKE CONVERT(\'%As%\', char(100000)) AND CONVERT(`t`.`timezone`, char(100000)) LIKE CONVERT(\'%vo%\', char(100000)))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
 
 
-        $this->assertEquals(
-            'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::text ILIKE \'%As%\'::text and "t"."timezone"::text ILIKE \'%vo%\'::text)  ORDER BY airport_code LIMIT 10 OFFSET 0',
-            $res['sql']
-        );
+        $this->assertEquals($sql_equal,$res['sql']);
     }
 
     public function test_getTableDataPredicate_operand() {
@@ -1719,6 +1742,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_operand_EQ() {
+        global $_STORAGE;
         $params = [
             "format" => "array",
             "entityName" => "airports",
@@ -1769,10 +1793,18 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = "";
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NULL OR "t"."timezone"::text = \'\' OR "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NULL OR CONVERT(`t`.`timezone`, char(100000)) = \'\' OR `t`.`timezone` IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NULL OR "t"."timezone"::text = \'\' OR "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
+                'sql' => $sql_equal ,
                 'data' => [
                     ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
                     ['MJZ', 'Мирный', 'Asia/Yakutsk'],
@@ -1886,6 +1918,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_operand_NEQ() {
+        global $_STORAGE;
         $params = [
             "format" => "array",
             "entityName" => "airports",
@@ -1936,10 +1969,18 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = "";
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND trim(CONVERT(`t`.`timezone`, char(100000))) <> \'\' and `t`.`timezone` NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KGD', 'Храброво', 'Europe/Kaliningrad'],
@@ -1959,10 +2000,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"] = "";
         $params["limit"] = 3;
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` is null)  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [],
                 'records' => [
                     ['count' => 0]
@@ -1972,10 +2020,17 @@ class methodsTest extends TestCase
 
         $params["predicate"]["operands"][0]["operand"]["value"] = [];
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND CONVERT(`t`.`timezone`, char(100000)) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
@@ -1990,10 +2045,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"][0] = "";
         $params["predicate"]["operands"][0]["operand"]["value"][1] = "";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND trim(CONVERT(`t`.`timezone`, char(100000))) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
@@ -2009,10 +2071,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"][1] = "Asia/Yakutsk";
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KGD', 'Храброво', 'Europe/Kaliningrad'],
@@ -2026,10 +2095,17 @@ class methodsTest extends TestCase
 
         $params["predicate"]["operands"][0]["operand"]["value"] = "Asia/Novokuznetsk";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KGD', 'Храброво', 'Europe/Kaliningrad'],
