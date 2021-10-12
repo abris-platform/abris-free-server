@@ -699,7 +699,7 @@ class methodsBase
             $count = 'SELECT count(*) AS count FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if ($distinctfields) {
-            $distinctfields = 'distinct on (' . $distinctfields . ')';
+            $distinctfields = $_STORAGE['Controller']->distinct_on($distinctfields);
         }
         $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 

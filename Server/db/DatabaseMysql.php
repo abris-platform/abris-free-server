@@ -182,4 +182,9 @@ class DatabaseMysql extends DatabaseAbstract
     public function kill_pid_query($pid) {
         return "KILL $pid;";
     }
+
+    public function distinct_on($distinctfields){
+        return "";
+    }
+
 }

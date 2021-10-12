@@ -222,4 +222,8 @@ class DbSqlController
 
         return false;
     }
+
+    public function distinct_on($distinctfields){
+        return $this->GetObjectDatabase()->distinct_on($distinctfields);
+    }
 }
