@@ -155,4 +155,8 @@ class DatabasePostgresql extends DatabaseAbstract
     public function kill_pid_query($pid) {
         return "SELECT pg_terminate_backend($pid);";
     }
+
+    public function distinct_on($distinctfields){
+        return 'DISTINCT ON (' . $distinctfields . ')';
+    }
 }

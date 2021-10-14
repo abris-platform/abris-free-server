@@ -283,8 +283,6 @@ class methodsBase
             if (isset($fields[$field]['type']))
                 $type_desc = '::' . $fields[$field]['type'];
 
-
-
         $search_in_key = false;
         if(isset($operand["search_in_key"]))
             $search_in_key = $operand["search_in_key"];
@@ -376,15 +374,14 @@ class methodsBase
             case "C":
                 if ($value) {
                     $value_parts = array();
-                    if(isset($operand["m_order"])){
-                        if($operand["m_order"])
+                    if (isset($operand["m_order"])) {
+                        if ($operand["m_order"])
                             $value_parts = explode(' ', $value);
-                    }
-                    else
-                            $value_parts = array(0 => $value);
+                    } else
+                        $value_parts = array(0 => $value);
                     $where_arr = array();
 
-                    if ($field != "t.\"\"") {
+                    if (($field != "t.\"\"") && ($field != "t.``")) {
                         foreach ($value_parts as $i => $v) {
                             $where_arr[] = $_STORAGE['Controller']->typeField($field, 'text')
                                 . ' ' . $_STORAGE['Controller']->Like() . ' '
@@ -392,8 +389,8 @@ class methodsBase
                                     '%' . $_STORAGE['Controller']->EscapeString($v) . '%',
                                     'text'
                                 );
-                            ;
                         }
+
                         return implode(' AND ', $where_arr);
                     } else {
                         $where = '';
@@ -407,6 +404,7 @@ class methodsBase
                                     if ($where) {
                                         $where .= " OR ";
                                     }
+
                                     $where .= $field_description['subfields_table_alias'][$m] . '.'
                                         .$_STORAGE['Controller']->typeField($j_field, 'text')
                                         . ' ' .$_STORAGE['Controller']->Like() .' '
@@ -440,12 +438,18 @@ class methodsBase
                                     $result['m_order'] = '';
                                 $value = $value_parts[0];
                                 $result['m_order'] .= ' NOT('
-                                    .$_STORAGE['Controller']->typeField('t.' .$_STORAGE['Controller']->IdQuote($k), 'text')
-                                    .' ' .$_STORAGE['Controller']->Like() .' '
-                                    .$_STORAGE['Controller']->type(
-                                        $_STORAGE['Controller']->EscapeString($value . '%'),'text')
-                                    .'), t.'
-                                    .$_STORAGE['Controller']->typeField($_STORAGE['Controller']->IdQuote($k), 'text');
+                                    . $_STORAGE['Controller']->typeField(
+                                        't.' . $_STORAGE['Controller']->IdQuote($k),
+                                        'text'
+                                    )
+                                    . ' ' . $_STORAGE['Controller']->Like() . ' '
+                                    . $_STORAGE['Controller']->type(
+                                        $_STORAGE['Controller']->EscapeString($value . '%'), 'text')
+                                    . '), '
+                                    . $_STORAGE['Controller']->typeField(
+                                        't.' . $_STORAGE['Controller']->IdQuote($k),
+                                        'text'
+                                    );
                             }
                         }
 
@@ -459,13 +463,11 @@ class methodsBase
             case "ISNN":
                 return $field . " IS NOT NULL ";
             case "DUR":
-                return $field . " <= now() and " . $field . " > now() - '" . $value . "'::interval";
-
+                return "$field <= now() AND $field > (now() - " .$_STORAGE['Controller']->type($value, 'interval') .")";
         }
     }
 
     public static function makePredicateString($predicate_object, $replace_rules, $fields, $params, &$result) {
-
         $operator = '';
         $string = '';
         foreach ($predicate_object["operands"] as $op) {
@@ -586,7 +588,7 @@ class methodsBase
                     $field_list .= ", ";
                 }
                 $field_description = $params["fields"][$field_name];
-                $field_list .= $_STORAGE['Controller']->IdQuote($field_description["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field_name);
+                $field_list .= $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name);
                 $field_array[] = $field_name;
             }
             foreach ($params["aggregate"] as $i => $field_obj) {
@@ -596,11 +598,10 @@ class methodsBase
                 $field_name = $field_obj["field"];
                 $field_func = $field_obj["func"];
                 $field_description = $params["fields"][$field_name];
-                $field_list .= $field_func . "(" . $_STORAGE['Controller']->IdQuote($field_description["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field_name) . ") as $field_name";
+                $field_list .= $field_func . "(" . $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name) . ") as $field_name";
                 $field_array[] = $field_name;
             }
         } else {
-
             foreach ($params["fields"] as $field_name => $field_description) {
                 if ($field_list) {
                     $field_list .= ", ";
@@ -611,33 +612,35 @@ class methodsBase
 
                     foreach ($field_description['subfields'] as $m => $j_field) {
                         $j_field_list_array[] = 'COALESCE('
-                            . $_STORAGE['Controller']->IdQuote($field_description['subfields_table_alias'][$m])
-                            . '.'
-                            . $_STORAGE['Controller']->typeField($j_field, 'text')
+                            . $controller->typeField(
+                                $controller->IdQuote($field_description['subfields_table_alias'][$m])
+                                . '.'
+                                .$controller->IdQuote($j_field),
+                                'text')
                             . ", '')";
                     }
 
                     if (isset($field_description["format"]))
-                        $j_field_list = $_STORAGE['Controller']->FormatColumns(
+                        $j_field_list = $controller->FormatColumns(
                             $j_field_list_array,
-                            $_STORAGE['Controller']->EscapeString($field_description["format"])
+                            $controller->EscapeString($field_description["format"])
                         );
                     else
-                        $j_field_list = $_STORAGE['Controller']->Concat($j_field_list_array);
+                        $j_field_list = $controller->Concat($j_field_list_array);
 
                     if (isset($field_description["virtual"]))
-                        $field_list .= $_STORAGE['Controller']->RowToJson(
+                        $field_list .= $controller->RowToJson(
                                 array(
                                     $j_field_list,
-                                    $field_description['subfields_navigate_alias'] . '.' . $_STORAGE['Controller']->IdQuote($field_description['subfields_key']))
-                            ) .' ' .$_STORAGE['Controller']->Collate() .' AS ' . $_STORAGE['Controller']->IdQuote($field_name);
+                                    $field_description['subfields_navigate_alias'] . '.' . $controller->IdQuote($field_description['subfields_key']))
+                            ) .' ' .$controller->Collate() .' AS ' . $controller->IdQuote($field_name);
                     else
-                        $field_list .= $_STORAGE['Controller']->RowToJson(
+                        $field_list .= $controller->RowToJson(
                                 array(
                                     $j_field_list,
-                                    $_STORAGE['Controller']->IdQuote($field_description['table_alias']) . '.' . $_STORAGE['Controller']->IdQuote($field_name)
+                                    $controller->IdQuote($field_description['table_alias']) . '.' . $controller->IdQuote($field_name)
                                 )
-                            ) .' ' .$_STORAGE['Controller']->Collate() .' AS ' . $_STORAGE['Controller']->IdQuote($field_name);
+                            ) .' ' .$controller->Collate() .' AS ' . $controller->IdQuote($field_name);
                     $field_array[] = $field_name;
 
                     $replace_rules[$field_name] = $j_field_list;
@@ -648,11 +651,11 @@ class methodsBase
                         $field_table_alias = 't';
 
                     if (isset($field_description["only_filled"]))
-                        $field_list .= $_STORAGE['Controller']->IdQuote($field_table_alias) . "." . $_STORAGE['Controller']->IdQuote($field_name) . " is not null as " . $_STORAGE['Controller']->IdQuote($field_name);
+                        $field_list .= $controller->IdQuote($field_table_alias) . "." . $controller->IdQuote($field_name) . " is not null as " . $controller->IdQuote($field_name);
                     else
-                        $field_list .= $_STORAGE['Controller']->IdQuote($field_table_alias) . "." .  $_STORAGE['Controller']->IdQuote($field_name);
+                        $field_list .= $controller->IdQuote($field_table_alias) . "." .  $controller->IdQuote($field_name);
                     if (isset($field_description['type']))
-                        $field_list .= '::' .  $_STORAGE['Controller']->IdQuote($field_description['type']);
+                        $field_list .= '::' .  $controller->IdQuote($field_description['type']);
                     $field_array[] = $field_name;
                 }
             }
@@ -665,23 +668,22 @@ class methodsBase
                     if ($param_list) {
                         $param_list .= ", ";
                     }
-                    $param_list .=  $_STORAGE['Controller']->IdQuote($param['field']);
+                    $param_list .=  $controller->IdQuote($param['field']);
                 }
 
-                $field_list .=  $_STORAGE['Controller']->IdQuote($function_description["schema"]) . "." .  $_STORAGE['Controller']->IdQuote($function_description["func"]) . "($param_list)";
+                $field_list .=  $controller->IdQuote($function_description["schema"]) . "." .  $controller->IdQuote($function_description["func"]) . "($param_list)";
                 $field_array[] = $function_description["func"];
             }
         }
-
 
         $join = "";
 
         foreach ($params["join"] as $k => $j) {
             if (isset($j["distinct"])) {
                 $order_distinct = self::makeOrderAndDistinctString($j["distinct"], $params);
-                $join .= " left join (select distinct on (" . $order_distinct['distinctfields'] . ") * from " .  $_STORAGE['Controller']->relation($j["schema"], $j["entity"]) . " t " . $order_distinct['orderfields'] . ")as " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . " on " .  $_STORAGE['Controller']->IdQuote($j["parent_table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["key"]) . " = " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["entityKey"]);
+                $join .= " LEFT JOIN (SELECT DISTINCT ON ($order_distinct[distinctfields]) * FROM " . $controller->relation($j["schema"], $j["entity"]) . ' t ' . $order_distinct['orderfields'] . ") AS " . $controller->IdQuote($j["table_alias"]) . " ON " . $controller->IdQuote($j["parent_table_alias"]) . "." . $controller->IdQuote($j["key"]) . " = " . $controller->IdQuote($j["table_alias"]) . "." . $controller->IdQuote($j["entityKey"]);
             } else
-                $join .= " left join " .  $_STORAGE['Controller']->relation($j["schema"], $j["entity"]) . " as " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . " on " .  $_STORAGE['Controller']->IdQuote($j["parent_table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["key"]) . " = " .  $_STORAGE['Controller']->IdQuote($j["table_alias"]) . "." .  $_STORAGE['Controller']->IdQuote($j["entityKey"]);
+                $join .= " LEFT JOIN " . $controller->relation($j["schema"], $j["entity"]) . " AS " . $controller->IdQuote($j["table_alias"]) . " ON " . $controller->IdQuote($j["parent_table_alias"]) . "." . $controller->IdQuote($j["key"]) . " = " . $controller->IdQuote($j["table_alias"]) . "." . $controller->IdQuote($j["entityKey"]);
         }
 
 
@@ -694,14 +696,15 @@ class methodsBase
         $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params, $pred_res);
 
         if ($distinctfields)
-            $count = 'SELECT count(distinct ' . $distinctfields . ') FROM (SELECT ' . $field_list . ' FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(DISTINCT ' . $distinctfields . ') AS count FROM (SELECT ' . $field_list . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
         else
-            $count = 'SELECT count(*) AS count FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+            $count = 'SELECT count(*) AS count FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' AS t ' . $join;
 
         if ($distinctfields) {
-            $distinctfields = 'distinct on (' . $distinctfields . ')';
+            $distinctfields = $controller->distinct_on($distinctfields);
         }
-        $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+
+        $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         $sql_aggregates = "";
         foreach ($params["aggregate"] as $aggregateDescription) {
@@ -711,7 +714,7 @@ class methodsBase
                 $sql_aggregates = $sql_aggregates . $aggregateDescription["func"] . '(t.' . $aggregateDescription["field"] . ') as "' . $aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')", ';
             }
         }
-        $sql_aggregates = 'SELECT ' . $sql_aggregates . ' FROM ' .  $_STORAGE['Controller']->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+        $sql_aggregates = 'SELECT ' . $sql_aggregates . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if (isset($params["sample"])) {
             $ratio = intval($params["sample"]);
@@ -742,24 +745,24 @@ class methodsBase
         $rowNumber = 0;
         if (isset($params["currentKey"])) {
             if ($params["currentKey"] && ($params["limit"] != 0 and $params["limit"] != -1)) {
-                $equation = '(' . $_STORAGE['Controller']->NumericTruncate("(k.row_number - 1) / $params[limit]") ." * $params[limit])";
+                $equation = '(' . $controller->NumericTruncate("(k.row_number - 1) / $params[limit]") ." * $params[limit])";
                 if (isset($params["middleRow"])) {
-                    if ($params["middleRow"]) $equation = 'greatest(' . $_STORAGE['Controller']->NumericTruncate("k.row_number - ($params[limit] / 2) - 1") .', 0)';
+                    if ($params["middleRow"]) $equation = 'greatest(' . $controller->NumericTruncate("k.row_number - ($params[limit] / 2) - 1") .', 0)';
                 }
-                $pageNumberStatement = 'SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE ' . $equation . ' END as row_number
-                    FROM (select row_number() over (' . $orderfields_no_aliases . '), t.' .  $_STORAGE['Controller']->IdQuote($params["primaryKey"]) .
-                    '  from (' . $statement . ') t ) k WHERE k.' . $params["primaryKey"] . '=\'' .  $_STORAGE['Controller']->EscapeString($params["currentKey"]) . '\'';
-                $rowNumberRes =  $_STORAGE['Controller']->Sql($pageNumberStatement);
+                $pageNumberStatement = "SELECT CASE WHEN k.row_number = 0 THEN 0 ELSE $equation END AS " .$controller->IdQuote('row_number')
+                    ." FROM (select row_number() OVER ($orderfields_no_aliases) AS " .$controller->IdQuote('row_number') .', t.' . $controller->IdQuote($params["primaryKey"]) .
+                    " FROM ($statement) t ) k WHERE k.{$params['primaryKey']} ='" . $controller->EscapeString($params["currentKey"]) . "'";
+
+                $rowNumberRes = $controller->Sql($pageNumberStatement);
                 $params["offset"] = 0;
                 if (isset($rowNumberRes[0]["row_number"]))
                     $params["offset"] = $rowNumberRes[0]["row_number"];
-
             }
         }
 
         $statement_count = $statement;
         if (($params["limit"] != 0 and $params["limit"] != -1) or ($params["offset"] != 0 && $params["offset"] >= 0)) {
-            $statement = $statement . ' LIMIT ' . $params["limit"] . ' OFFSET ' . $params["offset"];
+            $statement = "$statement LIMIT $params[limit] OFFSET $params[offset]";
         }
 
         global $data_result;
@@ -773,7 +776,7 @@ class methodsBase
         $options->SetFormat((isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object');
         $options->SetQueryDescription($desc);
 
-        $data_result_statement =  $_STORAGE['Controller']->Sql($statement, $options);
+        $data_result_statement = $controller->Sql($statement, $options);
 
         $count_data = count($data_result_statement);
 
@@ -790,8 +793,8 @@ class methodsBase
             $fst_operand = $params['predicate']['operands'][0];
             if ($fst_operand['operand']['op'] == "FTS") {
                 $ts_query = json_decode($fst_operand['operand']['value'], true);
-                $ts_n =  $_STORAGE['Controller']->Sql('select plainto_tsquery(\'' .  $_STORAGE['Controller']->EscapeString($ts_query["language"]) .
-                    '\', \'' .  $_STORAGE['Controller']->EscapeString($ts_query["ft_query"]) . '\')');
+                $ts_n = $controller->Sql('select plainto_tsquery(\'' . $controller->EscapeString($ts_query["language"]) .
+                    '\', \'' . $controller->EscapeString($ts_query["ft_query"]) . '\')');
                 $data_result['ft_keywords'] = $ts_n[0]['plainto_tsquery'];
             }
         }
@@ -799,7 +802,7 @@ class methodsBase
         if (sizeof($params["aggregate"])) {
             $options = static::GetDefaultOptions();
             $options->SetQueryDescription("$desc (aggregate)");
-            $data_aggregates =  $_STORAGE['Controller']->Sql($sql_aggregates, $options);
+            $data_aggregates = $controller->Sql($sql_aggregates, $options);
 
             foreach ($params["aggregate"] as $aggrIndex => $aggregateDescription) {
                 $data_result[$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'][][$aggregateDescription["func"]] = $data_aggregates[0][$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'];

@@ -13,8 +13,7 @@ class DatabaseMysql extends DatabaseAbstract
 
             try {
                 $this->connect = new mysqli($data['host'], $data['user'], $password, $data['dbname'], $data['port']);
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 // TODO custom Exception.
                 throw new Exception("Connect failed: {$e->getMessage()} \n");
             }
@@ -104,7 +103,7 @@ class DatabaseMysql extends DatabaseAbstract
     public function type_field($field, $type, $need_quote = false) {
         if (!$type) return "`$field`";
         $type = $type == 'text' ? 'char(100000)' : $type;
-        return $need_quote ? "CONVERT(`$field`, $type)" : "CONVERT($field, $type)" ;
+        return $need_quote ? "CONVERT(`$field`, $type)" : "CONVERT($field, $type)";
     }
 
     public function get_explain_query() {
@@ -122,7 +121,7 @@ class DatabaseMysql extends DatabaseAbstract
     }
 
     public function return_pkey_value($pkey_column) {
-         return '';
+        return '';
         // return '; SELECT LAST_INSERT_ID()';
     }
 
@@ -134,7 +133,20 @@ class DatabaseMysql extends DatabaseAbstract
     }
 
     public function format($columns_array, $format) {
-        return implode('|||', $columns_array);
+        $split = preg_split("/%[sIL]{1}/", $format);
+        $res = array();
+
+        if (count($split) > 1) {
+            for ($i = 0; $i < count($split); $i++) {
+                if ($split[$i] == '')
+                    continue;
+
+                $res[] = "'$split[$i]'";
+                $res[] = $columns_array[$i];
+            }
+        }
+
+        return $this->concat($res, "''");
     }
 
     private function add_element(&$source, $element, &$findex) {
@@ -152,8 +164,7 @@ class DatabaseMysql extends DatabaseAbstract
             foreach (explode($separator, $columns_array[0]) as $item) {
                 $this->add_element($columns, $item, $findex);
             }
-        }
-        else {
+        } else {
             $this->add_element($columns, $columns_array[0], $findex);
         }
 
@@ -161,7 +172,7 @@ class DatabaseMysql extends DatabaseAbstract
             $this->add_element($columns, $columns_array[$index], $findex);
         }
 
-        return '(json_object(' .implode(', ', $columns) .'))';
+        return '(json_object(' . implode(', ', $columns) . '))';
     }
 
     public function get_collate() {
@@ -181,5 +192,33 @@ class DatabaseMysql extends DatabaseAbstract
 
     public function kill_pid_query($pid) {
         return "KILL $pid;";
+    }
+
+    public function distinct_on($distinctfields) {
+        return " ";
+    }
+
+    protected function convert_iso_interval($interval, $operator = '-') {
+        if ($interval[0] != 'P')
+            return $interval;
+
+        $result = array();
+        $cmd = 'INTERVAL';
+
+        $date = new DateInterval($interval);
+        if ($date->y)
+            $result[] = "$cmd $date->y YEAR";
+        if ($date->m)
+            $result[] = "$cmd $date->m MONTH";
+        if ($date->d)
+            $result[] = "$cmd $date->d DAY";
+        if ($date->h)
+            $result[] = "$cmd $date->h HOUR";
+        if ($date->i)
+            $result[] = "$cmd $date->i MINUTE";
+        if ($date->s)
+            $result[] = "$cmd $date->s SECOND";
+
+        return implode(" $operator ", $result);
     }
 }

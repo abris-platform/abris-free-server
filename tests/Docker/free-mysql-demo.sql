@@ -388,7 +388,7 @@ CREATE TABLE test_schema.text_types
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.testint(a1 int)
+CREATE FUNCTION bookings.testint(a1 int)
 RETURNS bool
 DETERMINISTIC
 BEGIN
@@ -398,7 +398,7 @@ DELIMITER ;
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.testint2(a1 text, a2 integer)
+CREATE FUNCTION bookings.testint2(a1 text, a2 integer)
 RETURNS bool
 DETERMINISTIC
 BEGIN
@@ -408,7 +408,7 @@ DELIMITER ;
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.testint3()
+CREATE FUNCTION bookings.testint3()
 RETURNS int
 DETERMINISTIC
 BEGIN
@@ -418,11 +418,11 @@ DELIMITER ;
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.test4(a1 int)
-RETURNS CHAR
+CREATE FUNCTION bookings.test4(a1 int)
+RETURNS TEXT
 DETERMINISTIC
 BEGIN
-	RETURN CAST(a1 as CHAR);
+	RETURN CONVERT(a1, CHAR(10000));
 END$$
 DELIMITER ;
 --

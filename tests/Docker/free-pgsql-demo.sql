@@ -152,7 +152,7 @@ COMMENT ON COLUMN boarding_passes.seat_no IS 'Seat number';
 
 CREATE TABLE bookings (
     book_ref character(6) NOT NULL,
-    book_date timestamp with time zone NOT NULL,
+    book_date timestamp NOT NULL,
     total_amount numeric(10,2) NOT NULL
 );
 
