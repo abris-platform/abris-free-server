@@ -167,14 +167,14 @@ COMMENT ON COLUMN bookings.total_amount IS 'Total booking cost';
 CREATE TABLE flights (
     flight_id integer NOT NULL,
     flight_no character(6) NOT NULL,
-    scheduled_departure timestamp with time zone NOT NULL,
-    scheduled_arrival timestamp with time zone NOT NULL,
+    scheduled_departure timestamp NOT NULL,
+    scheduled_arrival timestamp NOT NULL,
     departure_airport character(3) NOT NULL,
     arrival_airport character(3) NOT NULL,
     status character varying(20) NOT NULL,
     aircraft_code character(3) NOT NULL,
-    actual_departure timestamp with time zone,
-    actual_arrival timestamp with time zone,
+    actual_departure timestamp,
+    actual_arrival timestamp,
     CONSTRAINT flights_check CHECK ((scheduled_arrival > scheduled_departure)),
     CONSTRAINT flights_check1 CHECK (((actual_arrival IS NULL) OR ((actual_departure IS NOT NULL) AND (actual_arrival IS NOT NULL) AND (actual_arrival > actual_departure)))),
     CONSTRAINT flights_status_check CHECK (((status)::text = ANY (ARRAY[('On Time'::character varying)::text, ('Delayed'::character varying)::text, ('Departed'::character varying)::text, ('Arrived'::character varying)::text, ('Scheduled'::character varying)::text, ('Cancelled'::character varying)::text])))
@@ -424,16 +424,16 @@ INSERT INTO bookings.bookings (book_ref, book_date, total_amount) VALUES ('3A458
 --
 --
 
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (1, 'PG0405', '2017-07-16 09:35:00+03', '2017-07-16 10:30:00+03', 'DME', 'LED', 'Arrived', '321', '2017-07-16 09:44:00+03', '2017-07-16 10:39:00+03');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (2, 'PG0404', '2017-08-05 19:05:00+03', '2017-08-05 20:00:00+03', 'DME', 'LED', 'Arrived', '321', '2017-08-05 19:06:00+03', '2017-08-05 20:01:00+03');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (3, 'PG0405', '2017-08-05 09:35:00+03', '2017-08-05 10:30:00+03', 'DME', 'LED', 'Arrived', '321', '2017-08-05 09:39:00+03', '2017-08-05 10:34:00+03');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (5, 'PG0405', '2017-08-16 09:35:00+03', '2017-08-16 10:30:00+03', 'DME', 'LED', 'On Time', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (6, 'PG0404', '2017-08-16 19:05:00+03', '2017-08-16 20:00:00+03', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (9, 'PG0405', '2017-08-25 09:35:00+03', '2017-08-25 10:30:00+03', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (12, 'PG0404', '2017-08-23 19:05:00+03', '2017-08-23 20:00:00+03', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (13, 'PG0405', '2017-08-23 09:35:00+03', '2017-08-23 10:30:00+03', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (17, 'PG0404', '2017-08-06 19:05:00+03', '2017-08-06 20:00:00+03', 'DME', 'LED', 'Arrived', '321', '2017-08-06 19:05:00+03', '2017-08-06 20:00:00+03');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (18, 'PG0405', '2017-08-06 09:35:00+03', '2017-08-06 10:30:00+03', 'DME', 'LED', 'Arrived', '321', '2017-08-06 09:39:00+03', '2017-08-06 10:35:00+03');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (1, 'PG0405', '2017-07-16 06:35:00', '2017-07-16 7:30:00', 'DME', 'LED', 'Arrived', '321', '2017-07-16 06:44:00', '2017-07-16 7:39:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (2, 'PG0404', '2017-08-05 16:05:00', '2017-08-05 17:00:00', 'DME', 'LED', 'Arrived', '321', '2017-08-05 16:06:00', '2017-08-05 17:01:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (3, 'PG0405', '2017-08-05 06:35:00', '2017-08-05 7:30:00', 'DME', 'LED', 'Arrived', '321', '2017-08-05 06:39:00', '2017-08-05 7:34:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (5, 'PG0405', '2017-08-16 06:35:00', '2017-08-16 7:30:00', 'DME', 'LED', 'On Time', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (6, 'PG0404', '2017-08-16 16:05:00', '2017-08-16 17:00:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (9, 'PG0405', '2017-08-25 06:35:00', '2017-08-25 7:30:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (12, 'PG0404', '2017-08-23 16:05:00', '2017-08-23 17:00:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (13, 'PG0405', '2017-08-23 06:35:00', '2017-08-23 7:30:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (17, 'PG0404', '2017-08-06 16:05:00', '2017-08-06 17:00:00', 'DME', 'LED', 'Arrived', '321', '2017-08-06 16:05:00', '2017-08-06 17:00:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (18, 'PG0405', '2017-08-06 06:35:00', '2017-08-06 17:30:00', 'DME', 'LED', 'Arrived', '321', '2017-08-06 06:39:00', '2017-08-06 7:35:00');
 
 --
 --

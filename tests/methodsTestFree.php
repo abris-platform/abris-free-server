@@ -807,7 +807,7 @@ class methodsTest extends TestCase
         $sql_equal = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t   ORDER BY "t"."airport_code" DESC, airport_code LIMIT 10 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t   ORDER BY "t"."airport_code" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
@@ -887,7 +887,7 @@ class methodsTest extends TestCase
 
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 0";
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0";
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
@@ -1009,7 +1009,7 @@ class methodsTest extends TestCase
         $sql_equal = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  LEFT JOIN \"bookings\".\"flights\" AS \"t0\" ON \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC, airport_code LIMIT 2 OFFSET 0";
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  LEFT JOIN \"bookings\".\"flights\" AS \"t0\" ON \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC NULLS LAST, airport_code LIMIT 2 OFFSET 0";
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone`, `t0`.`flight_no` FROM `bookings`.`airports` as t  LEFT JOIN `bookings`.`flights` AS `t0` ON `t`.`airport_code` = `t0`.`departure_airport`  ORDER BY `t0`.`flight_no` DESC, airport_code LIMIT 2 OFFSET 0";
@@ -1027,16 +1027,16 @@ class methodsTest extends TestCase
                 "sql" => $sql_equal,
                 "data" => [
                     [
-                        "KEJ",
-                        "Кемерово",
-                        "Asia/Novokuznetsk",
-                        ""
+                        "DME",
+                        "Домодедово",
+                        "Europe/Moscow",
+                        "PG0405"
                     ],
                     [
-                        "KGD",
-                        "Храброво",
-                        "Europe/Kaliningrad",
-                        ""
+                        "DME",
+                        "Домодедово",
+                        "Europe/Moscow",
+                        "PG0405"
                     ]
                 ],
                 "records" => [
@@ -1049,6 +1049,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_groups() {
+        global $_STORAGE;
         $params = [
             "entityName" => "flights",
             "schemaName" => "bookings",
@@ -1206,74 +1207,143 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
-        $this->assertEquals($res["data"],
-            array(
-                array(
-                    '2',
-                    'PG0404',
-                    '2017-08-05 16:05:00+00',
-                    '2017-08-05 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Arrived',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '2017-08-05 16:06:00+00',
-                    '2017-08-05 17:01:00+00',
-                ),
-                array(
-                    '17',
-                    'PG0404',
-                    '2017-08-06 16:05:00+00',
-                    '2017-08-06 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Arrived',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '2017-08-06 16:05:00+00',
-                    '2017-08-06 17:00:00+00'
-                ),
-                array(
-                    '6',
-                    'PG0404',
-                    '2017-08-16 16:05:00+00',
-                    '2017-08-16 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Scheduled',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '',
-                    ''
-                ),
-                array(
-                    '12',
-                    'PG0404',
-                    '2017-08-23 16:05:00+00',
-                    '2017-08-23 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Scheduled',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '',
-                    ''
-                ),
-                array(
-                    '1',
-                    'PG0405',
-                    '2017-07-16 06:35:00+00',
-                    '2017-07-16 07:30:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Arrived',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '2017-07-16 06:44:00+00',
-                    '2017-07-16 07:39:00+00'
-                )
-            )
-        );
+
+        $res_equal = array();
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $res_equal =             array(
+                    array(
+                        '2',
+                        'PG0404',
+                        '2017-08-05 16:05:00',
+                        '2017-08-05 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Arrived',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '2017-08-05 16:06:00',
+                        '2017-08-05 17:01:00'
+                    ),
+                    array(
+                        '17',
+                        'PG0404',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Arrived',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00'
+                    ),
+                    array(
+                        '6',
+                        'PG0404',
+                        '2017-08-16 16:05:00',
+                        '2017-08-16 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Scheduled',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '12',
+                        'PG0404',
+                        '2017-08-23 16:05:00',
+                        '2017-08-23 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Scheduled',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '1',
+                        'PG0405',
+                        '2017-07-16 06:35:00',
+                        '2017-07-16 07:30:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Arrived',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '2017-07-16 06:44:00',
+                        '2017-07-16 07:39:00'
+                    )
+                );
+                break;
+            case(DatabaseMysql::class):
+                $res_equal = array(
+                    array(
+                        '2',
+                        'PG0404',
+                        '2017-08-05 16:05:00',
+                        '2017-08-05 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Arrived',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '2017-08-05 16:06:00',
+                        '2017-08-05 17:01:00'
+                    ),
+                    array(
+                        '17',
+                        'PG0404',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Arrived',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00'
+                    ),
+                    array(
+                        '6',
+                        'PG0404',
+                        '2017-08-16 16:05:00',
+                        '2017-08-16 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Scheduled',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '12',
+                        'PG0404',
+                        '2017-08-23 16:05:00',
+                        '2017-08-23 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Scheduled',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '1',
+                        'PG0405',
+                        '2017-07-16 06:35:00',
+                        '2017-07-16 07:30:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Arrived',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '2017-07-16 06:44:00',
+                        '2017-07-16 07:39:00'
+                    )
+                );
+        }
+
+        $this->assertEquals($res["data"], $res_equal);
     }
 
     public function test_getTableData() {
-        /*$params = [
+        $params = [
             "entityName" => "bookings",
             "schemaName" => "bookings",
             "fields" => [
@@ -1287,7 +1357,7 @@ class methodsTest extends TestCase
             "value" => "00000F",
             "predicate" => "00000F",
             "exclude" => [
-                0 => ["book_ref", "total_amount"],
+                ["book_ref", "total_amount"],
             ],
             "desc" => 'Загрузка списка "Bookings"'
         ];
@@ -1296,13 +1366,12 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableData($params);
         $this->assertEquals($res, [
             "data" => [
-                0 => ["book_ref" => '00000F', "total_amount" => "265700.00"],
+                ["book_ref" => '00000F', "total_amount" => "265700.00"]
             ],
             "records" => [
-                0 => ["count" => '1'],
+                ["count" => '1']
             ]
-
-        ]);*/
+        ]);
 
 
         $params = [
@@ -1318,40 +1387,38 @@ class methodsTest extends TestCase
             "value" => null,
             "distinct" => true,
             "exclude" => [],
-            "order" => [["field" => "passenger_id"]],
             "desc" => 'Загрузка списка "Tickets"'
         ];
+
         $res = methodsBase::getTableData($params);
-        $a = array(
-            0 => ["passenger_id" => '1405 221312'],
-            1 => ["passenger_id" => '2846 021312'],
-            2 => ["passenger_id" => '3960 621312'],
-            3 => ["passenger_id" => '4152 521312'],
-            4 => ["passenger_id" => '5838 621312'],
-            5 => ["passenger_id" => '6704 621312'],
-            6 => ["passenger_id" => '6991 021312'],
-            7 => ["passenger_id" => '7437 921312']
-        );
-        $diff = array_diff_assoc($res['data'], $a);
-        throw new Exception(print_r(
-            $res['data'],
-            true));
-        $this->assertEquals($res, [
-            "data" => [
-                0 => ["passenger_id" => '1405 221312'],
-                1 => ["passenger_id" => '2846 021312'],
-                2 => ["passenger_id" => '3960 621312'],
-                3 => ["passenger_id" => '4152 521312'],
-                4 => ["passenger_id" => '5838 621312'],
-                5 => ["passenger_id" => '6704 621312'],
-                6 => ["passenger_id" => '6991 021312'],
-                7 => ["passenger_id" => '7437 921312']
+        $equal_result = array("data" =>
+            [
+                ["passenger_id" => '1405 221312'],
+                ["passenger_id" => '2846 021312'],
+                ["passenger_id" => '3960 621312'],
+                ["passenger_id" => '4152 521312'],
+                ["passenger_id" => '5838 621312'],
+                ["passenger_id" => '6704 621312'],
+                ["passenger_id" => '6991 021312'],
+                ["passenger_id" => '7437 921312']
             ],
             "records" => [
-                0 => ["count" => '8'],
+                ["count" => '8']
             ]
-        ]);
+        );
 
+        $res_data = array_map(function ($element) {
+            return $element['passenger_id'];
+        }, $res['data']);
+        $equal_data = array_map(function ($element) {
+            return $element['passenger_id'];
+        }, $equal_result['data']);
+
+        $this->assertTrue(
+            count(
+                array_diff($res_data, $equal_data)
+            ) == 0
+        );
 
         $params = [
             "fields" => "",
@@ -1362,18 +1429,18 @@ class methodsTest extends TestCase
             "limit" => 15,
             "offset" => 0,
         ];
+
         $res = methodsBase::getTableData($params);
         $this->assertEquals($res, [
             "data" => [
-                0 => ["book_ref" => "00000F",
-                    "book_date" => "2017-07-05 00:12:00+00",
-                    "total_amount" => "265700.00",
-                ],
+                ["book_ref" => "00000F",
+                    "book_date" => "2017-07-05 00:12:00",
+                    "total_amount" => "265700.00"
+                ]
             ],
             "records" => [
-                0 => ["count" => '1'],
-            ],
-
+                ["count" => '1']
+            ]
         ]);
     }
 
