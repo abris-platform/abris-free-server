@@ -159,4 +159,8 @@ class DatabasePostgresql extends DatabaseAbstract
     public function distinct_on($distinctfields){
         return 'DISTINCT ON (' . $distinctfields . ')';
     }
+
+    public function desc() {
+        return parent::desc() .' NULLS LAST';
+    }
 }

@@ -39,4 +39,6 @@ interface DataConvertInterface
     public function get_collate();
 
     public function distinct_on($distinctfields);
+
+    public function desc();
 }

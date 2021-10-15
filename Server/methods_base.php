@@ -524,8 +524,8 @@ class methodsBase
 
             if (isset($o["desc"])) {
                 if ($o["desc"]) {
-                    $orderfields .= " DESC";
-                    $orderfields_no_aliases .= " DESC";
+                    $orderfields .= ' ' .$_STORAGE['Controller']->Desc();
+                    $orderfields_no_aliases .= ' ' .$_STORAGE['Controller']->Desc();
                 }
             }
         }

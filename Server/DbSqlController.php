@@ -223,6 +223,10 @@ class DbSqlController
         return false;
     }
 
+    public function Desc() {
+        return $this->GetObjectDatabase()->desc();
+    }
+
     public function distinct_on($distinctfields) {
         return $this->GetObjectDatabase()->distinct_on($distinctfields);
     }

@@ -43,4 +43,8 @@ abstract class DatabaseAbstract implements DatabaseInterface, DataConvertInterfa
 
         return 'CONCAT('. implode(', ', $res) .')';
     }
+
+    public function desc() {
+        return 'DESC';
+    }
 }
