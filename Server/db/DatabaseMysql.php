@@ -97,6 +97,10 @@ class DatabaseMysql extends DatabaseAbstract
     public function type($value, $type) {
         if (!$type) return "'$value'";
         $type = $type == 'text' ? 'char(100000)' : $type;
+
+        if (strcasecmp($type, 'interval') == 0)
+            return $this->convert_iso_interval($value);
+
         return "CONVERT('$value', $type)";
     }
 

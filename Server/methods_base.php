@@ -558,6 +558,7 @@ class methodsBase
 
     public static function getTableDataPredicate($params) {
         global $_STORAGE;
+        $controller = $_STORAGE['Controller'];
         $desc = $params['desc'] ?? '';
         $replace_rules = array();
 

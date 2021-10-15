@@ -957,6 +957,8 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_currentKey_costructedField_order() {
+        global $_STORAGE;
+
         $params =
             [
                 "format" => "array",
