@@ -41,6 +41,8 @@ abstract class DatabaseAbstract implements DatabaseInterface, DataConvertInterfa
         }
         unset($res[count($res) - 1]);
 
+        if (empty($array)) $res[] = "''";
+
         return 'CONCAT('. implode(', ', $res) .')';
     }
 

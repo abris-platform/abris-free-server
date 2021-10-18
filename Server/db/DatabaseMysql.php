@@ -3,7 +3,13 @@
 class DatabaseMysql extends DatabaseAbstract
 {
     public function db_connect($data = null) {
-        if (empty($this->connect) || !property_exists($this->connect, 'server_info')) {
+        $need_connect = false;
+        if (empty($this->connect))
+            $need_connect = true;
+        elseif (!isset(((array)$this->connect)['server_info']))
+            $need_connect = true;
+
+        if ($need_connect) {
             global $_STORAGE;
 
             if (is_null($data))
@@ -28,7 +34,10 @@ class DatabaseMysql extends DatabaseAbstract
     }
 
     public function db_last_error() {
-        return $this->connect->error;
+        if (!empty($this->connect->error))
+            return $this->connect->error;
+
+        return null;
     }
 
     public function db_fetch_array($result, $format) {
@@ -132,6 +141,7 @@ class DatabaseMysql extends DatabaseAbstract
     public function wrap_insert_values($str_values) {
         return "SELECT $str_values";
     }
+
     public function operator_like() {
         return 'LIKE';
     }
@@ -142,7 +152,7 @@ class DatabaseMysql extends DatabaseAbstract
 
         if (count($split) > 1) {
             for ($i = 0; $i < count($split); $i++) {
-                if ($split[$i] == '')
+                if (($split[$i] == '') && ($i != 0))
                     continue;
 
                 $res[] = "'$split[$i]'";

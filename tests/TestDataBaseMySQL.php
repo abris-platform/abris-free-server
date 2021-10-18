@@ -202,7 +202,7 @@ class TestDataBaseMySQL extends TestCase
         $db = TestDataBaseMySQL::GetDBObject(null);
 
         $value = 'test_value';
-        $type = 'text';
+        $type = 'integer';
 
         $this->assertEquals(
             "'$value'",
@@ -210,7 +210,7 @@ class TestDataBaseMySQL extends TestCase
         );
 
         $this->assertEquals(
-            "CONVERT('$value', '$type')",
+            "CONVERT('$value', $type)",
             $db->type($value, $type)
         );
     }
@@ -218,7 +218,7 @@ class TestDataBaseMySQL extends TestCase
     public function test_db_type_field() {
         $db = TestDataBaseMySQL::GetDBObject(null);
         $field = 'field';
-        $type = 'text';
+        $type = 'integer';
 
         $this->assertEquals(
             "`$field`",
@@ -226,7 +226,7 @@ class TestDataBaseMySQL extends TestCase
         );
 
         $this->assertEquals(
-            "CONVERT(`$field`, '$type')",
+            "CONVERT(`$field`, $type)",
             $db->type_field($field, $type, true)
         );
 
@@ -236,7 +236,7 @@ class TestDataBaseMySQL extends TestCase
         );
 
         $this->assertEquals(
-            "CONVERT(`$field`, '$type')",
+            "CONVERT($field, $type)",
             $db->type_field($field, $type)
         );
     }
@@ -272,7 +272,7 @@ class TestDataBaseMySQL extends TestCase
         $columns = array('one', 'two', 'three');
 
         $this->assertEquals(
-            implode('|||', $columns),
+            "CONCAT('', '', one, '', '-', '', two, '', '_', '', three)",
             $db->format($columns, $format)
         );
     }

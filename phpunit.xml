@@ -15,7 +15,7 @@
     </filter>
     <testsuites>
         <testsuite name="Base">
-            <!--<file>tests/TestServicesMethods.php</file>
+            <file>tests/TestServicesMethods.php</file>
             <file>tests/TestWebStorage.php</file>
             <file>tests/TestSQL.php</file>
             <file>tests/TestDataBase.php</file>
@@ -25,7 +25,7 @@
             <file>tests/TestConfigBase.php</file>
             <file>tests/TestDbSqlController.php</file>
             <file>tests/TestDbPostgresql.php</file>
-            <file>tests/TestDataBaseMySQL.php</file>-->
+            <file>tests/TestDataBaseMySQL.php</file>
         </testsuite>
         <testsuite name="methodsFree">
             <file>tests/methodsTestFree.php</file>
