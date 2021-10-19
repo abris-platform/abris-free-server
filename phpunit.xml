@@ -24,7 +24,11 @@
             <file>pluginDocumentTest.php</file>
             <file>tests/TestConfigBase.php</file>
             <file>tests/TestDbSqlController.php</file>
+        </testsuite>
+        <testsuite name="pgsql">
             <file>tests/TestDbPostgresql.php</file>
+        </testsuite>
+        <testsuite name="mysql">
             <file>tests/TestDataBaseMySQL.php</file>
         </testsuite>
         <testsuite name="methodsFree">

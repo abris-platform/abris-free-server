@@ -1,5 +1,5 @@
 {
-    "host": "192.168.10.97",
+    "host": "abris.site",
     "port": "44442",
     "dbname": "bookings",
     "dbDefaultUser": "mysql",
