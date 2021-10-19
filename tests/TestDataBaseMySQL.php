@@ -50,13 +50,10 @@ class TestDataBaseMySQL extends TestCase
 
     public function test_db_connect_success_connect() {
         ApplicationInitBase::initStorage();
-        global $_STORAGE;
 
-        $_STORAGE['private_key'] = GenerateRandomString();
-        $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $_STORAGE['private_key']);
         $db = TestDataBaseMySQL::GetDBObject();
 
-        $this->assertNotNull($db->db_connect());
+        $this->assertNotNull($db->db_connect(null));
     }
 
     public function test_db_connect_error_exception() {
