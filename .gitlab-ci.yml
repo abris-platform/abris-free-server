@@ -33,7 +33,7 @@ test:
     - mkdir report
     - export XDEBUG_MODE=coverage
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html report
-    - ./phpunit --bootstrap tests/bootstrap.php --testsuite pgsql --coverage-html reportPgsql
+    - ./phpunit --bootstrap tests/bootstrap.php --testsuite pgsql --coverage-html reportPgsql 
     - ./phpunit --bootstrap tests/bootstrap_mysql.php --testsuite mysql --coverage-html reportMysql
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite methodsFree --coverage-html reportMethodsFreePgsql
     - ./phpunit --bootstrap tests/bootstrap_mysql.php --testsuite methodsFree --coverage-html reportMethodsFreeMysql
