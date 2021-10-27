@@ -9,6 +9,7 @@ class SQLParamBase
     protected $defaultConnection;
     protected $isLogFile;
     protected $queryDescription;
+    protected $affectedRows;
 
     public function __construct() {
         $this->SetPreprocessData();
@@ -16,6 +17,7 @@ class SQLParamBase
         $this->SetEncryptPassword();
         $this->SetDefaultConnection();
         $this->SetFileLog();
+        $this->SetInfoAffectedRows();
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -44,6 +46,10 @@ class SQLParamBase
         $this->queryDescription = $value;
     }
 
+    public function SetInfoAffectedRows($value = false) {
+        $this->affectedRows = $value;
+    }
+
     ////////////////////////////////////////////////////////////////////
     public function GetPreprocessData() {
         return $this->preprocessData;
@@ -67,5 +73,9 @@ class SQLParamBase
 
     public function GetQueryDescription() {
         return $this->queryDescription;
+    }
+
+    public function GetInfoAffectedRows() {
+        return $this->affectedRows;
     }
 }

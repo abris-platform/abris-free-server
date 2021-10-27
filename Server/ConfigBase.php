@@ -1,6 +1,7 @@
 <?php
 
-class ConfigBase {
+class ConfigBase
+{
     protected $storageParams;
     protected $configFullPath = '';
     private $configFilename = '';
@@ -10,11 +11,15 @@ class ConfigBase {
         $this->configFilename = 'config_free.json';
     }
 
-    public function init($filename = null) {
+    public function init($filename = null, $is_full_path = false) {
         if (is_null($filename))
             $filename = $this->configFilename;
 
-        $this->configFullPath = __DIR__ ."/configs/$filename";
+        if ($is_full_path)
+            $this->configFullPath = $filename;
+        else
+            $this->configFullPath = __DIR__ . "/configs/$filename";
+
         $this->storageParams = $this->getConfigContentFile();
     }
 

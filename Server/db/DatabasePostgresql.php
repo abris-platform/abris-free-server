@@ -67,6 +67,10 @@ class DatabasePostgresql extends DatabaseAbstract
                 WHERE r.rolname = '$username';";
     }
 
+    public function db_get_count_affected_row($result) {
+        return pg_affected_rows($result);
+    }
+
     public function get_format($format) {
         return $format === 'object' ? PGSQL_ASSOC : PGSQL_NUM;
     }
@@ -135,5 +139,28 @@ class DatabasePostgresql extends DatabaseAbstract
 
     public function get_collate() {
         return 'C';
+    }
+
+    public function get_name_current_database_query() {
+        return "current_database()";
+    }
+
+    public function get_pids_database_query($dbname = '') {
+        $where_cond = '';
+        if ($dbname)
+            $where_cond = "WHERE datname = $dbname";
+        return "SELECT * FROM pg_stat_activity $where_cond;";
+    }
+
+    public function kill_pid_query($pid) {
+        return "SELECT pg_terminate_backend($pid);";
+    }
+
+    public function distinct_on($distinctfields){
+        return 'DISTINCT ON (' . $distinctfields . ')';
+    }
+
+    public function desc() {
+        return parent::desc() .' NULLS LAST';
     }
 }

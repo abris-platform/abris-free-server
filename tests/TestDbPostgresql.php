@@ -213,7 +213,7 @@ class TestDatabasePostgresql extends TestCase
         );
     }
 
-    public function test_id_qoute() {
+    public function test_id_quote() {
         $db = TestDatabasePostgresql::GetDBObject(null);
 
         $this->assertTrue(

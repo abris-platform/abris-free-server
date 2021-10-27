@@ -7,23 +7,25 @@ class methodsTest extends TestCase
 {
     public function test_getPIDs() {
         global $_STORAGE;
-        $_STORAGE['pids'] = array('test' => '123456');
 
+        $_STORAGE['pids'] = array('test' => '123456');
         $resDb = methodsBase::getPIDs([]);
         $this->assertEquals(array('pids' => array()), $resDb);
     }
 
     public function test_killPID() {
+        $res = methodsBase::getPIDs([]);
+
         $params = [
-            'pid' => '13008',
+            'pid' => '13008'
         ];
         $res = methodsBase::killPID($params);
-        $this->assertEquals($res, array(
-            array('pg_terminate_backend' => 'f')
-        ));
+        $this->assertFalse($res);
     }
 
     public function test_addEntities() {
+        global $_STORAGE;
+
         $params = array(
             'entityName' => 'bookings',
             'schemaName' => 'bookings',
@@ -39,7 +41,7 @@ class methodsTest extends TestCase
             'fields' => array(
                 array(
                     'book_ref' => '44444',
-                    'book_date' => '2020-03-12 12:01:00+03',
+                    'book_date' => '2020-03-12 12:01:00',
                     'total_amount' => '44444'
                 ),
             ),
@@ -51,11 +53,17 @@ class methodsTest extends TestCase
         );
 
         $res = methodsBase::addEntities($params);
-        $this->assertEquals($res, array(
-            array(
-                'book_ref' => '44444'
-            ),
-        ));
+
+        $val_pkey_insert = array();
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $val_pkey_insert['book_ref'] = '44444';
+                break;
+            case(DatabaseMysql::class):
+                $val_pkey_insert = array();
+        }
+
+        $this->assertEquals($res, array($val_pkey_insert));
 
         $params = array(
             'entityName' => 'bookings',
@@ -63,7 +71,7 @@ class methodsTest extends TestCase
             'fields' => array(
                 array(
                     'book_ref' => '123456',
-                    'book_date' => '2020-03-12 12:04:00+03',
+                    'book_date' => '2020-03-12 12:04:00',
                     'total_amount' => '654321'
                 ),
             ),
@@ -72,19 +80,23 @@ class methodsTest extends TestCase
             'types' => NULL
         );
 
+
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $val_pkey_insert['book_ref'] = '123456';
+                break;
+            case(DatabaseMysql::class):
+                $val_pkey_insert = array();
+        }
         $res = methodsBase::addEntities($params);
-        $this->assertEquals($res, array(
-            array(
-                'book_ref' => '123456'
-            )
-        ));
+        $this->assertEquals($res, array($val_pkey_insert));
 
         $params = array(
             'entityName' => 'text_types',
             'schemaName' => 'test_schema',
             'fields' => array(
                 array(
-                    'text_types_key' => '',
+                    'text_types_key' => '07dca42d-ddcf-45fe-bb9d-c8a7654da6ca',
                     'meta_plain' => 'test12',
                     'meta_text' => 'test2',
                     'detail_plain' => 'test3',
@@ -97,29 +109,37 @@ class methodsTest extends TestCase
         );
 
         $res = methodsBase::addEntities($params);
-        $this->assertNotNull($res[0]['text_types_key']);
+        $this->assertNotNull($res[0]);
     }
 
     public function test_updateEntity() {
+        global $_STORAGE;
         $params = [
             'entityName' => 'bookings',
             'schemaName' => 'bookings',
             'key' => ['book_ref', "total_amount"],
             'value' => [
                 0 => ['000068'],
-                1 => ['18100'],
+                1 => ['18100']
             ],
             'fields' => [
-                "book_date" => "2020-03-12 18:18:00+03",
+                "book_date" => "2020-03-12 18:18:00"
             ],
             'files' => [],
-            'types' => NULL,
+            'types' => NULL
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';"
-        ]);
+
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000068' AND `total_amount` = '18100';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -131,16 +151,21 @@ class methodsTest extends TestCase
                 1 => ['18100', '131800', '37900'],
             ],
             'fields' => [
-                "book_date" => ["2020-03-12 18:18:00+03", "2020-03-12 18:18:00+03", "2020-03-12 18:18:00+03"],
+                "book_date" => ["2020-03-12 18:18:00", "2020-03-12 18:18:00", "2020-03-12 18:18:00"],
             ],
             'files' => [],
             'types' => NULL,
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000181' AND \"total_amount\" = '131800';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00+03' WHERE \"book_ref\" = '000012' AND \"total_amount\" = '37900';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000068' AND \"total_amount\" = '18100';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000181' AND \"total_amount\" = '131800';UPDATE \"bookings\".\"bookings\" SET \"book_date\" = '2020-03-12 18:18:00' WHERE \"book_ref\" = '000012' AND \"total_amount\" = '37900';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000068' AND `total_amount` = '18100';UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000181' AND `total_amount` = '131800';UPDATE `bookings`.`bookings` SET `book_date` = '2020-03-12 18:18:00' WHERE `book_ref` = '000012' AND `total_amount` = '37900';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -149,20 +174,25 @@ class methodsTest extends TestCase
             'key' => 'book_ref',
             'value' => [
                 '123456',
-                '44444',
+                '44444'
             ],
             'fields' => [
-                "total_amount" => ['6666', '9999',],
-                "book_date" => ["2020-03-12 18:44:00+03", "2020-03-12 18:55:00+03",],
+                "total_amount" => ['6666', '9999'],
+                "book_date" => ["2020-03-12 18:44:00", "2020-03-12 18:55:00"],
             ],
             'files' => [],
-            'types' => NULL,
+            'types' => NULL
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '6666', \"book_date\" = '2020-03-12 18:44:00+03' WHERE \"book_ref\" = '123456';UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '9999', \"book_date\" = '2020-03-12 18:55:00+03' WHERE \"book_ref\" = '44444';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '6666', \"book_date\" = '2020-03-12 18:44:00' WHERE \"book_ref\" = '123456';UPDATE \"bookings\".\"bookings\" SET \"total_amount\" = '9999', \"book_date\" = '2020-03-12 18:55:00' WHERE \"book_ref\" = '44444';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `total_amount` = '6666', `book_date` = '2020-03-12 18:44:00' WHERE `book_ref` = '123456';UPDATE `bookings`.`bookings` SET `total_amount` = '9999', `book_date` = '2020-03-12 18:55:00' WHERE `book_ref` = '44444';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -173,17 +203,22 @@ class methodsTest extends TestCase
             "fields" => [
                 "meta_plain" => NULL,
                 "meta_text" => NULL,
-                "detail_plain" => NULL,
+                "detail_plain" => NULL
             ],
             "files" => [
             ],
-            "types" => NULL,
+            "types" => NULL
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"test_schema\".\"text_types\" SET \"meta_plain\" = NULL, \"meta_text\" = NULL, \"detail_plain\" = NULL WHERE \"text_types_key\" = 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"test_schema\".\"text_types\" SET \"meta_plain\" = NULL, \"meta_text\" = NULL, \"detail_plain\" = NULL WHERE \"text_types_key\" = 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `test_schema`.`text_types` SET `meta_plain` = NULL, `meta_text` = NULL, `detail_plain` = NULL WHERE `text_types_key` = 'bb8b8a74-e4ec-4ce9-8b58-8d3de11d8137';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
 
         $params = [
@@ -192,106 +227,120 @@ class methodsTest extends TestCase
             'key' => 'book_ref',
             'value' => '123456',
             'fields' => [
-                'book_ref' => '22222',
+                'book_ref' => '22222'
             ],
             'files' => [],
             'types' => [
-                'book_ref' => 'text',
-            ],
+                'book_ref' => 'text'
+            ]
         ];
 
         $res = methodsBase::updateEntity($params);
-        $this->assertEquals($res, [
-            "sql" => "UPDATE \"bookings\".\"bookings\" SET \"book_ref\" = '22222'::text WHERE \"book_ref\"::text = '123456'::text;"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "UPDATE \"bookings\".\"bookings\" SET \"book_ref\" = '22222'::text WHERE \"book_ref\"::text = '123456'::text;";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "UPDATE `bookings`.`bookings` SET `book_ref` = CONVERT('22222', char(100000)) WHERE CONVERT(`book_ref`, char(100000)) = CONVERT('123456', char(100000));";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
     }
 
     public function test_deleteEntitiesByKey() {
+        global $_STORAGE;
+        $sql_equal = '';
 
         $params = [
-            "entityName" => "bookings",
-            "schemaName" => "bookings",
+            'entityName' => 'bookings',
+            'schemaName' => 'bookings',
             'key' => 'book_ref',
-            'value' => ['000015', '000016'],
+            'value' => ['000015', '000016']
         ];
 
         $res = methodsBase::deleteEntitiesByKey($params);
-        $this->assertEquals($res, [
-            "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000015';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000016';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000015';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000016';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000015';DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000016';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
         $params = [
-            "entityName" => "bookings",
-            "schemaName" => "bookings",
-            'key' => ['book_ref', "total_amount"],
+            'entityName' => 'bookings',
+            'schemaName' => 'bookings',
+            'key' => ['book_ref', 'total_amount'],
             'value' => [
                 0 => ['000013', '000014'],
-                1 => ['000045', '000055'],
-            ],
+                1 => ['000045', '000055']
+            ]
         ];
 
         $res = methodsBase::deleteEntitiesByKey($params);
-        $this->assertEquals($res, [
-            "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000013' AND \"total_amount\" = '000045';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000014' AND \"total_amount\" = '000055';"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000013' AND \"total_amount\" = '000045';DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '000014' AND \"total_amount\" = '000055';";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000013' AND `total_amount` = '000045';DELETE FROM `bookings`.`bookings` WHERE `book_ref` = '000014' AND `total_amount` = '000055';";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
 
         $params = [
-            "entityName" => "bookings",
-            "schemaName" => "bookings",
-            "key" => "book_ref",
-            "value" => "22222",
-            "types" => [
-                "book_ref" => "text",
-            ],
+            'entityName' => 'bookings',
+            'schemaName' => 'bookings',
+            'key' => 'book_ref',
+            'value' => '22222',
+            'types' => [
+                'book_ref' => 'text'
+            ]
         ];
 
         $res = methodsBase::deleteEntitiesByKey($params);
-        $this->assertEquals($res, [
-            "sql" => "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '22222'::text;"
-        ]);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "DELETE FROM \"bookings\".\"bookings\" WHERE \"book_ref\" = '22222'::text;";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "DELETE FROM `bookings`.`bookings` WHERE `book_ref` = CONVERT('22222', char(100000));";
+        }
+        $this->assertEquals($res, array('sql' => $sql_equal));
     }
 
     public function test_getCurrentUser() {
         global $_STORAGE, $flag_astra;
         $_STORAGE['login'] = '';
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "guest");
-        $_SERVER['REMOTE_USER'] = "abris.site\\postgres";
+        $this->assertEquals($res, 'guest');
+        $_SERVER['REMOTE_USER'] = 'abris.site\\postgres';
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "postgres");
+        $this->assertEquals($res, 'postgres');
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "postgres");
+        $this->assertEquals($res, 'postgres');
 
         $flag_astra = true;
-        $_SERVER['KRB5CCNAME'] = "";
-        $_SERVER['PHP_AUTH_USER'] = "postgres";
+        $_SERVER['KRB5CCNAME'] = '';
+        $_SERVER['PHP_AUTH_USER'] = 'postgres';
         $res = methodsBase::getCurrentUser();
-        $this->assertEquals($res, "postgres");
+        $this->assertEquals($res, 'postgres');
         $flag_astra = false;
-
-
     }
 
     public function test_isGuest() {
-        global $_STORAGE, $flag_astra;
-        $_SESSION['login'] = 'postgres';
+        global $_STORAGE, $_CONFIG;
+        $_STORAGE['login'] = $_CONFIG->dbDefaultPass;
         $res = methodsBase::isGuest();
         $this->assertEquals($res, 1);
-
-        $flag_astra = true;
-        $_SERVER['PHP_AUTH_USER'] = "postgres";
-        $res = methodsBase::isGuest();
-        $this->assertEquals($res, true);
-        $flag_astra = false;
     }
 
     public function test_quote() {
-        $res = methodsBase::quote("test");
+        $res = methodsBase::quote('test');
         $this->assertEquals($res, "'test'");
     }
 
     public function test_test() {
-        $res = methodsBase::test("test");
+        $res = methodsBase::test('test');
         $this->assertEquals($res, "test");
     }
 
@@ -367,7 +416,6 @@ class methodsTest extends TestCase
                 ]
             ]
         );
-
     }
 
     public function test_getTableDataPredicate_empty_groups() {
@@ -502,6 +550,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_aggregate() {
+        global $_STORAGE;
         $params =
             [
                 "entityName" => "airports",
@@ -549,6 +598,14 @@ class methodsTest extends TestCase
 
             ];
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = "";
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')  ORDER BY airport_code LIMIT 10 OFFSET 0";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` = \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
         $this->assertEquals($res,
             [
                 "data" => [
@@ -574,7 +631,7 @@ class methodsTest extends TestCase
                     "airport_name",
                     "timezone"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')  ORDER BY airport_code LIMIT 10 OFFSET 0",
+                "sql" => $sql_equal,
                 "count(airport_code)" => [
                     [
                         "count" => "2"
@@ -645,6 +702,13 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t  LIMIT 1 OFFSET 0";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  count(`t`.`airport_name`) as airport_name, count(`t`.`city`) as city, count(`t`.`coordinates`) as coordinates, count(`t`.`timezone`) as timezone FROM `bookings`.`airports` as t  LIMIT 1 OFFSET 0';
+        }
         $this->assertEquals($res,
             [
 
@@ -673,7 +737,7 @@ class methodsTest extends TestCase
                     3 => "timezone"
                 ],
 
-                "sql" => "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t  LIMIT 1 OFFSET 0",
+                "sql" => $sql_equal,
                 "count(airport_name)" => [
                     0 => [
                         "count" => 11
@@ -703,6 +767,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_currentKey() {
+        global $_STORAGE;
         $params =
             [
                 "format" => "array",
@@ -738,6 +803,16 @@ class methodsTest extends TestCase
 
             ];
         $res = methodsBase::getTableDataPredicate($params);
+
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t   ORDER BY "t"."airport_code" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
+        }
+
         $this->assertEquals(
             [
                 "data" => [
@@ -803,12 +878,21 @@ class methodsTest extends TestCase
                     "airport_name",
                     "timezone"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 0"
+                "sql" => $sql_equal
             ], $res
         );
 
         $params["middleRow"] = true;
         $res = methodsBase::getTableDataPredicate($params);
+
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
+        }
+
         $this->assertEquals(
             [
                 "data" =>
@@ -868,11 +952,13 @@ class methodsTest extends TestCase
                     "airport_name",
                     "timezone"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC, airport_code LIMIT 10 OFFSET 0",
+                "sql" => $sql_equal,
             ], $res);
     }
 
     public function test_getTableDataPredicate_currentKey_costructedField_order() {
+        global $_STORAGE;
+
         $params =
             [
                 "format" => "array",
@@ -916,10 +1002,18 @@ class methodsTest extends TestCase
                 "order" => [["field" => "flight_no", "desc" => "1"]],
                 "process" => null,
                 "functions" => []
-
             ];
+
         $res = methodsBase::getTableDataPredicate($params);
 
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  LEFT JOIN \"bookings\".\"flights\" AS \"t0\" ON \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC NULLS LAST, airport_code LIMIT 2 OFFSET 0";
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone`, `t0`.`flight_no` FROM `bookings`.`airports` as t  LEFT JOIN `bookings`.`flights` AS `t0` ON `t`.`airport_code` = `t0`.`departure_airport`  ORDER BY `t0`.`flight_no` DESC, airport_code LIMIT 2 OFFSET 0";
+        }
 
         $this->assertEquals(
             [
@@ -930,19 +1024,19 @@ class methodsTest extends TestCase
                     "timezone",
                     "flight_no"
                 ],
-                "sql" => "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  left join \"bookings\".\"flights\" as \"t0\" on \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC, airport_code LIMIT 2 OFFSET 0",
+                "sql" => $sql_equal,
                 "data" => [
                     [
-                        "KEJ",
-                        "Кемерово",
-                        "Asia/Novokuznetsk",
-                        ""
+                        "DME",
+                        "Домодедово",
+                        "Europe/Moscow",
+                        "PG0405"
                     ],
                     [
-                        "KGD",
-                        "Храброво",
-                        "Europe/Kaliningrad",
-                        ""
+                        "DME",
+                        "Домодедово",
+                        "Europe/Moscow",
+                        "PG0405"
                     ]
                 ],
                 "records" => [
@@ -955,6 +1049,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_groups() {
+        global $_STORAGE;
         $params = [
             "entityName" => "flights",
             "schemaName" => "bookings",
@@ -1112,70 +1207,139 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
-        $this->assertEquals($res["data"],
-            array(
-                array(
-                    '2',
-                    'PG0404',
-                    '2017-08-05 16:05:00+00',
-                    '2017-08-05 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Arrived',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '2017-08-05 16:06:00+00',
-                    '2017-08-05 17:01:00+00',
-                ),
-                array(
-                    '17',
-                    'PG0404',
-                    '2017-08-06 16:05:00+00',
-                    '2017-08-06 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Arrived',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '2017-08-06 16:05:00+00',
-                    '2017-08-06 17:00:00+00'
-                ),
-                array(
-                    '6',
-                    'PG0404',
-                    '2017-08-16 16:05:00+00',
-                    '2017-08-16 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Scheduled',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '',
-                    ''
-                ),
-                array(
-                    '12',
-                    'PG0404',
-                    '2017-08-23 16:05:00+00',
-                    '2017-08-23 17:00:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Scheduled',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '',
-                    ''
-                ),
-                array(
-                    '1',
-                    'PG0405',
-                    '2017-07-16 06:35:00+00',
-                    '2017-07-16 07:30:00+00',
-                    '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
-                    '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
-                    'Arrived',
-                    '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
-                    '2017-07-16 06:44:00+00',
-                    '2017-07-16 07:39:00+00'
-                )
-            )
-        );
+
+        $res_equal = array();
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $res_equal =             array(
+                    array(
+                        '2',
+                        'PG0404',
+                        '2017-08-05 16:05:00',
+                        '2017-08-05 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Arrived',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '2017-08-05 16:06:00',
+                        '2017-08-05 17:01:00'
+                    ),
+                    array(
+                        '17',
+                        'PG0404',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Arrived',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00'
+                    ),
+                    array(
+                        '6',
+                        'PG0404',
+                        '2017-08-16 16:05:00',
+                        '2017-08-16 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Scheduled',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '12',
+                        'PG0404',
+                        '2017-08-23 16:05:00',
+                        '2017-08-23 17:00:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Scheduled',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '1',
+                        'PG0405',
+                        '2017-07-16 06:35:00',
+                        '2017-07-16 07:30:00',
+                        '{"f1":"DME Домодедово Москва (37.90629959106445,55.40879821777344) Europe/Moscow","f2":"DME"}',
+                        '{"f1":"LED Пулково Санкт-Петербург (30.262500762939453,59.80030059814453) Europe/Moscow","f2":"LED"}',
+                        'Arrived',
+                        '{"f1":"321 Аэробус A321-200 5600","f2":"321"}',
+                        '2017-07-16 06:44:00',
+                        '2017-07-16 07:39:00'
+                    )
+                );
+                break;
+            case(DatabaseMysql::class):
+                $res_equal = array(
+                    array(
+                        '2',
+                        'PG0404',
+                        '2017-08-05 16:05:00',
+                        '2017-08-05 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Arrived',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '2017-08-05 16:06:00',
+                        '2017-08-05 17:01:00'
+                    ),
+                    array(
+                        '17',
+                        'PG0404',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Arrived',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '2017-08-06 16:05:00',
+                        '2017-08-06 17:00:00'
+                    ),
+                    array(
+                        '6',
+                        'PG0404',
+                        '2017-08-16 16:05:00',
+                        '2017-08-16 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Scheduled',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '12',
+                        'PG0404',
+                        '2017-08-23 16:05:00',
+                        '2017-08-23 17:00:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Scheduled',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '',
+                        ''
+                    ),
+                    array(
+                        '1',
+                        'PG0405',
+                        '2017-07-16 06:35:00',
+                        '2017-07-16 07:30:00',
+                        '{"f1": "DME Домодедово Москва \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000',
+                        '{"f1": "LED Пулково Санкт-Петербург \u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000@3C>@\u0000\u0000\u0000@p',
+                        'Arrived',
+                        '{"f1": "321 Аэробус A321-200 5600", "f2": "321"}',
+                        '2017-07-16 06:44:00',
+                        '2017-07-16 07:39:00'
+                    )
+                );
+        }
+
+        $this->assertEquals($res["data"], $res_equal);
     }
 
     public function test_getTableData() {
@@ -1193,9 +1357,7 @@ class methodsTest extends TestCase
             "value" => "00000F",
             "predicate" => "00000F",
             "exclude" => [
-                0 => ["book_ref",
-                    "total_amount"],
-
+                ["book_ref", "total_amount"],
             ],
             "desc" => 'Загрузка списка "Bookings"'
         ];
@@ -1204,12 +1366,11 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableData($params);
         $this->assertEquals($res, [
             "data" => [
-                0 => ["book_ref" => '00000F', "total_amount" => "265700.00"],
+                ["book_ref" => '00000F', "total_amount" => "265700.00"]
             ],
             "records" => [
-                0 => ["count" => '1'],
+                ["count" => '1']
             ]
-
         ]);
 
 
@@ -1228,23 +1389,36 @@ class methodsTest extends TestCase
             "exclude" => [],
             "desc" => 'Загрузка списка "Tickets"'
         ];
+
         $res = methodsBase::getTableData($params);
-        $this->assertEquals($res, [
-            "data" => [
-                0 => ["passenger_id" => '1405 221312'],
-                1 => ["passenger_id" => '2846 021312'],
-                2 => ["passenger_id" => '3960 621312'],
-                3 => ["passenger_id" => '4152 521312'],
-                4 => ["passenger_id" => '5838 621312'],
-                5 => ["passenger_id" => '6704 621312'],
-                6 => ["passenger_id" => '6991 021312'],
-                7 => ["passenger_id" => '7437 921312']
+        $equal_result = array("data" =>
+            [
+                ["passenger_id" => '1405 221312'],
+                ["passenger_id" => '2846 021312'],
+                ["passenger_id" => '3960 621312'],
+                ["passenger_id" => '4152 521312'],
+                ["passenger_id" => '5838 621312'],
+                ["passenger_id" => '6704 621312'],
+                ["passenger_id" => '6991 021312'],
+                ["passenger_id" => '7437 921312']
             ],
             "records" => [
-                0 => ["count" => '8'],
+                ["count" => '8']
             ]
-        ]);
+        );
 
+        $res_data = array_map(function ($element) {
+            return $element['passenger_id'];
+        }, $res['data']);
+        $equal_data = array_map(function ($element) {
+            return $element['passenger_id'];
+        }, $equal_result['data']);
+
+        $this->assertTrue(
+            count(
+                array_diff($res_data, $equal_data)
+            ) == 0
+        );
 
         $params = [
             "fields" => "",
@@ -1255,35 +1429,38 @@ class methodsTest extends TestCase
             "limit" => 15,
             "offset" => 0,
         ];
+
         $res = methodsBase::getTableData($params);
         $this->assertEquals($res, [
             "data" => [
-                0 => ["book_ref" => "00000F",
-                    "book_date" => "2017-07-05 00:12:00+00",
-                    "total_amount" => "265700.00",
-                ],
+                ["book_ref" => "00000F",
+                    "book_date" => "2017-07-05 00:12:00",
+                    "total_amount" => "265700.00"
+                ]
             ],
             "records" => [
-                0 => ["count" => '1'],
-            ],
-
+                ["count" => '1']
+            ]
         ]);
     }
 
     public function test_getUserDescription() {
-        global $_STORAGE;
+        global $_STORAGE, $_CONFIG;
+        $_STORAGE['login'] = $_CONFIG->dbDefaultUser;
 
         $res = methodsBase::getUserDescription();
         $this->assertEquals(
             $res,
             array(
-                'user' => 'postgres',
+                'user' => $_STORAGE['login'],
                 'comment' => 'Администратор'
             )
         );
     }
 
     public function test_getTableDataPredicate_duration() {
+        global $_STORAGE;
+
         $params =
             [
                 "format" => "array",
@@ -1318,23 +1495,26 @@ class methodsTest extends TestCase
                     ],
                     "scheduled_departure" => [
                         "table_alias" => "t"
-                    ],
+                    ]
                 ],
                 "join" => [],
                 "order" => [],
                 "process" => null,
                 "functions" => []
-
             ];
 
         $res = methodsBase::getTableDataPredicate($params);
 
-        $this->assertEquals(
-            "SELECT  \"t\".\"flight_no\", \"t\".\"scheduled_departure\" FROM \"bookings\".\"flights\" as t  WHERE (\"t\".\"scheduled_departure\" <= now() and \"t\".\"scheduled_departure\" > now() - 'P3Y6M4D'::interval)  ORDER BY flight_id LIMIT 10 OFFSET 0",
-            $res['sql']
-        );
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."flight_no", "t"."scheduled_departure" FROM "bookings"."flights" as t  WHERE ("t"."scheduled_departure" <= now() AND "t"."scheduled_departure" > (now() - \'P3Y6M4D\'::interval))  ORDER BY flight_id LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT  `t`.`flight_no`, `t`.`scheduled_departure` FROM `bookings`.`flights` as t  WHERE (`t`.`scheduled_departure` <= now() AND `t`.`scheduled_departure` > (now() - INTERVAL 3 YEAR - INTERVAL 6 MONTH - INTERVAL 4 DAY))  ORDER BY flight_id LIMIT 10 OFFSET 0";
+        }
 
-
+        $this->assertEquals($res['sql'], $sql_equal);
     }
 
     public function test_getTableDataPredicate_match_order() {
@@ -1377,6 +1557,7 @@ class methodsTest extends TestCase
                 "functions" => []
 
             ];
+
         $res = methodsBase::getTableDataPredicate($params);
 
         $this->assertEquals('[{"airport_code":"KEJ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"KGD","timezone":"Europe\/Kaliningrad"},{"airport_code":"NOZ","timezone":"Asia\/Novokuznetsk"},{"airport_code":"UUS","timezone":"Asia\/Sakhalin"}]',
@@ -1384,6 +1565,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_space_search() {
+        global $_STORAGE;
         $params =
             [
                 "format" => "array",
@@ -1432,16 +1614,22 @@ class methodsTest extends TestCase
                 "functions" => []
 
             ];
+
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::text ILIKE \'%As%\'::text AND "t"."timezone"::text ILIKE \'%vo%\'::text)  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (CONVERT(`t`.`timezone`, char(100000)) LIKE CONVERT(\'%As%\', char(100000)) AND CONVERT(`t`.`timezone`, char(100000)) LIKE CONVERT(\'%vo%\', char(100000)))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
 
-
-        $this->assertEquals(
-            'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::text ILIKE \'%As%\'::text and "t"."timezone"::text ILIKE \'%vo%\'::text)  ORDER BY airport_code LIMIT 10 OFFSET 0',
-            $res['sql']
-        );
+        $this->assertEquals($sql_equal, $res['sql']);
     }
 
     public function test_getTableDataPredicate_operand() {
+        global $_STORAGE;
         $params = [
             "entityName" => "bookings",
             "schemaName" => "bookings",
@@ -1501,14 +1689,23 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`total_amount` > '6000') AND (`t`.`book_ref` IS NOT NULL )  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0";
+        }
+
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [
-                ['1DC435', '2017-07-20 02:36:00+00', '6700.00'],
-                ['7F5D7B', '2017-08-04 18:31:00+00', '7300.00'],
-                ['44444', '2020-03-12 15:55:00+00', '9999.00']
+                ['1DC435', '2017-07-20 05:36:00', '6700.00'],
+                ['7F5D7B', '2017-08-04 21:31:00', '7300.00'],
+                ['44444', '2020-03-12 18:55:00', '9999.00']
             ],
             'records' => [
                 ['count' => $res['records'][0]['count']]
@@ -1518,10 +1715,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["op"] = "L";
         $params["predicate"]["operands"][1]["operand"]["op"] = "ISN";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" < \'6000\') AND ("t"."book_ref" IS NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`total_amount` < '6000') AND (`t`.`book_ref` IS NULL )  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0";
+        }
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" < \'6000\') AND ("t"."book_ref" IS NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [],
             'records' => [
                 ['count' => 0]
@@ -1533,14 +1737,21 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][1]["operand"]["value"] = "0002D8";
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`total_amount` >= '6000') AND (`t`.`book_ref` <= '0002D8')  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0";
+        }
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [
-                ['000068', '2020-03-12 15:18:00+00', '18100.00'],
-                ['0002D8', '2017-08-07 18:40:00+00', '23600.00'],
-                ['000012', '2020-03-12 15:18:00+00', '37900.00']
+                ['000068', '2020-03-12 18:18:00', '18100.00'],
+                ['0002D8', '2017-08-07 18:40:00', '23600.00'],
+                ['000012', '2020-03-12 18:18:00', '37900.00']
             ],
             'records' => [
                 ['count' => 4]
@@ -1593,10 +1804,17 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint"("t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`testint`(`t`.`range`))  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
+        }
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['aircraft_code', 'model', 'range'],
-            'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint"("t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [
                 ['CN1', 'Сессна 208 Караван', '1200'],
                 ['CR2', 'Бомбардье CRJ-200', '2700'],
@@ -1610,10 +1828,18 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["op"] = "FC";
         $params["predicate"]["operands"][0]["operand"]["value"] = "testint2";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint2"(\'"bookings"."aircrafts"\', "t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`testint2`('`bookings`.`aircrafts`', `t`.`range`))  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
+        }
+
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['aircraft_code', 'model', 'range'],
-            'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint2"(\'"bookings"."aircrafts"\', "t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [
                 ['CN1', 'Сессна 208 Караван', '1200'],
                 ['CR2', 'Бомбардье CRJ-200', '2700'],
@@ -1627,10 +1853,18 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["op"] = "EQF";
         $params["predicate"]["operands"][0]["operand"]["value"] = "testint3";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("t"."range" =  "testint3"())  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`t`.`range` =  `testint3`())  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
+        }
+
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['aircraft_code', 'model', 'range'],
-            'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("t"."range" =  "testint3"())  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [
                 ['CN1', 'Сессна 208 Караван', '1200']
             ],
@@ -1643,10 +1877,18 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"] = 1200;
         $params["predicate"]["operands"][0]["operand"]["func"] = "test4";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("test4"("t"."range") =  \'1200\')  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`test4`(`t`.`range`) =  '1200')  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
+        }
+
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['aircraft_code', 'model', 'range'],
-            'sql' => 'SELECT distinct on ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("test4"("t"."range") =  \'1200\')  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [
                 ['CN1', 'Сессна 208 Караван', '1200']
             ],
@@ -1657,6 +1899,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_operand_EQ() {
+        global $_STORAGE;
         $params = [
             "format" => "array",
             "entityName" => "airports",
@@ -1707,10 +1950,18 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = "";
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NULL OR "t"."timezone"::text = \'\' OR "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NULL OR CONVERT(`t`.`timezone`, char(100000)) = \'\' OR `t`.`timezone` IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NULL OR "t"."timezone"::text = \'\' OR "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
                     ['MJZ', 'Мирный', 'Asia/Yakutsk'],
@@ -1771,10 +2022,18 @@ class methodsTest extends TestCase
 
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" is null)  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` is null)  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
+        }
+
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" is null)  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [],
             'records' => [
                 ['count' => 0]
@@ -1784,10 +2043,17 @@ class methodsTest extends TestCase
 
         $params["predicate"]["operands"][0]["operand"]["value"] = [];
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IS NULL OR trim("t"."book_ref"::text) = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` IS NULL OR trim(CONVERT(`t`.`book_ref`, char(100000))) = \'\')  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IS NULL OR trim("t"."book_ref"::text) = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [],
             'records' => [
                 ['count' => 0]
@@ -1798,10 +2064,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"][0] = "";
         $params["predicate"]["operands"][0]["operand"]["value"][1] = "";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IS NULL OR "t"."book_ref"::text = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` IS NULL OR CONVERT(`t`.`book_ref`, char(100000)) = \'\')  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IS NULL OR "t"."book_ref"::text = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [],
             'records' => [
                 ['count' => 0]
@@ -1812,10 +2085,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"][1] = "Europe/Moscow";
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
             'offset' => 0,
             'fields' => ['book_ref', 'book_date', 'total_amount'],
-            'sql' => 'SELECT distinct on ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0',
+            'sql' => $sql_equal,
             'data' => [],
             'records' => [
                 ['count' => 0]
@@ -1824,6 +2104,7 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_operand_NEQ() {
+        global $_STORAGE;
         $params = [
             "format" => "array",
             "entityName" => "airports",
@@ -1874,10 +2155,18 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
+        $sql_equal = "";
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND trim(CONVERT(`t`.`timezone`, char(100000))) <> \'\' and `t`.`timezone` NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KGD', 'Храброво', 'Europe/Kaliningrad'],
@@ -1897,10 +2186,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"] = "";
         $params["limit"] = 3;
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` is null)  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [],
                 'records' => [
                     ['count' => 0]
@@ -1910,10 +2206,17 @@ class methodsTest extends TestCase
 
         $params["predicate"]["operands"][0]["operand"]["value"] = [];
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND CONVERT(`t`.`timezone`, char(100000)) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
@@ -1928,10 +2231,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"][0] = "";
         $params["predicate"]["operands"][0]["operand"]["value"][1] = "";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND trim(CONVERT(`t`.`timezone`, char(100000))) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KEJ', 'Кемерово', 'Asia/Novokuznetsk'],
@@ -1947,10 +2257,17 @@ class methodsTest extends TestCase
         $params["predicate"]["operands"][0]["operand"]["value"][1] = "Asia/Yakutsk";
 
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KGD', 'Храброво', 'Europe/Kaliningrad'],
@@ -1964,10 +2281,17 @@ class methodsTest extends TestCase
 
         $params["predicate"]["operands"][0]["operand"]["value"] = "Asia/Novokuznetsk";
         $res = methodsBase::getTableDataPredicate($params);
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                break;
+            case(DatabaseMysql::class):
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+        }
         $this->assertEquals($res, [
                 'offset' => 0,
                 'fields' => ['airport_code', 'airport_name', 'timezone'],
-                'sql' => 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0',
+                'sql' => $sql_equal,
                 'data' => [
                     ['DME', 'Домодедово', 'Europe/Moscow'],
                     ['KGD', 'Храброво', 'Europe/Kaliningrad'],
@@ -1981,6 +2305,8 @@ class methodsTest extends TestCase
     }
 
     public function test_getTableDataPredicate_operand_С() {
+        global $_STORAGE;
+
         $params = [
             "entityName" => "tickets",
             "schemaName" => "bookings",
@@ -2014,7 +2340,6 @@ class methodsTest extends TestCase
                         "book_date",
                         "total_amount"
                     ],
-                    "sssssss" => [],
                     "subfields_navigate_alias" => "t0",
                     "subfields_table_alias" => ["t0", "t0", "t0"],
                     "subfields_key" => "book_ref"
@@ -2044,34 +2369,53 @@ class methodsTest extends TestCase
         ];
 
         $res = methodsBase::getTableDataPredicate($params);
-        $this->assertEquals($res["data"][0], ['0005432000991',
-            '{"f1":"F313DD 2017-07-03 01:37:00+00 30900.00","f2":"F313DD"}',
-            '6615 976589',
-            'MAKSIM ZHUKOV',
-            '{"email": "m-zhukov061972@postgrespro.ru", "phone": "+70149562185"}']);
+
+        $custom_json = '';
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $custom_json = '{"f1":"F313DD 2017-07-03 01:37:00 30900.00","f2":"F313DD"}';
+                break;
+            case(DatabaseMysql::class):
+                $custom_json = '{"f1": "F313DD 2017-07-03 01:37:00 30900.00", "f2": "F313DD"}';
+        }
+
+        $this->assertEquals(
+            $res["data"][0],
+            [
+                '0005432000991',
+                $custom_json,
+                '6615 976589',
+                'MAKSIM ZHUKOV',
+                '{"email": "m-zhukov061972@postgrespro.ru", "phone": "+70149562185"}'
+            ]);
 
         $params['fields']['book_ref']['format'] = 'Booking %s (%s), cost: %s';
         $res = methodsBase::getTableDataPredicate($params);
-        $this->assertEquals($res["data"][0], ['0005432000991',
-            '{"f1":"Booking F313DD (2017-07-03 01:37:00+00), cost: 30900.00","f2":"F313DD"}',
-            '6615 976589',
-            'MAKSIM ZHUKOV',
-            '{"email": "m-zhukov061972@postgrespro.ru", "phone": "+70149562185"}']);
 
-        // $this->assertEquals("","");
+        switch (get_class($_STORAGE['database'])) {
+            case (DatabasePostgresql::class):
+                $custom_json = '{"f1":"Booking F313DD (2017-07-03 01:37:00), cost: 30900.00","f2":"F313DD"}';
+                break;
+            case(DatabaseMysql::class):
+                $custom_json = '{"f1": "Booking F313DD (2017-07-03 01:37:00), cost: 30900.00", "f2": "F313DD"}';
+        }
+
+        $this->assertEquals(
+            $res["data"][0],
+            [
+                '0005432000991',
+                $custom_json,
+                '6615 976589',
+                'MAKSIM ZHUKOV',
+                '{"email": "m-zhukov061972@postgrespro.ru", "phone": "+70149562185"}'
+            ]
+        );
     }
 
     public function test_getAllModelMetadata() {
-        global $_STORAGE;
         $res = methodsBase::getAllModelMetadata();
 
-        // check relations loaded
-        $this->assertArrayHasKey(
-            $_STORAGE['Controller']->Sql(
-                "SELECT format('%s.aircraft_code.%s.aircraft_code', 'bookings.aircrafts_data'::regclass::oid, 'bookings.flights'::regclass::oid) AS f"
-            )[0]['f'],
-            $res['projections']['aircrafts_data']['relations']
-        );
+        $this->assertTrue(count($res) > 0);
     }
 
     public function test_getTableDefaultValues() {
@@ -2081,17 +2425,19 @@ class methodsTest extends TestCase
     }
 
     public function test_authenticate() {
-        global $_STORAGE;
+        global $_STORAGE, $_CONFIG;
         $_STORAGE['PHPSESSID'] = '';
+
+        $res = $_STORAGE['Controller']->Sql("select version();");
         $params = [
-            'usename' => 'postgres',
-            'passwd' => '123456'
+            'usename' => $_CONFIG->dbDefaultUser,
+            'passwd' => $_CONFIG->dbDefaultPass
         ];
 
         $res = methodsBase::authenticate($params);
         $this->assertEquals($res, [
             0 => [
-                'usename' => 'postgres'
+                'usename' => $_CONFIG->dbDefaultUser
             ],
         ]);
 

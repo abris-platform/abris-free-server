@@ -35,16 +35,14 @@ class SQLBase
 
         if (!isset($_STORAGE['pids']))
             $_STORAGE['pids'] = array();
-        else {
-            $tmpPids = $_STORAGE['pids'];
-            $tmpPids[$pid] = array(
-                'query' => $this->query,
-                'desc' => $this->GetOptions()->GetQueryDescription(),
-                'timestamp' => date('Y-m-d H:i:s', time())
-            );
-            $_STORAGE['pids'] = $tmpPids;
-        }
 
+        $tmpPids = $_STORAGE['pids'];
+        $tmpPids[$pid] = array(
+            'query' => $this->query,
+            'desc' => $this->GetOptions()->GetQueryDescription(),
+            'timestamp' => date('Y-m-d H:i:s', time())
+        );
+        $_STORAGE['pids'] = $tmpPids;
     }
 
     public function AfterQuery($result) {
@@ -58,6 +56,9 @@ class SQLBase
 
     public function ProcessResult($result, $format) {
         $response = array();
+
+        if ($this->options->GetInfoAffectedRows())
+            $response['count_affected_rows'] = $this->database->db_get_count_affected_row($result);
 
         while ($line = $this->database->db_fetch_array($result, $format)) {
             if (!$this->options->GetPreprocessData())

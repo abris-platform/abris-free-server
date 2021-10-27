@@ -3,48 +3,71 @@
 class DatabaseMysql extends DatabaseAbstract
 {
     public function db_connect($data = null) {
-        if(!boolval($this->connect) || !property_exists($this->connect, 'server_info')) {
+        $need_connect = false;
+        if (empty($this->connect))
+            $need_connect = true;
+        elseif (!isset(((array)$this->connect)['server_info']))
+            $need_connect = true;
+
+        if ($need_connect) {
             global $_STORAGE;
 
             if (is_null($data))
                 $data = $this->config;
 
             $password = isset($_STORAGE['private_key']) ? DecryptStr($_STORAGE['password'], $_STORAGE['private_key']) : $data['password'];
-            $this->connect = new mysqli($data['host'], $data['user'], $password, $data['dbname']);
 
-            if($this->connect->connect_errno)
-                throw new Exception("Connect failed: $this->connect->connect_error \n");
+            try {
+                $this->connect = new mysqli($data['host'], $data['user'], $password, $data['dbname'], $data['port']);
+            } catch (Exception $e) {
+                // TODO custom Exception.
+                throw new Exception("Connect failed: {$e->getMessage()} \n");
+            }
         }
+
         return $this->connect;
     }
 
     public function db_get_pid() {
-        return '';
+        $this->db_connect();
+        return ($this->connect)->thread_id;
     }
 
     public function db_last_error() {
-        return $this->connect->error;
+        if (!empty($this->connect->error))
+            return $this->connect->error;
+
+        return null;
     }
 
     public function db_fetch_array($result, $format) {
-        return $result->fetch_array($format);
+        if (!is_bool($result))
+            return $result->fetch_array($format);
+
+        return false;
     }
 
     public function db_free_result($result) {
-        $result->free_result();
+        if (!is_bool($result))
+            $result->free_result();
+
+        return true;
     }
 
     public function db_query($query) {
         $this->db_connect();
 
         $result = $this->connect->query($query);
-        if ($this->connect->connect_errno)
+        if ($this->connect->error)
             throw new Exception($this->db_last_error());
         return $result;
     }
 
     public function db_close() {
-        return $this->connect->close();
+        $r = $this->connect->close();
+        unset($this->connect);
+
+        return $r;
     }
 
     public function db_escape_string($value) {
@@ -53,7 +76,8 @@ class DatabaseMysql extends DatabaseAbstract
     }
 
     public function db_escape_bytea($value) {
-        return $value;
+        $this->db_connect();
+        return $this->connect->real_escape_string($value);
     }
 
     public function db_type_compare($format) {
@@ -67,6 +91,10 @@ class DatabaseMysql extends DatabaseAbstract
                 );";
     }
 
+    public function db_get_count_affected_row($result) {
+        return $this->connect->affected_rows;
+    }
+
     public function get_format($format) {
         return $format === 'object' ? MYSQLI_ASSOC : MYSQLI_NUM;
     }
@@ -77,12 +105,18 @@ class DatabaseMysql extends DatabaseAbstract
 
     public function type($value, $type) {
         if (!$type) return "'$value'";
-        return "CONVERT('$value','$type')";
+        $type = $type == 'text' ? 'char(100000)' : $type;
+
+        if (strcasecmp($type, 'interval') == 0)
+            return $this->convert_iso_interval($value);
+
+        return "CONVERT('$value', $type)";
     }
 
     public function type_field($field, $type, $need_quote = false) {
         if (!$type) return "`$field`";
-        return "CONVERT(`$field`,'$type')";
+        $type = $type == 'text' ? 'char(100000)' : $type;
+        return $need_quote ? "CONVERT(`$field`, $type)" : "CONVERT($field, $type)";
     }
 
     public function get_explain_query() {
@@ -100,18 +134,33 @@ class DatabaseMysql extends DatabaseAbstract
     }
 
     public function return_pkey_value($pkey_column) {
-        return '; SELECT LAST_INSERT_ID()';
+        return '';
+        // return '; SELECT LAST_INSERT_ID()';
     }
 
     public function wrap_insert_values($str_values) {
-        return "VALUES $str_values";
+        return "SELECT $str_values";
     }
+
     public function operator_like() {
         return 'LIKE';
     }
 
     public function format($columns_array, $format) {
-        return implode('|||', $columns_array);
+        $split = preg_split("/%[sIL]{1}/", $format);
+        $res = array();
+
+        if (count($split) > 1) {
+            for ($i = 0; $i < count($split); $i++) {
+                if (($split[$i] == '') && ($i != 0))
+                    continue;
+
+                $res[] = "'$split[$i]'";
+                $res[] = $columns_array[$i];
+            }
+        }
+
+        return $this->concat($res, "''");
     }
 
     private function add_element(&$source, $element, &$findex) {
@@ -129,8 +178,7 @@ class DatabaseMysql extends DatabaseAbstract
             foreach (explode($separator, $columns_array[0]) as $item) {
                 $this->add_element($columns, $item, $findex);
             }
-        }
-        else {
+        } else {
             $this->add_element($columns, $columns_array[0], $findex);
         }
 
@@ -138,10 +186,53 @@ class DatabaseMysql extends DatabaseAbstract
             $this->add_element($columns, $columns_array[$index], $findex);
         }
 
-        return '(json_object(' .implode(', ', $columns) .'))';
+        return '(json_object(' . implode(', ', $columns) . '))';
     }
 
     public function get_collate() {
         return 'utf8mb4_bin';
+    }
+
+    public function get_name_current_database_query() {
+        return 'DATABASE()';
+    }
+
+    public function get_pids_database_query($dbname = '') {
+        $where_cond = '';
+        if ($dbname)
+            $where_cond = "WHERE db = $dbname";
+        return "SELECT id AS pid, p.* FROM information_schema.processlist p $where_cond;";
+    }
+
+    public function kill_pid_query($pid) {
+        return "KILL $pid;";
+    }
+
+    public function distinct_on($distinctfields) {
+        return " ";
+    }
+
+    protected function convert_iso_interval($interval, $operator = '-') {
+        if ($interval[0] != 'P')
+            return $interval;
+
+        $result = array();
+        $cmd = 'INTERVAL';
+
+        $date = new DateInterval($interval);
+        if ($date->y)
+            $result[] = "$cmd $date->y YEAR";
+        if ($date->m)
+            $result[] = "$cmd $date->m MONTH";
+        if ($date->d)
+            $result[] = "$cmd $date->d DAY";
+        if ($date->h)
+            $result[] = "$cmd $date->h HOUR";
+        if ($date->i)
+            $result[] = "$cmd $date->i MINUTE";
+        if ($date->s)
+            $result[] = "$cmd $date->s SECOND";
+
+        return implode(" $operator ", $result);
     }
 }

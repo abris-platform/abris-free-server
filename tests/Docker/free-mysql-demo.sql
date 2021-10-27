@@ -23,7 +23,7 @@ CREATE TABLE bookings.aircrafts_data (
 --
 CREATE VIEW bookings.aircrafts AS
 	SELECT ml.aircraft_code,
-		(ml.model ->> 'ru') AS model,
+		(ml.model ->> '$.ru') AS model,
 		ml.`range`
 	FROM bookings.aircrafts_data ml;
 --
@@ -40,8 +40,8 @@ CREATE TABLE bookings.airports_data (
 --
 CREATE VIEW bookings.airports AS
 	SELECT ml.airport_code,
-		(ml.airport_name ->> 'ru') AS airport_name,
-		(ml.city ->> 'ru') AS city,
+		(ml.airport_name ->> '$.ru') AS airport_name,
+		(ml.city ->> '$.ru') AS city,
 		ml.coordinates,
 		ml.timezone
 	FROM bookings.airports_data ml;
@@ -64,6 +64,18 @@ CREATE TABLE bookings.bookings (
     total_amount numeric(10,2) NOT NULL COMMENT 'Total booking cost',
     CONSTRAINT bookings_pkey PRIMARY KEY (book_ref)
 ) COMMENT = 'Bookings';
+--
+--
+CREATE TABLE bookings.bookings_autoinc
+(
+    booking_pkey INT AUTO_INCREMENT,
+    book_ref     CHARACTER(6)   NOT NULL COMMENT 'Booking number',
+    book_date    TIMESTAMP      NOT NULL COMMENT 'Booking date',
+    total_amount NUMERIC(10, 2) NOT NULL COMMENT 'Total booking cost',
+    CONSTRAINT bookings_autoinc_pk
+        PRIMARY KEY (booking_pkey)
+)
+COMMENT = 'Bookings (for insert returning)';
 --
 --
 CREATE TABLE bookings.flights (
@@ -232,16 +244,41 @@ INSERT INTO bookings.bookings (book_ref, book_date, total_amount) VALUES ('644C1
 INSERT INTO bookings.bookings (book_ref, book_date, total_amount) VALUES ('3A458F', '2017-07-20 21:47:00', 203500.00);
 --
 --
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (1, 'PG0405', '2017-07-16 09:35:00', '2017-07-16 10:30:00', 'DME', 'LED', 'Arrived', '321', '2017-07-16 09:44:00', '2017-07-16 10:39:00');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (2, 'PG0404', '2017-08-05 19:05:00', '2017-08-05 20:00:00', 'DME', 'LED', 'Arrived', '321', '2017-08-05 19:06:00', '2017-08-05 20:01:00');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (3, 'PG0405', '2017-08-05 09:35:00', '2017-08-05 10:30:00', 'DME', 'LED', 'Arrived', '321', '2017-08-05 09:39:00', '2017-08-05 10:34:00');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (5, 'PG0405', '2017-08-16 09:35:00', '2017-08-16 10:30:00', 'DME', 'LED', 'On Time', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (6, 'PG0404', '2017-08-16 19:05:00', '2017-08-16 20:00:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (9, 'PG0405', '2017-08-25 09:35:00', '2017-08-25 10:30:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (12, 'PG0404', '2017-08-23 19:05:00', '2017-08-23 20:00:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (13, 'PG0405', '2017-08-23 09:35:00', '2017-08-23 10:30:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (17, 'PG0404', '2017-08-06 19:05:00', '2017-08-06 20:00:00', 'DME', 'LED', 'Arrived', '321', '2017-08-06 19:05:00', '2017-08-06 20:00:00');
-INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (18, 'PG0405', '2017-08-06 09:35:00', '2017-08-06 10:30:00', 'DME', 'LED', 'Arrived', '321', '2017-08-06 09:39:00', '2017-08-06 10:35:00');
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('064589', '2017-07-22 12:33:00', 310100.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('1DC435', '2017-07-20 05:36:00', 6700.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('2F2226', '2017-07-13 10:40:00', 326100.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('302066', '2017-08-09 03:21:00', 48900.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('32C1D7', '2017-07-17 10:39:00', 137100.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('7F0E21', '2017-07-02 03:06:00', 70200.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('7F5D7B', '2017-08-04 21:31:00', 7300.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('9567AF', '2017-07-24 09:48:00', 50100.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('D9CF3C', '2017-07-22 21:07:00', 98400.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('DDCAEA', '2017-08-09 00:10:00', 63300.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('F313DD', '2017-07-03 01:37:00', 30900.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('000068', '2020-03-12 15:18:00', 18100.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('0002D8', '2017-08-07 18:40:00', 23600.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('000012', '2020-03-12 15:18:00', 37900.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('00000F', '2017-07-05 00:12:00', 265700.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('31ADD5', '2017-07-11 05:19:00', 52000.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('6C0FB3', '2017-08-06 08:12:00', 112100.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('CD9472', '2017-07-30 23:31:00', 91000.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('63A498', '2017-07-10 09:31:00', 35200.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('579EFD', '2017-07-23 13:04:00', 21400.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('FDC2AF', '2017-06-30 03:56:00', 20000.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('644C15', '2017-07-02 04:52:00', 96200.00);
+INSERT INTO bookings.bookings_autoinc (book_ref, book_date, total_amount) VALUES ('3A458F', '2017-07-20 21:47:00', 203500.00);
+--
+--
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (1, 'PG0405', '2017-07-16 06:35:00', '2017-07-16 07:30:00', 'DME', 'LED', 'Arrived', '321', '2017-07-16 06:44:00', '2017-07-16 7:39:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (2, 'PG0404', '2017-08-05 16:05:00', '2017-08-05 17:00:00', 'DME', 'LED', 'Arrived', '321', '2017-08-05 16:06:00', '2017-08-05 17:01:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (3, 'PG0405', '2017-08-05 06:35:00', '2017-08-05 7:30:00', 'DME', 'LED', 'Arrived', '321', '2017-08-05 06:39:00', '2017-08-05 7:34:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (5, 'PG0405', '2017-08-16 06:35:00', '2017-08-16 7:30:00', 'DME', 'LED', 'On Time', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (6, 'PG0404', '2017-08-16 16:05:00', '2017-08-16 17:00:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (9, 'PG0405', '2017-08-25 06:35:00', '2017-08-25 7:30:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (12, 'PG0404', '2017-08-23 16:05:00', '2017-08-23 17:00:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (13, 'PG0405', '2017-08-23 06:35:00', '2017-08-23 7:30:00', 'DME', 'LED', 'Scheduled', '321', NULL, NULL);
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (17, 'PG0404', '2017-08-06 16:05:00', '2017-08-06 17:00:00', 'DME', 'LED', 'Arrived', '321', '2017-08-06 16:05:00', '2017-08-06 17:00:00');
+INSERT INTO bookings.flights (flight_id, flight_no, scheduled_departure, scheduled_arrival, departure_airport, arrival_airport, status, aircraft_code, actual_departure, actual_arrival) VALUES (18, 'PG0405', '2017-08-06 06:35:00', '2017-08-06 07:30:00', 'DME', 'LED', 'Arrived', '321', '2017-08-06 06:39:00', '2017-08-06 7:35:00');
 --
 --
 INSERT INTO bookings.tickets (ticket_no, book_ref, passenger_id, passenger_name, contact_data) VALUES ('0005432262099', '1DC435', '2902 380461', 'ZINAIDA KOLESNIKOVA', '{"email": "kolesnikovaz_22021966@postgrespro.ru", "phone": "+70165381701"}');
@@ -351,7 +388,7 @@ CREATE TABLE test_schema.text_types
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.testint(a1 int)
+CREATE FUNCTION bookings.testint(a1 int)
 RETURNS bool
 DETERMINISTIC
 BEGIN
@@ -361,7 +398,7 @@ DELIMITER ;
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.testint2(a1 text, a2 integer)
+CREATE FUNCTION bookings.testint2(a1 text, a2 integer)
 RETURNS bool
 DETERMINISTIC
 BEGIN
@@ -371,7 +408,7 @@ DELIMITER ;
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.testint3()
+CREATE FUNCTION bookings.testint3()
 RETURNS int
 DETERMINISTIC
 BEGIN
@@ -381,10 +418,13 @@ DELIMITER ;
 --
 --
 DELIMITER $$
-CREATE FUNCTION public.test4(a1 int)
-RETURNS CHAR
+CREATE FUNCTION bookings.test4(a1 int)
+RETURNS TEXT
 DETERMINISTIC
 BEGIN
-	RETURN CAST(a1 as CHAR);
+	RETURN CONVERT(a1, CHAR(10000));
 END$$
 DELIMITER ;
+--
+--
+ALTER USER mysql COMMENT 'Администратор';
