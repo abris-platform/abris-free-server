@@ -95,11 +95,8 @@ class methodsBase
     }
 
     protected static function SetCookie($name, $value = '', $expires = 0, $path = '', $domain = '', $secure = false) {
-        global $_STORAGE;
-        if (php_sapi_name() == 'cli') {
-            $_STORAGE[$name] = $value;
+        if (php_sapi_name() == 'cli')
             return;
-        }
 
         if (is_array($expires))
             setcookie($name, $value, $expires);
@@ -138,6 +135,7 @@ class methodsBase
                 }
             }
 
+            $_STORAGE['private_key'] = $privateKey;
             $_STORAGE['password'] = EncryptStr($_STORAGE['password'], $privateKey);
             return $usenameDB;
         }
