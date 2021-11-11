@@ -104,7 +104,7 @@ class methodsBase
             setcookie($name, $value, $expires, $path, $domain, $secure);
     }
 
-    public static function authenticate($params) {
+    public static function authenticate($params, $needCookie = true) {
         global $_STORAGE;
 
         if ($params['usename'] <> '' and $params['passwd'] <> '') {
@@ -116,7 +116,8 @@ class methodsBase
             $usenameDB = $_STORAGE['Controller']->Sql("SELECT '$params[usename]' as usename", $options); //run a request to verify authentication
 
             $privateKey = GenerateRandomString();
-            if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))) {
+            if ((!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__'))
+                && $needCookie) {
                 $isHTTPS = isset($_SERVER['HTTPS']);
                 $cookieNameAuth = 'private_key';
                 static::SetCookie($cookieNameAuth, null, -1);

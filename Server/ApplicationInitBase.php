@@ -3,8 +3,8 @@
 
 class ApplicationInitBase
 {
-    public static function initStorage() {
-        $storage = new WebStorage();
+    public static function initStorage($startSession = true) {
+        $storage = new WebStorage($startSession);
 
         if (isset($_COOKIE['private_key']))
             if ($_COOKIE['private_key'] !== '')
