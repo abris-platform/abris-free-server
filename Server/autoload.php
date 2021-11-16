@@ -24,8 +24,12 @@ function RegisterLibrary($fullPath, $nameClass) {
 
     $requiresList = GetConfigContent($fullPath);
 
-    if (array_key_exists($nameClass, $requiresList))
+    if (array_key_exists($nameClass, $requiresList)) {
         require_once $requiresList[$nameClass];
+        return true;
+    }
+
+    return false;
 }
 
 
