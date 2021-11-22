@@ -24,6 +24,10 @@ class DbSqlController
         return $this->GetObjectDatabase()->db_escape_bytea($value);
     }
 
+    public function UnEscapeBytea($value) {
+        return $this->GetObjectDatabase()->db_unescape_bytea($value);
+    }
+
     public function IdQuote($identifier) {
         return $this->GetObjectDatabase()->id_quote($identifier);
     }

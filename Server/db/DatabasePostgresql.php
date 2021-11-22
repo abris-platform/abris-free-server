@@ -55,6 +55,11 @@ class DatabasePostgresql extends DatabaseAbstract
         return pg_escape_bytea($value);
     }
 
+    public function db_unescape_bytea($value) {
+        $this->db_connect();
+        return pg_unescape_bytea($value);
+    }
+
     public function db_type_compare($format) {
         if ($format != PGSQL_ASSOC && $format != PGSQL_NUM)
             throw new Exception("'$format' is unknown format!");

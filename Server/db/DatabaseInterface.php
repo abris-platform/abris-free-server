@@ -20,6 +20,8 @@ interface DatabaseInterface
 
     public function db_escape_bytea($value);
 
+    public function db_unescape_bytea($value);
+
     public function db_type_compare($format);
 
     public function db_get_count_affected_row($result);
