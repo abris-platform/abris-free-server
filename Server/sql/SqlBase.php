@@ -25,6 +25,10 @@ class SQLBase
         return $this->options;
     }
 
+    public function GetQuery() {
+        return $this->query;
+    }
+
     public function PrepareConnection() {
         $format = $this->options->GetFormat();
         return null;
@@ -49,7 +53,7 @@ class SQLBase
         if (!$result) {
             // If an error has occurred from the side of the database, then try to push this into the query logging table (log_query).
             $lastError = $this->database->db_last_error();
-            if($lastError)
+            if ($lastError)
                 throw new Exception($lastError);
         }
     }
@@ -73,8 +77,8 @@ class SQLBase
 
     public static function ExistsScheme($schemaName, $options = null) {
         global $_STORAGE;
-        // TODO move to database class.
-        return $_STORAGE['Controller']->sql(
+
+        return $_STORAGE['Controller']->Sql(
             "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$schemaName');",
             $options
         )[0]['exists'];

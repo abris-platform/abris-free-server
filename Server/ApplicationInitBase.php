@@ -74,6 +74,10 @@ class ApplicationInitBase
     protected static function callSpecialMethods() {
     }
 
+    protected static function callCoreMethod($method, $params) {
+        return call_user_func_array(static::getNameClassMethods() . '::' . $method, $params);
+    }
+
     public static function cors() {
         if (isset($_SERVER['HTTP_ORIGIN'])) {
             header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
@@ -133,7 +137,7 @@ class ApplicationInitBase
         $params = json_decode($_POST['params'], true);
 
         ob_start();
-        $result = call_user_func_array(static::getNameClassMethods() . '::' . $_POST['method'], $params);
+        $result = static::callCoreMethod($_POST['method'], $params);
         ob_end_clean();
 
         $_STORAGE['login'] = $_STORAGE['login'] == 'guest' ? '' : $_STORAGE['login'];
