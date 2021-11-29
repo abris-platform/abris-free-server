@@ -75,7 +75,7 @@ class ApplicationInitBase
     }
 
     protected static function callCoreMethod($method, $params) {
-        return call_user_func_array(static::getNameClassMethods() . '::' . $method, $params);
+        return call_user_func_array(static::getNameClassMethods() . '::' . $method, array($params));
     }
 
     public static function cors() {
