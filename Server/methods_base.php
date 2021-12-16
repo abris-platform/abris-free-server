@@ -650,9 +650,17 @@ class methodsBase
                     else
                         $field_table_alias = 't';
 
+                    // Обработка полей с количеством записей.
+                    if ($field_table_alias == 'c') {
+                        $field_list .= '(SELECT count(*) FROM '
+                            .$controller->relation($field_description['schema_name'] ?? 'public', $field_description['table_name'])
+                            .' ' .$field_description['table_alias']
+                            ." WHERE $field_description[table_alias].$field_description[key] = t.$field_description[ref_key])";
+                    }
+
                     if (isset($field_description["only_filled"]))
                         $field_list .= $controller->IdQuote($field_table_alias) . "." . $controller->IdQuote($field_name) . " is not null as " . $controller->IdQuote($field_name);
-                    else
+                    else if ($field_description['table_alias'] !== 'c')
                         $field_list .= $controller->IdQuote($field_table_alias) . "." .  $controller->IdQuote($field_name);
                     if (isset($field_description['type']))
                         $field_list .= '::' .  $controller->IdQuote($field_description['type']);
