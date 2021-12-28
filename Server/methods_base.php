@@ -395,6 +395,10 @@ class methodsBase
                         $where = '';
 
                         foreach ($fields as $k => $field_description) {
+                            $table_alias = $field_description['table_alias'];
+                            if (($table_alias === 'c') || ($table_alias === 'r'))
+                                continue;
+
                             if (isset($field_description["hidden"]))
                                 if ($field_description["hidden"])
                                     continue;
@@ -580,7 +584,6 @@ class methodsBase
 
         $field_array = array();
 
-
         if (isset($params["aggregate"]) && count($params["aggregate"]) && isset($params["group"])) {
             foreach ($params["group"] as $i => $field_obj) {
                 $field_name = $field_obj["field"];
@@ -645,26 +648,35 @@ class methodsBase
 
                     $replace_rules[$field_name] = $j_field_list;
                 } else {
-                    if (isset($field_description["table_alias"]))
-                        $field_table_alias = $field_description["table_alias"];
-                    else
-                        $field_table_alias = 't';
+                    $field_table_alias = $field_description['table_alias'] ?? 't';
 
-                    // Обработка полей с количеством записей.
-                    if ($field_table_alias == 'c') {
-                        $field_list .= '(SELECT count(*) FROM '
-                            .$controller->relation($field_description['schema_name'] ?? 'public', $field_description['table_name'])
-                            .' ' .$field_description['table_alias']
-                            ." WHERE $field_description[table_alias].$field_description[key] = t.$field_description[ref_key])";
+                    if ((($field_table_alias == 'r') || ($field_table_alias == 'c'))
+                        && (!empty($field_description['table_name']))) {
+                        $start = $field_table_alias == 'c' ? '(SELECT count(*) FROM' : 'EXISTS(SELECT 1 FROM';
+
+                        $field_list .= "$start "
+                            . $controller->relation($field_description['schema_name'] ?? 'public', $field_description['table_name'])
+                            . ' ' . $field_table_alias
+                            . " WHERE $field_table_alias.$field_description[key] = t.$field_description[ref_key]) AS $field_name";
+
+                        if ($field_table_alias == 'r') {
+                            $field_list .= ", $field_description[key]";
+                            $field_array[] = $field_name;
+                            $field_array[] = $field_description['key'];
+                            continue;
+                        }
+
+                        $field_array[] = $field_name;
+                        continue;
                     }
 
-                    if (isset($field_description["only_filled"]))
-                        $field_list .= $controller->IdQuote($field_table_alias) . "." . $controller->IdQuote($field_name) . " is not null as " . $controller->IdQuote($field_name);
-                    else if ($field_description['table_alias'] !== 'c')
+                    if (isset($field_description['only_filled']))
+                        $field_list .= $controller->IdQuote($field_table_alias) . '.' . $controller->IdQuote($field_name) . ' is not null as ' . $controller->IdQuote($field_name);
+                    else if (($field_description['table_alias'] !== 'r') && ($field_description['table_alias'] !== 'c'))
                         $field_list .= $controller->IdQuote($field_table_alias) . "." .  $controller->IdQuote($field_name);
                     if (isset($field_description['type']))
                         $field_list .= '::' .  $controller->IdQuote($field_description['type']);
-                    $field_array[] = $field_name;
+					$field_array[] = $field_name;
                 }
             }
             foreach ($params["functions"] as $function_name => $function_description) {
@@ -729,6 +741,8 @@ class methodsBase
             $statement .= 'tablesample bernoulli(' . $ratio . ')';
         }
 
+        $sql_without_condition = $statement;
+
         if ($predicate != '') {
             $statement = $statement . ' WHERE ' . $predicate;
             $sql_aggregates = $sql_aggregates . ' WHERE ' . $predicate;
@@ -784,6 +798,9 @@ class methodsBase
         $options->SetFormat((isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object');
         $options->SetQueryDescription($desc);
 
+        if (!empty($params['predicate']['operands']))
+            static::createWrapper($statement, $sql_without_condition, $params, $field_array);
+
         $data_result_statement = $controller->Sql($statement, $options);
 
         $count_data = count($data_result_statement);
@@ -819,6 +836,8 @@ class methodsBase
 
         return static::postProcessing($data_result, $params);
     }
+
+    public static function createWrapper(&$source_sql, $sql_without_condition, $params, $fields) {}
 
     public static function getEntitiesByKey($params, $order_by_key = true) {
         throw new Exception('Function ' .__FUNCTION__ .' is deleted!!!');
