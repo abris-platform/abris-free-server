@@ -142,9 +142,14 @@ class methodsBase
         }
 
         unset_auth_session();
+        static::clear_auth_session();
         return null;
     }
 
+    public static function clear_auth_session() {
+        unset_auth_session();
+    }
+    
     public static function getAnotherUsername() {
         global $_STORAGE;
         return $_STORAGE['login'];
