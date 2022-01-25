@@ -142,8 +142,12 @@ class methodsBase
             return $usenameDB;
         }
 
-        unset_auth_session();
+        static::clear_auth_session();
         return null;
+    }
+
+    public static function clear_auth_session() {
+        unset_auth_session();
     }
 
     public static function getAnotherUsername() {
