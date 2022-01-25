@@ -8,9 +8,16 @@ class DatabasePostgresql extends DatabaseAbstract
 
             if (is_null($data))
                 $data = $this->config;
-
-            $password = isset($_STORAGE['private_key']) ? DecryptStr($_STORAGE['password'], $_STORAGE['private_key']) : $data['password'];
-            $this->connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$data[user] password=$password");
+                        
+            $password = $data['password'];
+            $user = $data['user'];
+                
+            if (isset($_STORAGE['private_key'])) {
+                $password = DecryptStr($_STORAGE['password'], $_STORAGE['private_key']);
+                $user = $_STORAGE['login'];
+            }
+            
+            $this->connect = @pg_connect("host=$data[host] dbname=$data[dbname] port=$data[port] user=$user password=$password");
         }
 
         return $this->connect;
