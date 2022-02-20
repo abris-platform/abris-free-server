@@ -35,7 +35,7 @@ class SQLBase
     }
 
     public function BeforeQuery($pid) {
-        global $_STORAGE, $_CONFIG;
+        global $_STORAGE;
 
         if (!isset($_STORAGE['pids']))
             $_STORAGE['pids'] = array();

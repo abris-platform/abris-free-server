@@ -131,8 +131,14 @@ class DbSqlController
 
         $sqlObject->AfterQuery($result);
         $response = $sqlObject->ProcessResult($result, $format);
-        $databaseObject->db_close();
+        $this->CloseConnection();
+
         return $response;
+    }
+
+    protected function CloseConnection() {
+        global $_STORAGE;
+        return $_STORAGE['database']->db_close();
     }
 
     public function SqlCountEstimate($query, $options = null) {
