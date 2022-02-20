@@ -80,6 +80,7 @@ class DbSqlController
                     'password' => $pass
                 )
             );
+
             if ($dbconnect)
                 return $dbconnect;
         }
