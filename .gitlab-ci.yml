@@ -36,7 +36,7 @@ test:
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite pgsql --coverage-html tests/reports/reportPgsql
     - ./phpunit --bootstrap tests/bootstrap_mysql.php --testsuite mysql --coverage-html tests/reports/reportMysql
     - ./phpunit --bootstrap tests/bootstrap.php --testsuite methodsFree --coverage-html tests/reports/reportMethodsFreePgsql
-    - ./phpunit --bootstrap tests/bootstrap_mysql.php --testsuite methodsFree --coverage-html tests/reports/reportMethodsFreeMysql
+    # - ./phpunit --bootstrap tests/bootstrap_mysql.php --testsuite methodsFree --coverage-html tests/reports/reportMethodsFreeMysql
   artifacts:
     name: 'abris-server-base-report'
     paths:
