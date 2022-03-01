@@ -75,3 +75,7 @@ function unset_auth_session() {
     if (isset($_COOKIE['private_key']))
         setcookie('private_key', null, -1);
 }
+
+function dir_separator(array $paths): string {
+    return implode(DIRECTORY_SEPARATOR, $paths);
+}
