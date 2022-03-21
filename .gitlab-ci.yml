@@ -30,7 +30,7 @@ test:
     # - wget -O phpunit https://phar.phpunit.de/phpunit-8.phar
     # - chmod +x phpunit
     # - cp tests/config_free.json Server/configs/config_free.json
-    # - mkdir report
+    - mkdir report
     # - export XDEBUG_MODE=coverage
     # - ./phpunit --bootstrap tests/bootstrap.php --testsuite Base --coverage-html tests/reports/main_report
     # - ./phpunit --bootstrap tests/bootstrap.php --testsuite pgsql --coverage-html tests/reports/reportPgsql
