@@ -736,7 +736,7 @@ class methodsBase
             $func_name = $aggregateDescription['func'];
             $field_alias = $params['fields'][$field_name]['table_alias'];
 
-            $sql_aggregates[] = "${func_name}(${field_alias}.${field_name}) AS ${func_name}(${field_name})";
+            $sql_aggregates[] = "${func_name}(${field_alias}.${field_name}) AS \"${func_name}(${field_name})\"";
         }
         $sql_aggregates = 'SELECT ' . implode(', ', $sql_aggregates) . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
