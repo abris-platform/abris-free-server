@@ -730,15 +730,20 @@ class methodsBase
 
         $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
-        $sql_aggregates = array();
-        foreach ($params["aggregate"] as $aggregateDescription) {
-            $field_name = $aggregateDescription['field'];
-            $func_name = $aggregateDescription['func'];
-            $field_alias = $params['fields'][$field_name]['table_alias'];
+        $aggregates = array();
+        $aggregates_str = '1';
+        if (!empty($params['aggregate'])) {
+            foreach ($params["aggregate"] as $aggregateDescription) {
+                $field_name = $aggregateDescription['field'];
+                $func_name = $aggregateDescription['func'];
+                $field_alias = $params['fields'][$field_name]['table_alias'];
 
-            $sql_aggregates[] = "${func_name}(${field_alias}.${field_name}) AS \"${func_name}(${field_name})\"";
+                $aggregates[] = "${func_name}(${field_alias}.${field_name}) AS \"${func_name}(${field_name})\"";
+            }
+
+            $aggregates_str = implode(', ', $aggregates);
         }
-        $sql_aggregates = 'SELECT ' . implode(', ', $sql_aggregates) . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+        $sql_aggregates = "SELECT $aggregates_str FROM " . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
 
         if (isset($params["sample"])) {
             $ratio = intval($params["sample"]);
@@ -828,7 +833,7 @@ class methodsBase
             }
         }
 
-        if (sizeof($params["aggregate"])) {
+        if (!empty($params["aggregate"])) {
             $options = static::GetDefaultOptions();
             $options->SetQueryDescription("$desc (aggregate)");
             $data_aggregates = $controller->Sql($sql_aggregates, $options);
