@@ -126,8 +126,16 @@ class ApplicationInitBase
         $pid_count = isset($_STORAGE['pids']) ? count($_STORAGE['pids']) : 0;
 
         if (!isset($_POST['method'])) {
-            static::callSpecialMethods();
-            return json_encode(array('jsonrpc' => '2.0', 'result' => null, 'error' => 'method', 'usename' => $usename, 'pids' => $pid_count));
+            $result = static::callSpecialMethods();
+            return json_encode(
+                array(
+                    'jsonrpc' => '2.0',
+                    'result' => !empty($result) ? $result : null,
+                    'error' => empty($result) ? 'method' : null,
+                    'usename' => $usename,
+                    'pids' => $pid_count
+                )
+            );
         }
 
         if (!isset($_POST['params'])) {
