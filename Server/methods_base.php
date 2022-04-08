@@ -922,37 +922,54 @@ class methodsBase
         $sql = array();
 
         foreach ($params['fields'] as $r => $row) {
-            $fields = '';
-            $values = '';
+            $fields = array();
+            $values = array();
             foreach ($row as $field => $value) {
+                $functions = array();
+
                 if (!is_null($value) && $value!='') {
                     $sql_to_set = "'" .  $_STORAGE['Controller']->EscapeString($value) . "'";
-                    if (isset($params["types"])) {
-                        if (isset($params["types"][$field]))
-                            if ($params["types"][$field]) {
-                                $sql_to_set = $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value), $params["types"][$field]);
+                    if (isset($params['types'])) {
+                        if (isset($params['types'][$field]))
+                            if ($params['types'][$field]) {
+                                $sql_to_set = $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value), $params['types'][$field]);
                             }
                     }
 
                     if(isset($replaceDataWithSQL[$field]))
                         $sql_to_set = $replaceDataWithSQL[$field];
 
-                    if ($fields) {
-                        $fields .= ', ' .  $_STORAGE['Controller']->IdQuote($field);
-                    } else {
-                        $fields =  $_STORAGE['Controller']->IdQuote($field);
-                    }
+                    $fields[] = $_STORAGE['Controller']->IdQuote($field);
 
-                    if ($values) {
-                        $values .= ", " . $sql_to_set;
-                    } else {
-                        $values = $sql_to_set;
-                    }
+                    if (isset($params['additional']['functions']))
+                        foreach ($params['additional']['functions'] as $func) {
+                            if (!isset($func['fname']) || !isset($func['fields']))
+                                continue;
+
+                            if (in_array($field, $func['fields']))
+                                $functions[$func['fname']][] = $sql_to_set;
+                        }
+
+                    if (!empty($functions))
+                        $values[] = $functions;
+                    else
+                        $values[] = $sql_to_set;
                 }
             }
 
+            $values = array_map(
+                function ($element) {
+                    if (is_array($element)) {
+                        $key = array_key_first($element);
+                        return '"' .$key .'"(' .implode(', ', $element[$key]) .')';
+                    }
+                    return  $element;
+                },
+                $values
+            );
+
             $sql[] = 'INSERT INTO ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName'])
-                    . "($fields) "  . $_STORAGE['Controller']->InsertValues($values) .' '
+                    . '(' .implode(', ', $fields) .') '  . $_STORAGE['Controller']->InsertValues(implode(', ', $values)) .' '
                     . $_STORAGE['Controller']->ReturningPKey( $_STORAGE['Controller']->IdQuote($params['key']))  .';';
         }
 
