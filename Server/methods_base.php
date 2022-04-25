@@ -915,46 +915,56 @@ class methodsBase
 
     public static function addEntities($params) {
         global $_STORAGE;
+        $controller = $_STORAGE['Controller'];
+
         $replaceDataWithSQL;
         static::preProcessing($params, 'addEntities', $replaceDataWithSQL);
 
         $desc = $params['desc'] ?? '';
-        $sql = array();
+        $ins_values = array();
 
-        foreach ($params['fields'] as $r => $row) {
+        foreach ($params['fields'] as $row) {
             $fields = array();
             $values = array();
             foreach ($row as $field => $value) {
                 $functions = array();
 
-                if (!is_null($value) && $value!='') {
-                    $sql_to_set = "'" .  $_STORAGE['Controller']->EscapeString($value) . "'";
-                    if (isset($params['types'])) {
-                        if (isset($params['types'][$field]))
-                            if ($params['types'][$field]) {
-                                $sql_to_set = $_STORAGE['Controller']->type( $_STORAGE['Controller']->EscapeString($value), $params['types'][$field]);
-                            }
+                $row_value = $value;
+                $sql_to_set = "'" . $controller->EscapeString($row_value) . "'";
+
+                if ($row_value == '') {
+                    $row_value = 'null';
+                    $sql_to_set = $row_value;
+                }
+
+                if (isset($params['types'])) {
+                    if (isset($params['types'][$field]))
+                        if ($params['types'][$field]) {
+                            $sql_to_set = $controller->type(
+                                $row_value == 'null' ? $row_value : $controller->EscapeString($row_value),
+                                $params['types'][$field]
+                            );
+                        }
+                }
+
+                if (isset($replaceDataWithSQL[$field]))
+                    $sql_to_set = $replaceDataWithSQL[$field];
+
+                $fields[] = $controller->IdQuote($field);
+
+                if (isset($params['additional']['functions']))
+                    foreach ($params['additional']['functions'] as $func) {
+                        if (!isset($func['fname']) || !isset($func['fields']))
+                            continue;
+
+                        if (in_array($field, $func['fields']))
+                            $functions[$func['fname']][] = $sql_to_set;
                     }
 
-                    if(isset($replaceDataWithSQL[$field]))
-                        $sql_to_set = $replaceDataWithSQL[$field];
-
-                    $fields[] = $_STORAGE['Controller']->IdQuote($field);
-
-                    if (isset($params['additional']['functions']))
-                        foreach ($params['additional']['functions'] as $func) {
-                            if (!isset($func['fname']) || !isset($func['fields']))
-                                continue;
-
-                            if (in_array($field, $func['fields']))
-                                $functions[$func['fname']][] = $sql_to_set;
-                        }
-
-                    if (!empty($functions))
-                        $values[] = $functions;
-                    else
-                        $values[] = $sql_to_set;
-                }
+                if (!empty($functions))
+                    $values[] = $functions;
+                else
+                    $values[] = $sql_to_set;
             }
 
             $values = array_map(
@@ -968,12 +978,16 @@ class methodsBase
                 $values
             );
 
-            $sql[] = 'INSERT INTO ' . $_STORAGE['Controller']->relation($params['schemaName'], $params['entityName'])
-                    . '(' .implode(', ', $fields) .') '  . $_STORAGE['Controller']->InsertValues(implode(', ', $values)) .' '
-                    . $_STORAGE['Controller']->ReturningPKey( $_STORAGE['Controller']->IdQuote($params['key']))  .';';
+            $ins_values[] = '(' .implode(', ', $values) .')';
         }
 
-        $ins_ret = static::queryModifyEntities($sql, null, "$desc (files)");
+        $columns = array_keys($params['fields'][0]);
+
+        $sql = 'INSERT INTO ' . $controller->relation($params['schemaName'], $params['entityName'])
+            . '(' .implode(', ', $columns) .') VALUES '  . implode(', ', $ins_values) .' '
+            . $controller->ReturningPKey( $_STORAGE['Controller']->IdQuote($params['key']))  .';';
+
+        $ins_ret = static::queryModifyEntities(array($sql), null, "$desc (files)");
         return $ins_ret;
     }
 
