@@ -933,7 +933,7 @@ class methodsBase
                 $sql_to_set = "'" . $controller->EscapeString($row_value) . "'";
 
                 if ($row_value == '') {
-                    $row_value = 'null';
+                    $row_value = 'default';
                     $sql_to_set = $row_value;
                 }
 
@@ -941,7 +941,7 @@ class methodsBase
                     if (isset($params['types'][$field]))
                         if ($params['types'][$field]) {
                             $sql_to_set = $controller->type(
-                                $row_value == 'null' ? $row_value : $controller->EscapeString($row_value),
+                                $row_value == 'default' ? $row_value : $controller->EscapeString($row_value),
                                 $params['types'][$field]
                             );
                         }
