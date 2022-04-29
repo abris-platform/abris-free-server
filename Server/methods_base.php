@@ -563,16 +563,15 @@ class methodsBase
         return array('orderfields' => $orderfields, 'orderfields_no_aliases' => $orderfields_no_aliases, 'distinctfields' => $distinctfields);
     }
 
-    public static function getTableDataPredicate($params) {
+    public static function createBaseQuery($params) {
         global $_STORAGE;
         $controller = $_STORAGE['Controller'];
-        $desc = $params['desc'] ?? '';
         $replace_rules = array();
 
-        if (isset($params["fields"])) {
-            $field_list = "";
+        if (isset($params['fields'])) {
+            $field_list = '';
         } else {
-            $field_list = "*";
+            $field_list = '*';
         }
 
         $orderfields = '';
@@ -679,8 +678,8 @@ class methodsBase
                     else if (($field_description['table_alias'] !== 'r') && ($field_description['table_alias'] !== 'c'))
                         $field_list .= $controller->IdQuote($field_table_alias) . "." .  $controller->IdQuote($field_name);
                     if (isset($field_description['type']))
-                        $field_list .= '::' .  $controller->IdQuote($field_description['type']);
-					$field_array[] = $field_name;
+                        $field_list .= "::$field_description[type]";
+                    $field_array[] = $field_name;
                 }
             }
             foreach ($params["functions"] as $function_name => $function_description) {
@@ -762,7 +761,6 @@ class methodsBase
         if ($distinctfields)
             $count .= ') t';
 
-        $rollupfields = '';
         if (isset($pred_res["m_order"])) {
             if ($orderfields)
                 $orderfields .= ', ' . $pred_res["m_order"];
@@ -803,25 +801,41 @@ class methodsBase
             "sql" => $statement
         );
 
+        if (!empty($params['predicate']['operands']))
+            static::createWrapper($statement, $sql_without_condition, $params, $field_array);
+
+        return array(
+            'statement' => $statement,
+            'statement_count'=> $statement_count,
+            'count' => $count,
+            'sql_aggregates' => $sql_aggregates
+        );
+    }
+
+    public static function getTableDataPredicate($params) {
+        global $_STORAGE;
+        $controller = $_STORAGE['Controller'];
+        $desc = $params['desc'] ?? '';
+
+        $queries = static::createBaseQuery($params);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $options = static::GetDefaultOptions();
         $options->SetFormat((isset($params['format']) && !isset($params['process'])) ? $params['format'] : 'object');
         $options->SetQueryDescription($desc);
 
-        if (!empty($params['predicate']['operands']))
-            static::createWrapper($statement, $sql_without_condition, $params, $field_array);
-
-        $data_result_statement = $controller->Sql($statement, $options);
+        $data_result_statement = $controller->Sql($queries['statement'], $options);
 
         $count_data = count($data_result_statement);
 
-        if (($count_data < $params["limit"]) || ($params["limit"] == 1)) {
-            $number_count[0]["count"] = $count_data + $params["offset"];
+        if (($count_data < $params['limit']) || ($params['limit'] == 1)) {
+            $number_count[0]['count'] = $count_data + $params['offset'];
         } else {
-            $number_count[0]["count"] = methodsBase::sql_count_estimate($params, $statement_count, $count);
+            $number_count[0]['count'] = methodsBase::sql_count_estimate($params, $queries['statement_count'], $queries['count']);
         }
 
-        $data_result["data"] = $data_result_statement;
-        $data_result["records"] = $number_count;
+        global $data_result;
+        $data_result['data'] = $data_result_statement;
+        $data_result['records'] = $number_count;
 
         if (isset($params['predicate']['operands'][0])) {
             $fst_operand = $params['predicate']['operands'][0];
@@ -833,13 +847,13 @@ class methodsBase
             }
         }
 
-        if (!empty($params["aggregate"])) {
+        if (!empty($params['aggregate'])) {
             $options = static::GetDefaultOptions();
             $options->SetQueryDescription("$desc (aggregate)");
-            $data_aggregates = $controller->Sql($sql_aggregates, $options);
+            $data_aggregates = $controller->Sql($queries['sql_aggregates'], $options);
 
-            foreach ($params["aggregate"] as $aggrIndex => $aggregateDescription) {
-                $data_result[$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'][][$aggregateDescription["func"]] = $data_aggregates[0][$aggregateDescription["func"] . '(' . $aggregateDescription["field"] . ')'];
+            foreach ($params['aggregate'] as $aggrIndex => $aggregateDescription) {
+                $data_result[$aggregateDescription['func'] . '(' . $aggregateDescription['field'] . ')'][][$aggregateDescription['func']] = $data_aggregates[0][$aggregateDescription['func'] . '(' . $aggregateDescription['field'] . ')'];
             }
         }
 
@@ -911,7 +925,6 @@ class methodsBase
         $return_data['sql'] = implode('', $sql);
         return $return_data;
     }
-
 
     public static function addEntities($params) {
         global $_STORAGE;
