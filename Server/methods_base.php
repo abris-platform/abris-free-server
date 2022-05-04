@@ -936,11 +936,16 @@ class methodsBase
         $desc = $params['desc'] ?? '';
         $ins_values = array();
 
+        $is_one_row = count($params['fields']) === 1;
+
         foreach ($params['fields'] as $row) {
             $fields = array();
             $values = array();
             foreach ($row as $field => $value) {
                 $functions = array();
+
+                if ($is_one_row && empty($value))
+                    continue;
 
                 $row_value = $value;
                 $sql_to_set = "'" . $controller->EscapeString($row_value) . "'";
@@ -995,6 +1000,19 @@ class methodsBase
         }
 
         $columns = array_keys($params['fields'][0]);
+
+        if ($is_one_row)
+            $columns = array_filter($columns,
+                function ($e) use ($is_one_row, $params) {
+                    if ($is_one_row && empty($params['fields'][0][$e]))
+                        return false;
+                    return true;
+                });
+
+        $columns = array_map(
+            function ($e) use ($controller) {
+                return $controller->IdQuote($e);
+            }, $columns);
 
         $sql = 'INSERT INTO ' . $controller->relation($params['schemaName'], $params['entityName'])
             . '(' .implode(', ', $columns) .') VALUES '  . implode(', ', $ins_values) .' '
