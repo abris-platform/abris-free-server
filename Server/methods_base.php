@@ -52,7 +52,7 @@ class methodsBase
             $metadata[$p['projection_name']] = $p;
             $metadata[$p['projection_name']]['properties'] = array();
             $metadata[$p['projection_name']]['relations'] = array();
-            $metadata[$p['projection_name']]['buttons'] = array();
+            // $metadata[$p['projection_name']]['buttons'] = array();
         }
 
 
@@ -567,6 +567,9 @@ class methodsBase
         global $_STORAGE;
         $controller = $_STORAGE['Controller'];
         $replace_rules = array();
+
+        if ($params['entityName'] === 'doctor')
+            $a = 1;
 
         if (isset($params['fields'])) {
             $field_list = '';

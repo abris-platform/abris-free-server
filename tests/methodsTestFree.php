@@ -334,11 +334,6 @@ class methodsTest extends TestCase
         $this->assertEquals($res, 1);
     }
 
-    public function test_quote() {
-        $res = methodsBase::quote('test');
-        $this->assertEquals($res, "'test'");
-    }
-
     public function test_test() {
         $res = methodsBase::test('test');
         $this->assertEquals($res, "test");

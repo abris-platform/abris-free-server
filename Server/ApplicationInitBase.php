@@ -137,6 +137,7 @@ class ApplicationInitBase
         $params = json_decode($_POST['params'], true);
 
         ob_start();
+
         $result = static::callCoreMethod($_POST['method'], $params);
         ob_end_clean();
 
