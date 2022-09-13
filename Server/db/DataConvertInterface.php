@@ -14,6 +14,8 @@ interface DataConvertInterface
 
     public function set_interval_style($style = 'iso_8601');
 
+    public function set_datestyle($style = 'GERMAN');
+
     public function db_query_user_description($username);
 
     public function get_explain_query();
