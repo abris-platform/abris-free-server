@@ -294,7 +294,8 @@ class methodsBase
             $field = $replace_rules[$field];
         } else {
             if (isset($operand["table_alias"])) {
-                $field = $_STORAGE['Controller']->IdQuote($operand["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field);
+                $field = $_STORAGE['Controller']->IdQuote($fields[$field]['virtual'] ? $fields[$field]['subfields_navigate_alias'] : $operand["table_alias"])
+                    . "." . $_STORAGE['Controller']->IdQuote($field);
             } else {
                 $field = "t." . $_STORAGE['Controller']->IdQuote($field);
             }
