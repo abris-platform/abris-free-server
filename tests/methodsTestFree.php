@@ -1429,7 +1429,7 @@ class methodsTest extends TestCase
         $this->assertEquals($res, [
             "data" => [
                 ["book_ref" => "00000F",
-                    "book_date" => "2017-07-05 00:12:00",
+                    "book_date" => "05.07.2017 00:12:00",
                     "total_amount" => "265700.00"
                 ]
             ],
@@ -1698,9 +1698,9 @@ class methodsTest extends TestCase
             'fields' => ['book_ref', 'book_date', 'total_amount'],
             'sql' => $sql_equal,
             'data' => [
-                ['1DC435', '2017-07-20 05:36:00', '6700.00'],
-                ['7F5D7B', '2017-08-04 21:31:00', '7300.00'],
-                ['44444', '2020-03-12 18:55:00', '9999.00']
+                ['1DC435', '20.07.2017 05:36:00', '6700.00'],
+                ['7F5D7B', '04.08.2017 21:31:00', '7300.00'],
+                ['44444', '12.03.2020 18:55:00', '9999.00']
             ],
             'records' => [
                 ['count' => $res['records'][0]['count']]
@@ -1744,9 +1744,9 @@ class methodsTest extends TestCase
             'fields' => ['book_ref', 'book_date', 'total_amount'],
             'sql' => $sql_equal,
             'data' => [
-                ['000068', '2020-03-12 18:18:00', '18100.00'],
-                ['0002D8', '2017-08-07 18:40:00', '23600.00'],
-                ['000012', '2020-03-12 18:18:00', '37900.00']
+                ['000068', '12.03.2020 18:18:00', '18100.00'],
+                ['0002D8', '07.08.2017 18:40:00', '23600.00'],
+                ['000012', '12.03.2020 18:18:00', '37900.00']
             ],
             'records' => [
                 ['count' => 4]
@@ -2368,10 +2368,10 @@ class methodsTest extends TestCase
         $custom_json = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $custom_json = '{"f1":"F313DD 2017-07-03 01:37:00 30900.00","f2":"F313DD"}';
+                $custom_json = '{"f1":"F313DD 03.07.2017 01:37:00 30900.00","f2":"F313DD"}';
                 break;
             case(DatabaseMysql::class):
-                $custom_json = '{"f1": "F313DD 2017-07-03 01:37:00 30900.00", "f2": "F313DD"}';
+                $custom_json = '{"f1": "F313DD 03.07.2017 01:37:00 30900.00", "f2": "F313DD"}';
         }
 
         $this->assertEquals(
