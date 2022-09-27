@@ -2389,7 +2389,7 @@ class methodsTest extends TestCase
 
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $custom_json = '{"f1":"Booking F313DD (2017-07-03 01:37:00), cost: 30900.00","f2":"F313DD"}';
+                $custom_json = '{"f1":"Booking F313DD (03.07.2017 01:37:00), cost: 30900.00","f2":"F313DD"}';
                 break;
             case(DatabaseMysql::class):
                 $custom_json = '{"f1": "Booking F313DD (2017-07-03 01:37:00), cost: 30900.00", "f2": "F313DD"}';
