@@ -740,7 +740,7 @@ class methodsBase
             foreach ($params["aggregate"] as $aggregateDescription) {
                 $field_name = $aggregateDescription['field'];
                 $func_name = $aggregateDescription['func'];
-                $field_alias = $params['fields'][$field_name]['table_alias'];
+                $field_alias = !empty($aggregateDescription['table_alias']) ? $aggregateDescription['table_alias'] : $params['fields'][$field_name]['table_alias'];
 
                 $aggregates[] = "${func_name}(${field_alias}.${field_name}) AS \"${func_name}(${field_name})\"";
             }
