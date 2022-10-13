@@ -608,7 +608,8 @@ class methodsBase
                 $field_name = $field_obj["field"];
                 $field_func = $field_obj["func"];
                 $field_description = $params["fields"][$field_name];
-                $field_list .= $field_func . "(" . $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name) . ") as $field_name";
+                $table_alias = !empty($field_obj['table_alias']) ? $field_obj['table_alias'] : $field_description["table_alias"];
+                $field_list .= $field_func . "(" . $controller->IdQuote($table_alias) . "." . $controller->IdQuote($field_name) . ") as $field_name";
                 $field_array[] = $field_name;
             }
         } else {
