@@ -91,11 +91,6 @@ class DatabasePostgresql extends DatabaseAbstract
         pg_query($this->connect, 'SET bytea_output = "' . $style . '";');
     }
 
-    public function set_datestyle($style = 'GERMAN')
-    {
-        pg_query($this->connect, "SET datestyle TO '$style';");
-    }
-
     public function set_interval_style($style = 'iso_8601') {
         pg_query($this->connect, "SET intervalstyle = '$style';");
     }

@@ -57,6 +57,10 @@ class WebStorage implements ArrayAccess
             session_commit();
     }
 
+    public function isActiveSession() {
+        return $this->_isSession & ($this->session_status() == PHP_SESSION_ACTIVE);
+    }
+
     public function killStorage() {
         if ($this->IsSession()) {
             $_SESSION = array();

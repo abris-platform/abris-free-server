@@ -52,7 +52,7 @@ class methodsBase
             $metadata[$p['projection_name']] = $p;
             $metadata[$p['projection_name']]['properties'] = array();
             $metadata[$p['projection_name']]['relations'] = array();
-            // $metadata[$p['projection_name']]['buttons'] = array();
+            $metadata[$p['projection_name']]['buttons'] = array();
         }
 
 
@@ -294,8 +294,7 @@ class methodsBase
             $field = $replace_rules[$field];
         } else {
             if (isset($operand["table_alias"])) {
-                $field = $_STORAGE['Controller']->IdQuote($fields[$field]['virtual'] ? $fields[$field]['subfields_navigate_alias'] : $operand["table_alias"])
-                    . "." . $_STORAGE['Controller']->IdQuote($field);
+                $field = $_STORAGE['Controller']->IdQuote($operand["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field);
             } else {
                 $field = "t." . $_STORAGE['Controller']->IdQuote($field);
             }
@@ -569,9 +568,6 @@ class methodsBase
         $controller = $_STORAGE['Controller'];
         $replace_rules = array();
 
-        if ($params['entityName'] === 'doctor')
-            $a = 1;
-
         if (isset($params['fields'])) {
             $field_list = '';
         } else {
@@ -608,8 +604,7 @@ class methodsBase
                 $field_name = $field_obj["field"];
                 $field_func = $field_obj["func"];
                 $field_description = $params["fields"][$field_name];
-                $table_alias = !empty($field_obj['table_alias']) ? $field_obj['table_alias'] : $field_description["table_alias"];
-                $field_list .= $field_func . "(" . $controller->IdQuote($table_alias) . "." . $controller->IdQuote($field_name) . ") as $field_name";
+                $field_list .= $field_func . "(" . $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name) . ") as $field_name";
                 $field_array[] = $field_name;
             }
         } else {
@@ -740,7 +735,7 @@ class methodsBase
             foreach ($params["aggregate"] as $aggregateDescription) {
                 $field_name = $aggregateDescription['field'];
                 $func_name = $aggregateDescription['func'];
-                $field_alias = !empty($aggregateDescription['table_alias']) ? $aggregateDescription['table_alias'] : $params['fields'][$field_name]['table_alias'];
+                $field_alias = $params['fields'][$field_name]['table_alias'];
 
                 $aggregates[] = "${func_name}(${field_alias}.${field_name}) AS \"${func_name}(${field_name})\"";
             }

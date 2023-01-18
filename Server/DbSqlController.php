@@ -111,7 +111,6 @@ class DbSqlController
 
         $databaseObject->set_bytea_output();
         $databaseObject->set_interval_style();
-        $databaseObject->set_datestyle();
 
         $sqlObject->BeforeQuery($pid);
 

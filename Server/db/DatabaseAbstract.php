@@ -16,10 +16,6 @@ abstract class DatabaseAbstract implements DatabaseInterface, DataConvertInterfa
         return '';
     }
 
-    public function set_datestyle($style = 'GERMAN') {
-        return '';
-    }
-
     public function db_query($query) {
         $this->db_connect();
     }
