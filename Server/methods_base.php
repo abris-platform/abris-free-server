@@ -52,7 +52,7 @@ class methodsBase
             $metadata[$p['projection_name']] = $p;
             $metadata[$p['projection_name']]['properties'] = array();
             $metadata[$p['projection_name']]['relations'] = array();
-            $metadata[$p['projection_name']]['buttons'] = array();
+            // $metadata[$p['projection_name']]['buttons'] = array();
         }
 
 
@@ -294,7 +294,8 @@ class methodsBase
             $field = $replace_rules[$field];
         } else {
             if (isset($operand["table_alias"])) {
-                $field = $_STORAGE['Controller']->IdQuote($operand["table_alias"]) . "." . $_STORAGE['Controller']->IdQuote($field);
+                $field = $_STORAGE['Controller']->IdQuote($fields[$field]['virtual'] ? $fields[$field]['subfields_navigate_alias'] : $operand["table_alias"])
+                    . "." . $_STORAGE['Controller']->IdQuote($field);
             } else {
                 $field = "t." . $_STORAGE['Controller']->IdQuote($field);
             }
@@ -565,14 +566,15 @@ class methodsBase
 
     public static function createBaseQuery($params) {
         global $_STORAGE;
+        /** @var DbSqlController $controller */
         $controller = $_STORAGE['Controller'];
         $replace_rules = array();
 
-        if (isset($params['fields'])) {
-            $field_list = '';
-        } else {
-            $field_list = '*';
-        }
+        $fields = array();
+
+        if (!isset($params['fields'])) 
+            $fields[] = '*';
+        
 
         $orderfields = '';
         $orderfields_no_aliases = '';
@@ -590,29 +592,22 @@ class methodsBase
         if (isset($params["aggregate"]) && count($params["aggregate"]) && isset($params["group"])) {
             foreach ($params["group"] as $i => $field_obj) {
                 $field_name = $field_obj["field"];
-                if ($field_list) {
-                    $field_list .= ", ";
-                }
                 $field_description = $params["fields"][$field_name];
-                $field_list .= $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name);
+                $fields[] = $controller->relation($field_description['table_alias'], $field_name);
                 $field_array[] = $field_name;
             }
             foreach ($params["aggregate"] as $i => $field_obj) {
-                if ($field_list) {
-                    $field_list .= ", ";
-                }
                 $field_name = $field_obj["field"];
                 $field_func = $field_obj["func"];
                 $field_description = $params["fields"][$field_name];
-                $field_list .= $field_func . "(" . $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name) . ") as $field_name";
+                $table_alias = !empty($field_obj['table_alias']) ? $field_obj['table_alias'] : $field_description["table_alias"];
+
+                $fields[] = $field_func . '(' . $controller->relation($table_alias, $field_name) . ") AS $field_name";
+
                 $field_array[] = $field_name;
             }
         } else {
             foreach ($params["fields"] as $field_name => $field_description) {
-                if ($field_list) {
-                    $field_list .= ", ";
-                }
-
                 if (isset($field_description["subfields"])) {
                     $j_field_list_array = array();
 
@@ -634,19 +629,21 @@ class methodsBase
                     else
                         $j_field_list = $controller->Concat($j_field_list_array);
 
-                    if (isset($field_description["virtual"]))
-                        $field_list .= $controller->RowToJson(
-                                array(
-                                    $j_field_list,
-                                    $field_description['subfields_navigate_alias'] . '.' . $controller->IdQuote($field_description['subfields_key']))
-                            ) .' ' .$controller->Collate() .' AS ' . $controller->IdQuote($field_name);
-                    else
-                        $field_list .= $controller->RowToJson(
-                                array(
-                                    $j_field_list,
-                                    $controller->IdQuote($field_description['table_alias']) . '.' . $controller->IdQuote($field_name)
-                                )
-                            ) .' ' .$controller->Collate() .' AS ' . $controller->IdQuote($field_name);
+                    $row_json = '';
+                    if (isset($field_description["virtual"])) {
+                        $row_json = $controller->RowToJson(array(
+                                $j_field_list,
+                                $field_description['subfields_navigate_alias'] . '.' . $controller->IdQuote($field_description['subfields_key'])
+                            )) . ' ' . $controller->Collate() . ' AS ' . $controller->IdQuote($field_name);
+                    }
+                    else {
+                        $row_json = $controller->RowToJson(array(
+                                $j_field_list,
+                                $controller->IdQuote($field_description['table_alias']) . '.' . $controller->IdQuote($field_name)
+                            )) . ' ' . $controller->Collate() . ' AS ' . $controller->IdQuote($field_name);
+                    }
+
+                    $fields[] = $row_json;
                     $field_array[] = $field_name;
 
                     $replace_rules[$field_name] = $j_field_list;
@@ -657,13 +654,15 @@ class methodsBase
                         && (!empty($field_description['table_name']))) {
                         $start = $field_table_alias == 'c' ? '(SELECT count(*) FROM' : 'EXISTS(SELECT 1 FROM';
 
-                        $field_list .= "$start "
+                        $special_sub = "$start "
                             . $controller->relation($field_description['schema_name'] ?? 'public', $field_description['table_name'])
                             . ' ' . $field_table_alias
                             . " WHERE $field_table_alias.$field_description[key] = t.$field_description[ref_key]) AS $field_name";
 
+                        $fields[] = $special_sub;
+
                         if ($field_table_alias == 'r') {
-                            $field_list .= ", $field_description[key]";
+                            $fields[] = ", $field_description[key]";
                             $field_array[] = $field_name;
                             $field_array[] = $field_description['key'];
                             continue;
@@ -673,19 +672,27 @@ class methodsBase
                         continue;
                     }
 
-                    if (isset($field_description['only_filled']))
-                        $field_list .= $controller->IdQuote($field_table_alias) . '.' . $controller->IdQuote($field_name) . ' is not null as ' . $controller->IdQuote($field_name);
-                    else if (($field_description['table_alias'] !== 'r') && ($field_description['table_alias'] !== 'c'))
-                        $field_list .= $controller->IdQuote($field_table_alias) . "." .  $controller->IdQuote($field_name);
-                    if (isset($field_description['type']))
-                        $field_list .= "::$field_description[type]";
-                    $field_array[] = $field_name;
+                    $added_list = false;
+                    if (isset($field_description['only_filled'])) {
+                        $fields[] = $controller->relation($field_table_alias, $field_name) . ' IS NOT NULL AS ' . $controller->IdQuote($field_name);
+                        $added_list = true;
+                    }
+                    else if (($field_description['table_alias'] !== 'r') && ($field_description['table_alias'] !== 'c')) {
+                        $fields[] = $controller->relation($field_table_alias, $field_name);
+                        $added_list = true;
+                    }
+                    if (isset($field_description['type'])) {
+                        $fields[count($fields) - 1] .= "::$field_description[type]";
+                        $added_list = true;
+                    }
+
+                    if (($field_description['table_alias'] !== 'c') && $added_list) {
+                        $field_array[] = $field_name;
+                    }
                 }
             }
+
             foreach ($params["functions"] as $function_name => $function_description) {
-                if ($field_list) {
-                    $field_list .= ", ";
-                }
                 $param_list = null;
                 foreach ($function_description["params"] as $i => $param) {
                     if ($param_list) {
@@ -694,7 +701,7 @@ class methodsBase
                     $param_list .=  $controller->IdQuote($param['field']);
                 }
 
-                $field_list .=  $controller->IdQuote($function_description["schema"]) . "." .  $controller->IdQuote($function_description["func"]) . "($param_list)";
+                $fields[] =  $controller->relation($function_description["schema"], $function_description["func"]) . "($param_list)";
                 $field_array[] = $function_description["func"];
             }
         }
@@ -718,16 +725,20 @@ class methodsBase
         $pred_res = array();
         $predicate = self::makePredicateString($params["predicate"], $replace_rules, $params["fields"], $params, $pred_res);
 
-        if ($distinctfields)
-            $count = 'SELECT count(DISTINCT ' . $distinctfields . ') AS count FROM (SELECT ' . $field_list . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
-        else
-            $count = 'SELECT count(*) AS count FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' AS t ' . $join;
+        if ($distinctfields) {
+            $count = "SELECT count(DISTINCT $distinctfields) AS count FROM (SELECT "
+                . implode(', ', $fields)
+                . ' FROM ' . $controller->relation($params['schemaName'], $params['entityName']) ." AS t $join";
+        }
+        else {
+            $count = 'SELECT count(*) AS count FROM ' . $controller->relation($params['schemaName'], $params['entityName']) . " AS t $join";
+        }
 
         if ($distinctfields) {
             $distinctfields = $controller->distinct_on($distinctfields);
         }
 
-        $statement = 'SELECT ' . $distinctfields . ' ' . $field_list . ' FROM ' . $controller->relation($params["schemaName"], $params["entityName"]) . ' as t ' . $join;
+        $statement = "SELECT $distinctfields " . implode(', ', $fields) . ' FROM ' . $controller->relation($params['schemaName'], $params['entityName']) . " AS t $join";
 
         $aggregates = array();
         $aggregates_str = '1';
@@ -735,7 +746,7 @@ class methodsBase
             foreach ($params["aggregate"] as $aggregateDescription) {
                 $field_name = $aggregateDescription['field'];
                 $func_name = $aggregateDescription['func'];
-                $field_alias = $params['fields'][$field_name]['table_alias'];
+                $field_alias = !empty($aggregateDescription['table_alias']) ? $aggregateDescription['table_alias'] : $params['fields'][$field_name]['table_alias'];
 
                 $aggregates[] = "${func_name}(${field_alias}.${field_name}) AS \"${func_name}(${field_name})\"";
             }

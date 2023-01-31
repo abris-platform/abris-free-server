@@ -601,10 +601,10 @@ class methodsTest extends TestCase
         $sql_equal = "";
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')  ORDER BY airport_code LIMIT 10 OFFSET 0";
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" AS t  WHERE (\"t\".\"timezone\" = 'Asia/Novokuznetsk')  ORDER BY airport_code LIMIT 10 OFFSET 0";
                 break;
             case(DatabaseMysql::class):
-                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` = \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` AS t  WHERE (`t`.`timezone` = \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 10 OFFSET 0';
         }
         $this->assertEquals($res,
             [
@@ -704,10 +704,10 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = "SELECT  count(\"t\".\"airport_name\") as airport_name, count(\"t\".\"city\") as city, count(\"t\".\"coordinates\") as coordinates, count(\"t\".\"timezone\") as timezone FROM \"bookings\".\"airports\" as t  LIMIT 1 OFFSET 0";
+                $sql_equal = "SELECT  count(\"t\".\"airport_name\") AS airport_name, count(\"t\".\"city\") AS city, count(\"t\".\"coordinates\") AS coordinates, count(\"t\".\"timezone\") AS timezone FROM \"bookings\".\"airports\" AS t  LIMIT 1 OFFSET 0";
                 break;
             case(DatabaseMysql::class):
-                $sql_equal = 'SELECT  count(`t`.`airport_name`) as airport_name, count(`t`.`city`) as city, count(`t`.`coordinates`) as coordinates, count(`t`.`timezone`) as timezone FROM `bookings`.`airports` as t  LIMIT 1 OFFSET 0';
+                $sql_equal = 'SELECT  count(`t`.`airport_name`) AS airport_name, count(`t`.`city`) AS city, count(`t`.`coordinates`) AS coordinates, count(`t`.`timezone`) AS timezone FROM `bookings`.`airports` AS t  LIMIT 1 OFFSET 0';
         }
         $this->assertEquals($res,
             [
@@ -807,10 +807,10 @@ class methodsTest extends TestCase
         $sql_equal = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t   ORDER BY "t"."airport_code" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t   ORDER BY "t"."airport_code" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
-                $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
+                $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` AS t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
         }
 
         $this->assertEquals(
@@ -872,7 +872,7 @@ class methodsTest extends TestCase
                         "count" => 11
                     ]
                 ],
-                "offset" => '0',
+                "offset" => 0,
                 "fields" => [
                     "airport_code",
                     "airport_name",
@@ -887,10 +887,10 @@ class methodsTest extends TestCase
 
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" as t   ORDER BY \"t\".\"airport_code\" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0";
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\" FROM \"bookings\".\"airports\" AS t   ORDER BY \"t\".\"airport_code\" DESC NULLS LAST, airport_code LIMIT 10 OFFSET 0";
                 break;
             case(DatabaseMysql::class):
-                $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
+                $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` AS t   ORDER BY `t`.`airport_code` DESC, airport_code LIMIT 10 OFFSET 0";
         }
 
         $this->assertEquals(
@@ -1009,7 +1009,7 @@ class methodsTest extends TestCase
         $sql_equal = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" as t  LEFT JOIN \"bookings\".\"flights\" AS \"t0\" ON \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC NULLS LAST, airport_code LIMIT 2 OFFSET 0";
+                $sql_equal = "SELECT  \"t\".\"airport_code\", \"t\".\"airport_name\", \"t\".\"timezone\", \"t0\".\"flight_no\" FROM \"bookings\".\"airports\" AS t  LEFT JOIN \"bookings\".\"flights\" AS \"t0\" ON \"t\".\"airport_code\" = \"t0\".\"departure_airport\"  ORDER BY \"t0\".\"flight_no\" DESC NULLS LAST, airport_code LIMIT 2 OFFSET 0";
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone`, `t0`.`flight_no` FROM `bookings`.`airports` as t  LEFT JOIN `bookings`.`flights` AS `t0` ON `t`.`airport_code` = `t0`.`departure_airport`  ORDER BY `t0`.`flight_no` DESC, airport_code LIMIT 2 OFFSET 0";
@@ -1017,7 +1017,7 @@ class methodsTest extends TestCase
 
         $this->assertEquals(
             [
-                "offset" => "0",
+                "offset" => 0,
                 "fields" => [
                     "airport_code",
                     "airport_name",
@@ -1508,7 +1508,7 @@ class methodsTest extends TestCase
         $sql_equal = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."flight_no", "t"."scheduled_departure" FROM "bookings"."flights" as t  WHERE ("t"."scheduled_departure" <= now() AND "t"."scheduled_departure" > (now() - \'P3Y6M4D\'::interval))  ORDER BY flight_id LIMIT 10 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."flight_no", "t"."scheduled_departure" FROM "bookings"."flights" AS t  WHERE ("t"."scheduled_departure" <= now() AND "t"."scheduled_departure" > (now() - \'P3Y6M4D\'::interval))  ORDER BY flight_id LIMIT 10 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT  `t`.`flight_no`, `t`.`scheduled_departure` FROM `bookings`.`flights` as t  WHERE (`t`.`scheduled_departure` <= now() AND `t`.`scheduled_departure` > (now() - INTERVAL 3 YEAR - INTERVAL 6 MONTH - INTERVAL 4 DAY))  ORDER BY flight_id LIMIT 10 OFFSET 0";
@@ -1619,7 +1619,7 @@ class methodsTest extends TestCase
         $sql_equal = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone"::text ILIKE \'%As%\'::text AND "t"."timezone"::text ILIKE \'%vo%\'::text)  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone"::text ILIKE \'%As%\'::text AND "t"."timezone"::text ILIKE \'%vo%\'::text)  ORDER BY airport_code LIMIT 10 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (CONVERT(`t`.`timezone`, char(100000)) LIKE CONVERT(\'%As%\', char(100000)) AND CONVERT(`t`.`timezone`, char(100000)) LIKE CONVERT(\'%vo%\', char(100000)))  ORDER BY airport_code LIMIT 10 OFFSET 0';
@@ -1692,10 +1692,10 @@ class methodsTest extends TestCase
         $sql_equal = '';
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" AS t  WHERE ("t"."total_amount" > \'6000\') AND ("t"."book_ref" IS NOT NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
-                $sql_equal = "SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`total_amount` > '6000') AND (`t`.`book_ref` IS NOT NULL )  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0";
+                $sql_equal = "SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` AS t  WHERE (`t`.`total_amount` > '6000') AND (`t`.`book_ref` IS NOT NULL )  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0";
         }
 
         $this->assertEquals($res, [
@@ -1717,7 +1717,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" < \'6000\') AND ("t"."book_ref" IS NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" AS t  WHERE ("t"."total_amount" < \'6000\') AND ("t"."book_ref" IS NULL )  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`total_amount` < '6000') AND (`t`.`book_ref` IS NULL )  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0";
@@ -1739,7 +1739,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" AS t  WHERE ("t"."total_amount" >= \'6000\') AND ("t"."book_ref" <= \'0002D8\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`total_amount` >= '6000') AND (`t`.`book_ref` <= '0002D8')  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0";
@@ -1806,7 +1806,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint"("t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" AS t  WHERE ("testint"("t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`testint`(`t`.`range`))  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
@@ -1830,7 +1830,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("testint2"(\'"bookings"."aircrafts"\', "t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" AS t  WHERE ("testint2"(\'"bookings"."aircrafts"\', "t"."range"))  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`testint2`('`bookings`.`aircrafts`', `t`.`range`))  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
@@ -1855,7 +1855,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("t"."range" =  "testint3"())  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" AS t  WHERE ("t"."range" =  "testint3"())  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`t`.`range` =  `testint3`())  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
@@ -1879,7 +1879,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" as t  WHERE ("test4"("t"."range") =  \'1200\')  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."range") "t"."aircraft_code", "t"."model", "t"."range" FROM "bookings"."aircrafts" AS t  WHERE ("test4"("t"."range") =  \'1200\')  ORDER BY "t"."range", aircraft_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = "SELECT   `t`.`aircraft_code`, `t`.`model`, `t`.`range` FROM `bookings`.`aircrafts` as t  WHERE (`test4`(`t`.`range`) =  '1200')  ORDER BY `t`.`range`, aircraft_code LIMIT 3 OFFSET 0";
@@ -1953,7 +1953,7 @@ class methodsTest extends TestCase
         $sql_equal = "";
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NULL OR "t"."timezone"::text = \'\' OR "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone" IS NULL OR "t"."timezone"::text = \'\' OR "t"."timezone" IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NULL OR CONVERT(`t`.`timezone`, char(100000)) = \'\' OR `t`.`timezone` IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
@@ -2024,7 +2024,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" is null)  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" AS t  WHERE ("t"."book_ref" is null)  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` is null)  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
@@ -2045,7 +2045,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IS NULL OR trim("t"."book_ref"::text) = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" AS t  WHERE ("t"."book_ref" IS NULL OR trim("t"."book_ref"::text) = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` IS NULL OR trim(CONVERT(`t`.`book_ref`, char(100000))) = \'\')  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
@@ -2066,7 +2066,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IS NULL OR "t"."book_ref"::text = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" AS t  WHERE ("t"."book_ref" IS NULL OR "t"."book_ref"::text = \'\')  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` IS NULL OR CONVERT(`t`.`book_ref`, char(100000)) = \'\')  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
@@ -2087,7 +2087,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" as t  WHERE ("t"."book_ref" IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT DISTINCT ON ("t"."total_amount") "t"."book_ref", "t"."book_date", "t"."total_amount" FROM "bookings"."bookings" AS t  WHERE ("t"."book_ref" IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY "t"."total_amount", book_ref LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT   `t`.`book_ref`, `t`.`book_date`, `t`.`total_amount` FROM `bookings`.`bookings` as t  WHERE (`t`.`book_ref` IN (\'Asia/Novokuznetsk\',\'Europe/Moscow\'))  ORDER BY `t`.`total_amount`, book_ref LIMIT 3 OFFSET 0';
@@ -2158,7 +2158,7 @@ class methodsTest extends TestCase
         $sql_equal = "";
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\' and "t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND trim(CONVERT(`t`.`timezone`, char(100000))) <> \'\' and `t`.`timezone` NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 10 OFFSET 0';
@@ -2188,7 +2188,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" is null)  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone" is null)  ORDER BY airport_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` is null)  ORDER BY airport_code LIMIT 3 OFFSET 0';
@@ -2208,7 +2208,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone" IS NOT NULL AND "t"."timezone"::text <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND CONVERT(`t`.`timezone`, char(100000)) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
@@ -2233,7 +2233,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone" IS NOT NULL AND trim("t"."timezone"::text) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` IS NOT NULL AND trim(CONVERT(`t`.`timezone`, char(100000))) <> \'\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
@@ -2259,7 +2259,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone" NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` NOT IN (\'Asia/Novokuznetsk\',\'Asia/Yakutsk\'))  ORDER BY airport_code LIMIT 3 OFFSET 0';
@@ -2283,7 +2283,7 @@ class methodsTest extends TestCase
         $res = methodsBase::getTableDataPredicate($params);
         switch (get_class($_STORAGE['database'])) {
             case (DatabasePostgresql::class):
-                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" as t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
+                $sql_equal = 'SELECT  "t"."airport_code", "t"."airport_name", "t"."timezone" FROM "bookings"."airports" AS t  WHERE ("t"."timezone" <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
                 break;
             case(DatabaseMysql::class):
                 $sql_equal = 'SELECT  `t`.`airport_code`, `t`.`airport_name`, `t`.`timezone` FROM `bookings`.`airports` as t  WHERE (`t`.`timezone` <> \'Asia/Novokuznetsk\')  ORDER BY airport_code LIMIT 3 OFFSET 0';
