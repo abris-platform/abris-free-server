@@ -595,13 +595,13 @@ class methodsBase
         if (isset($params["aggregate"]) && count($params["aggregate"]) && isset($params["group"])) {
             foreach ($params["group"] as $i => $field_obj) {
                 $field_name = $field_obj["field"];
-                if ($field_list) {
-                    $field_list .= ", ";
-                }
+                //if ($field_list) {
+               //     $field_list .= ", ";
+               // }
                 $field_description = $params["fields"][$field_name];
 
                 // TODO строку под удаление
-                $field_list .= $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name);
+               // $field_list .= $controller->IdQuote($field_description["table_alias"]) . "." . $controller->IdQuote($field_name);
                 $fields[] = $controller->relation($field_description['table_alias'], $field_name);
 
                 $field_array[] = $field_name;
@@ -616,16 +616,16 @@ class methodsBase
                 $table_alias = !empty($field_obj['table_alias']) ? $field_obj['table_alias'] : $field_description["table_alias"];
 
                 // TODO строку под удаление.
-                $field_list .= $field_func . "(" . $controller->IdQuote($table_alias) . "." . $controller->IdQuote($field_name) . ") as $field_name";
+               // $field_list .= $field_func . "(" . $controller->IdQuote($table_alias) . "." . $controller->IdQuote($field_name) . ") as $field_name";
                 $fields[] = $field_func . '(' . $controller->relation($table_alias, $field_name) . ") AS $field_name";
 
                 $field_array[] = $field_name;
             }
         } else {
             foreach ($params["fields"] as $field_name => $field_description) {
-                if ($field_list) {
-                    $field_list .= ", ";
-                }
+               // if ($field_list) {
+                //    $field_list .= ", ";
+              //  }
 
                 if (isset($field_description["subfields"])) {
                     $j_field_list_array = array();
@@ -663,7 +663,7 @@ class methodsBase
                     }
 
                     // TODO строка под удаление.
-                    $field_list .= $row_json;
+                    //$field_list .= $row_json;
                     $fields[] = $row_json;
 
                     $field_array[] = $field_name;
@@ -682,12 +682,12 @@ class methodsBase
                             . " WHERE $field_table_alias.$field_description[key] = t.$field_description[ref_key]) AS $field_name";
 
                         // TODO строка под удаление.
-                        $field_list .= $special_sub;
+                        //$field_list .= $special_sub;
                         $fields[] = $special_sub;
 
                         if ($field_table_alias == 'r') {
                             // TODO строка под удаление.
-                            $field_list .= ", $field_description[key]";
+                            //$field_list .= ", $field_description[key]";
                             $fields[] = ", $field_description[key]";
 
                             $field_array[] = $field_name;
@@ -702,21 +702,21 @@ class methodsBase
                     $added_list = false;
                     if (isset($field_description['only_filled'])) {
                         // TODO строка под удаление.
-                        $field_list .= $controller->IdQuote($field_table_alias) . '.' . $controller->IdQuote($field_name) . ' is not null as ' . $controller->IdQuote($field_name);
+                        //$field_list .= $controller->IdQuote($field_table_alias) . '.' . $controller->IdQuote($field_name) . ' is not null as ' . $controller->IdQuote($field_name);
                         $fields[] = $controller->relation($field_table_alias, $field_name) . ' IS NOT NULL AS ' . $controller->IdQuote($field_name);
 
                         $added_list = true;
                     }
                     else if (($field_description['table_alias'] !== 'r') && ($field_description['table_alias'] !== 'c')) {
                         // TODO строка под удаление.
-                        $field_list .= $controller->IdQuote($field_table_alias) . "." . $controller->IdQuote($field_name);
+                        //$field_list .= $controller->IdQuote($field_table_alias) . "." . $controller->IdQuote($field_name);
                         $fields[] = $controller->relation($field_table_alias, $field_name);
 
                         $added_list = true;
                     }
                     if (isset($field_description['type'])) {
                         // TODO строка под удаление.
-                        $field_list .= "::$field_description[type]";
+                        //$field_list .= "::$field_description[type]";
                         $fields[count($fields) - 1] .= "::$field_description[type]";
 
                         $added_list = true;
@@ -728,9 +728,9 @@ class methodsBase
                 }
             }
             foreach ($params["functions"] as $function_name => $function_description) {
-                if ($field_list) {
-                    $field_list .= ", ";
-                }
+               // if ($field_list) {
+              //      $field_list .= ", ";
+             //   }
                 $param_list = null;
                 foreach ($function_description["params"] as $i => $param) {
                     if ($param_list) {
@@ -740,7 +740,7 @@ class methodsBase
                 }
 
                 // TODO строка под удаление.
-                $field_list .=  $controller->IdQuote($function_description["schema"]) . "." .  $controller->IdQuote($function_description["func"]) . "($param_list)";
+                //$field_list .=  $controller->IdQuote($function_description["schema"]) . "." .  $controller->IdQuote($function_description["func"]) . "($param_list)";
                 $fields[] =  $controller->relation($function_description["schema"], $function_description["func"]) . "($param_list)";
 
                 $field_array[] = $function_description["func"];
