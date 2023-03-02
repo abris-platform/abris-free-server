@@ -95,6 +95,10 @@ class DatabasePostgresql extends DatabaseAbstract
         pg_query($this->connect, "SET intervalstyle = '$style';");
     }
 
+    public function set_datestyle($style = 'GERMAN'){
+        pg_query($this->connect, "SET datestyle TO '$style';");
+    }
+
     public function id_quote($identifier) {
         return '"' . str_replace('"', '""', $identifier) . '"';
     }
