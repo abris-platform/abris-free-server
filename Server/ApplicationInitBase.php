@@ -138,10 +138,10 @@ class ApplicationInitBase
 
         ob_start();
         $result = static::callCoreMethod($_POST['method'], $params);
-        if (ob_get_contents()) 
-            ob_end_clean();
+        //if (ob_get_contents()) 
+        ob_end_clean();
 
-        // ---------- $_STORAGE['login'] = $_STORAGE['login'] == 'guest' ? '' : $_STORAGE['login'];
+        $_STORAGE['login'] = $_STORAGE['login'] == 'guest' ? '' : $_STORAGE['login'];
 
         return json_encode(array('jsonrpc' => '2.0', 'result' => $result, 'error' => null, 'usename' => strval($_STORAGE['login']), 'pids' => $pid_count));
     }
