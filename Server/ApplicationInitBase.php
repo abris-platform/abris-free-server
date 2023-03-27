@@ -106,6 +106,11 @@ class ApplicationInitBase
         return;
     }
 
+    protected static function saveStorageLogin() {
+        global $_STORAGE;
+        $_STORAGE['login'] = $_STORAGE['login'] == 'guest' ? '' : $_STORAGE['login'];
+    }
+
     public static function request() {
         static::cors();
         global $_STORAGE, $_CONFIG;
@@ -138,10 +143,9 @@ class ApplicationInitBase
 
         ob_start();
         $result = static::callCoreMethod($_POST['method'], $params);
-        //if (ob_get_contents()) 
-        ob_end_clean();
+        @ob_end_clean();
 
-        $_STORAGE['login'] = $_STORAGE['login'] == 'guest' ? '' : $_STORAGE['login'];
+        static::saveStorageLogin();
 
         return json_encode(array('jsonrpc' => '2.0', 'result' => $result, 'error' => null, 'usename' => strval($_STORAGE['login']), 'pids' => $pid_count));
     }
